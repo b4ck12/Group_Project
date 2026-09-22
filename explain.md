@@ -1,175 +1,216 @@
-# Hướng Dẫn Vận Hành & Luồng Hoạt Động (Project Explanation)
+# 📖 Hướng Dẫn Vận Hành & Luồng Hoạt Động (TripMate AI System Explanation)
 
-Tài liệu này giải thích chi tiết luồng hoạt động (flows), cách thức phối hợp làm việc song song (workways), kiến trúc hệ thống Python FastAPI và cách các AI Agents (LangGraph Python) sử dụng DeepSeek API kết nối với hệ thống Core.
-
-Hệ thống hỗ trợ **mọi hoạt động nhóm** — không chỉ du lịch mà còn đi ăn, chọn quán, chỗ chơi, tham quan, cafe/hangout và các sự kiện tùy chỉnh.
+> Tài liệu giải thích chi tiết toàn bộ luồng nghiệp vụ, kiến trúc vận hành hệ thống, cơ chế phối hợp giữa các tầng công nghệ và nguyên lý của **AI Agent hợp nhất (DeepSeek-V4)** trong dự án **TripMate AI: Intelligent Group Activity & Travel Planning Platform**, bám sát 100% tài liệu Technical Proposal.
 
 ---
 
-## 1. Bản Đồ Tài Liệu (Documentation Directory Map)
+## 🗺️ 1. Bản Đồ Tài Liệu Kỹ Thuật (Documentation Directory Map)
 
-- **Quy trình làm việc song song:** [contract-first-workflow.md](docs/01-workflow/contract-first-workflow.md) (Quyết định cách 6 người code cùng lúc không bị block).
-- **Phân vai trò thành viên:** [team-roles.md](docs/00-overview/team-roles.md) (RACI matrix và phân rã task cụ thể).
-- **Tổng quan công nghệ:** [tech-stack.md](docs/00-overview/tech-stack.md) (React, Python FastAPI, SQLAlchemy/SQLModel, Redis, DeepSeek API).
-- **Kiến trúc hệ thống:** [system-architecture.md](docs/03-architecture/system-architecture.md) (Sơ đồ tổng quát BE-FE-DB-AI).
-- **Kiến trúc AI Agent:** [ai-agent-architecture.md](docs/03-architecture/ai-agent-architecture.md) (LangGraph Python, state machine, các sub-agents).
-- **Bảo mật hệ thống:** [security-guidelines.md](docs/05-security/security-guidelines.md) (Sanitize input, validate Pydantic output, rate limiting).
-- **Kế hoạch sprint & task:** [task-board.md](docs/04-tasks/task-board.md) (Lộ trình 4 sprint song song).
+- **Quy trình làm việc & Tracking bắt buộc**: [post-task-documentation.md](docs/01-workflow/post-task-documentation.md) (*No Docs = Not Done*).
+- **Quy trình làm việc song song**: [contract-first-workflow.md](docs/01-workflow/contract-first-workflow.md) (Cơ chế code song song 6 người từ Sprint 0).
+- **Phân vai trò & Ma trận RACI**: [team-roles.md](docs/00-overview/team-roles.md).
+- **Tổng quan công nghệ & Cloud**: [tech-stack.md](docs/00-overview/tech-stack.md).
+- **Kiến trúc hệ thống tổng thể**: [system-architecture.md](docs/03-architecture/system-architecture.md) (Sơ đồ 6 Interface và 8 Bước xử lý).
+- **Kiến trúc AI Agent hợp nhất**: [ai-agent-architecture.md](docs/03-architecture/ai-agent-architecture.md) (LangGraph Two-Phase State Machine & Four-Tier Grounding).
+- **Mô hình cơ sở dữ liệu**: [database-schema.md](docs/03-architecture/database-schema.md) (Supabase PostgreSQL 16, Supavisor connection pooler).
+- **Hướng dẫn triển khai đám mây**: [deployment-guide.md](docs/03-architecture/deployment-guide.md) (Vercel, Render, Supabase, Upstash Redis).
+- **Bảo mật & Phòng thủ AI**: [security-guidelines.md](docs/05-security/security-guidelines.md) (RLS, Atomic voting, Input sanitization).
+- **Tiến độ & Danh mục micro-tasks**: [TASKS.md](docs/TASKS.md) & [task-board.md](docs/04-tasks/task-board.md).
 
 ---
 
-## 2. Luồng Phát Triển Phần Mềm (Software Development Flow)
-Dự án áp dụng mô hình **Contract-First Development** để 6 người (3 BE, 2 FE, 1 AI, 1 Security/DevOps) có thể chạy song song từ ngày đầu tiên mà không bị block nhau:
+## 💡 2. Luồng Nghiệp Vụ Cốt Lõi: Quy Trình Đồng Thuận 2 Giai Đoạn (Two-Stage Consensus Flow)
+
+Khác với các công cụ lập kế hoạch truyền thống thường bắt người dùng chat qua lại hàng chục lần hoặc tự xếp lịch thủ công, TripMate AI dẫn dắt cả nhóm qua **Quy trình đồng thuận 2 giai đoạn** với 2 chốt chặn khóa kế hoạch minh bạch:
 
 ```mermaid
-graph TD
-    A[Sprint 0: Chốt DB Schema & OpenAPI Spec] --> B[Push Contract lên main/develop]
-    B --> C1[BE Dev A & B: Code logic FastAPI API thật theo spec]
-    B --> C2[FE Dev A & B: Code UI + Mock API bằng MSW]
-    B --> C3[AI Engineer: Code LangGraph Python Agent + Mock data JSON]
-    B --> C4[Security/DevOps: Dựng CI/CD, Docker Compose, Threat Model]
-    C1 --> D[Integration Day: Ghép nối Backend thật - Frontend thật - AI thật]
-    C2 --> D
-    C3 --> D
-    C4 --> D
-    D --> E[Demo & Release]
+flowchart TD
+    subgraph Part1 ["Nhóm Người Dùng (Host & Bạn Bè)"]
+        A1["1. Tham gia phòng & Chat mong muốn<br/>(Ngày đi, ngân sách, phong cách)"]
+        A2["3. Thảo luận & Đánh giá Roadmap Vĩ mô"]
+        A3{"Khung vĩ mô OK?"}
+        A4["5. Bình chọn Điểm dừng Chi tiết<br/>(Vote UP / DOWN từng địa điểm)"]
+        A5{"Điểm dừng OK?"}
+        A6["7. Theo dõi Lịch trình Sống & Điều hướng<br/>(Mapbox GL Canvas)"]
+    end
 
-    style A fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
-    style B fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
-    style D fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    subgraph Part2 ["TripMate Platform (FastAPI + LangGraph + APIs)"]
+        B1["2. Phase 1: Macro Planning State<br/>(Soạn thảo số ngày, chủ đề, nhịp độ<br/>KHÔNG gọi API ngoài tốn phí)"]
+        B2["4. Phase 2: Micro Curation State<br/>(Gọi Google Places/Agoda/Klook qua PyBreaker,<br/>Gom cụm địa lý 2-3km)"]
+        B3["1-Click Swap: Đổi địa điểm dự phòng đã pre-fetch"]
+        B4["6. Final Confirmation & Exports<br/>(Ghi plan_stops vào DB, sinh PDF & .ics)"]
+        B5["On-Trip Edit: Cập nhật duy nhất 1 dòng khi trời mưa"]
+    end
+
+    A1 --> B1
+    B1 --> A2
+    A2 --> A3
+    A3 -- "Cần chỉnh sửa" --> A1
+    A3 -- "Host Khóa (Consensus 1)" --> B2
+    B2 --> A4
+    A4 --> A5
+    A5 -- "Vote DOWN" --> B3
+    B3 --> A4
+    A5 -- "Host Chốt (Consensus 2)" --> B4
+    B4 --> A6
+    A6 -. "Đổi điểm ngẫu hứng (trời mưa)" .-> B5
+    B5 -. "Đã cập nhật stop" .-> A6
+
+    style A3 fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
+    style A5 fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
+    style B1 fill:#f0f4f8,stroke:#12305c,stroke-width:1.5px;
+    style B2 fill:#f0f4f8,stroke:#12305c,stroke-width:1.5px;
+    style B4 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
 ```
 
-### Các bước hoạt động cụ thể:
-1. **Sprint 0 (1-2 ngày đầu):** Cả nhóm thảo luận chốt DB Schema (SQLAlchemy/SQLModel) và OpenAPI Spec (FastAPI tự động sinh ra ở `/docs`).
-2. **Thiết lập Mock:** 
-   - Backend Dev (BE-Services) dựng bộ khung APIRouter rỗng chỉ có Signature (trả về status code `501 Not Implemented` hoặc mock JSON tạm).
-   - Frontend Dev dùng **Mock Service Worker (MSW)** giả lập API response đúng cấu trúc đã chốt để dựng UI.
-   - AI Engineer định nghĩa định dạng Pydantic schema của các Agent và sử dụng dữ liệu giả lập (`fixtures/mock_places.json`) để test đồ thị LangGraph Python.
-3. **Integration Day (Cuối mỗi Sprint):** Tắt toàn bộ mock, trỏ URL API Frontend về Backend Staging, kết nối AI Agent với database thật để kiểm thử toàn diện luồng nghiệp vụ.
+### Bước 1: Thu thập mong muốn nhóm (Desires Capture)
+- Thành viên tham gia phòng qua Link chia sẻ mà không cần cài đặt ứng dụng phức tạp.
+- Nhóm thảo luận tự do trong màn hình Room Chat: ngày dự kiến, mức ngân sách, mong muốn đặc biệt (ăn chay, thích cafe view đẹp, thích vận động). Mọi tin nhắn được lưu trực tiếp vào Supabase (`core` schema).
+
+### Bước 2: Pha 1 — Lập Kế Hoạch Vĩ Mô (Phase 1: Macro Planning)
+- Khi nhận yêu cầu, AI Agent khởi động **Phase 1 Macro State** trên LangGraph Python.
+- AI tổng hợp mong muốn và đề xuất khung chương trình: phân chia các ngày, chủ đề chính của từng buổi (ví dụ: *Sáng Day 1: Khám phá phố cổ; Chiều: Check-in bán đảo Sơn Trà; Tối: Thưởng thức hải sản*).
+- **Điểm đột phá kỹ thuật**: Ở pha này, AI **hoàn toàn không gọi API bên thứ 3 tốn kém** (Google Places/Agoda), giúp tiết kiệm token và phản hồi nhanh ($6$--$12$\,giây).
+
+### Bước 3: Đồng thuận Vĩ mô (Consensus Checkpoint 1: Macro Lock)
+- Cả nhóm xem khung chương trình. Nếu chưa ưng ý, thành viên chat thêm để AI điều chỉnh.
+- Khi nhóm thống nhất, **Host bấm nút Khóa Lộ Trình Vĩ Mô (Macro Lock)**. Đây là chốt chặn đồng thuận thứ nhất, cho phép hệ thống chuyển sang pha tuyển chọn chi tiết.
+
+### Bước 4: Pha 2 — Tuyển chọn Địa Điểm Chi Tiết (Phase 2: Micro Curation)
+- Được kích hoạt ngay sau khi Macro Lock.
+- AI Agent gọi các công cụ kết nối APIs ngoài (Google Places API, Agoda, Klook) thông qua lớp ngắt mạch **PyBreaker Circuit Breaker** (timeout 2.5s).
+- **Thuật toán Gom Cụm Địa Lý (Smart Geo-Clustering)**: Sử dụng công thức khoảng cách Haversine và Mapbox Matrix để gom các địa điểm trong cùng một buổi sáng/chiều vào bán kính hẹp $2.0$--$2.5$\,km ($\le 20$\,phút di chuyển), ngăn chặn tuyệt đối tình trạng di chuyển hình ziczac qua lại giữa hai đầu thành phố.
+- AI nạp sẵn 2 địa điểm dự phòng cho mỗi điểm dừng chính để chuẩn bị cho cơ chế 1-click swap.
+
+### Bước 5: Bình chọn Từng Điểm Dừng & Đổi Dự Phòng (Granular Stop Voting & 1-Click Swap)
+- Từng điểm dừng hiển thị thành các thẻ trực quan (thời gian ghé thăm, hình ảnh thật, đánh giá, chi phí dự kiến).
+- Các thành viên trong phòng vote **UP** (đồng ý) hoặc **DOWN** (không thích).
+- Nếu một địa điểm bị phản đối, người dùng chỉ cần nhấn **1-Click Swap**, hệ thống sẽ ngay lập tức thay thế bằng địa điểm dự phòng đã được xác thực sẵn mà không cần AI phải suy luận lại từ đầu (thời gian swap chỉ $3$--$6$\,giây).
+
+### Bước 6: Chốt Kế Hoạch Chính Thức (Consensus Checkpoint 2: Final Lock)
+- Khi mọi điểm dừng đều đạt tỷ lệ đồng thuận cao, Host bấm nút **Xác nhận Kế Hoạch Chính Thức (Final Lock)**.
+- Backend FastAPI ghi toàn bộ danh sách điểm dừng đã chuẩn hóa vào bảng `plan_stops` trong PostgreSQL.
+- Hệ thống hỗ trợ xuất file **PDF lịch trình chi tiết** (WeasyPrint) và đồng bộ **File Lịch (.ics)** vào Google Calendar / Apple Calendar.
+- Lộ trình định tuyến được hiển thị đồng bộ trên bản đồ Mapbox GL Canvas.
+
+### Bước 7: Lịch Trình Sống Động & Tự Động Thích Ứng (Living Itinerary & Dynamic Adaptation)
+- Sau khi chốt, kế hoạch không bị "chết" cứng. Trong suốt chuyến đi thực tế, nếu gặp biến cố (ví dụ: *trời đổ mưa to bất chợt*), một thành viên nhắn vào chat: *"Trời đang mưa to, đổi quán cafe trong nhà gần đây"*.
+- Hệ thống xử lý thông minh: AI Agent tải lại checkpoint phiên làm việc từ Supabase, chuyển thẳng vào Micro State, tìm quán cafe trong nhà gần vị trí hiện tại, và **chỉ cập nhật duy nhất 1 dòng bản ghi trong bảng `plan_stops`**, sau đó phát sóng qua WebSockets tới mọi thành viên. Lịch trình của các buổi khác hoàn toàn không bị ảnh hưởng!
 
 ---
 
-## 3. Luồng Nghiệp Vụ Ứng Dụng (Application Core Flows)
+## 🤖 3. AI Agent Hợp Nhất & Hàng Rào Chống Ảo Giác (Grounding Pipeline)
 
-Ứng dụng giúp nhóm bạn lên kế hoạch hoạt động chung (du lịch, ăn uống, vui chơi, tham quan, cafe...) với sự hỗ trợ của hệ thống AI Multi-Agent. Dưới đây là luồng đi của dữ liệu cho từng loại sự kiện:
+### 3.1. Vì Sao Dùng AI Agent Hợp Nhất Thay Vì Đa Agent Rời Rạc?
+Trong nhiều đồ án thử nghiệm, việc chia nhỏ thành 8--9 sub-agent (Location Agent, Cost Agent, Note Agent, Research Agent...) dẫn đến:
+- **Nghẽn độ trễ nghiêm trọng**: Phải chuyển giao context qua lại giữa nhiều agent, mỗi lần gọi LLM mất thêm vài giây.
+- **Rủi ro trôi ngữ cảnh (Context Drift)**: Agent này không hiểu trọn vẹn mong muốn mà agent trước đã tiếp nhận.
+- **Chi phí token nhân bội**: Mỗi agent phải load lại system prompt và conversation history.
 
-### Bước 1: Tạo Event & Mời Thành Viên (User Flow — chung cho mọi EventType)
-1. **User A (Chủ phòng - Owner)** đăng nhập qua Google OAuth2 -> Tạo một **Event**, chọn loại sự kiện:
-   - `TRAVEL` — Du lịch (ví dụ: *"Du hí Đà Lạt 3 ngày 2 đêm"*)
-   - `DINING` — Đi ăn (ví dụ: *"Tối nay ăn gì?"*)
-   - `ENTERTAINMENT` — Đi chơi (ví dụ: *"Cuối tuần đi đâu chơi?"*)
-   - `SIGHTSEEING` — Tham quan (ví dụ: *"Cuối tuần tham quan Sài Gòn"*)
-   - `HANGOUT` — Cafe/gặp mặt (ví dụ: *"Cafe chiều thứ 7"*)
-   - `CUSTOM` — Tùy chỉnh (ví dụ: *"Teambuilding công ty"*, *"Sinh nhật Hùng"*)
-2. Owner lấy link mời thành viên và gửi cho **User B, C (Members)**. Hệ thống tạo `Invitation` (Pending → Accepted/Declined).
-3. Các thành viên truy cập link, join vào Event. Lúc này DB tạo các bản ghi tương ứng trong bảng `event_members` với role tương ứng.
+**Giải pháp của TripMate AI**: Sử dụng **1 AI Agent hợp nhất duy nhất chạy mô hình DeepSeek-V4 trên LangGraph Python**, vận hành tuần tự qua 2 pha trạng thái (**Two-Phase State Machine**) rõ ràng:
+1. **Macro Planning State**: Suy luận logic, phân bổ thời gian và chủ đề.
+2. **Micro Curation State**: Gọi công cụ, lọc dữ liệu thực tế, tính khoảng cách địa lý.
 
----
+### 3.2. Model Abstraction Layer (Chống Phụ Thuộc Nhà Cung Cấp)
+Hệ thống xây dựng một lớp trừu tượng hóa mô hình LLM:
+- **Primary Engine**: **DeepSeek-V4** — năng lực suy luận chuyên sâu, chi phí cực kỳ tiết kiệm.
+- **Transparent Fallback**: Khi DeepSeek API gặp sự cố quá tải hoặc rate limit, lớp trừu tượng tự động chuyển luồng sang **OpenAI (GPT-4o)**, **Anthropic Claude 3.5**, hoặc **Google Gemini 1.5 Pro** mà không làm đứt đoạn phiên làm việc của người dùng.
 
-### Ví dụ 1: Luồng Du Lịch (TRAVEL Event)
-1. Owner hoặc Member gửi yêu cầu vào màn hình chat: *"Thiết kế lịch trình nghỉ dưỡng nhẹ nhàng cho nhóm 3 người ở Đà Lạt, thích ngắm cảnh, ăn uống, ngân sách khoảng 5 triệu/người."*
-2. **AI Orchestrator** nhận `eventType = TRAVEL` -> kích hoạt luồng TRAVEL trong LangGraph Python:
-   - **Location Agent** tìm các điểm phù hợp -> gọi Google Places API (category: `ATTRACTION`, `RESTAURANT`, `HOTEL`). Kết quả cache qua Redis.
-   - **Research Agent** tổng hợp thông tin, review chi tiết.
-   - **Plan Agent** (dùng `deepseek-reasoner`) sắp xếp lịch trình tối ưu theo ngày.
-   - **Cost Agent** tính toán chi phí dự kiến bằng Python code.
-   - **Booking Agent** gợi ý link đặt phòng khách sạn, vé xe.
-3. Kết quả gửi về dạng **Draft Plan** → cả nhóm xem, vote, confirm.
+### 3.3. Four-Tier Grounding Pipeline (Bảo Đảm 0% Địa Điểm Ảo)
+Để giải quyết triệt để vấn đề muôn thuở của AI là "bịa đặt địa điểm" (hallucination), TripMate AI bắt buộc mọi đề xuất phải đi qua 4 tầng kiểm chứng:
 
-### Ví dụ 2: Luồng Đi Ăn (DINING Event)
-1. User A tạo Event loại `DINING`: *"Tối thứ 7 ăn gì đây?"*, mời 4 người bạn.
-2. User A nhờ AI gợi ý: *"Tìm quán ăn ngon khu Quận 1, nhóm 5 người, ngân sách 200k/người, thích đồ Nhật"*.
-3. **Orchestrator** nhận `eventType = DINING` → kích hoạt luồng DINING:
-   - **Location Agent** (filter: `RESTAURANT`, cuisine: Nhật) → trả về 5 quán phù hợp.
-   - **Research Agent** → tổng hợp review, **gợi ý menu/món hay** của từng quán, giá trung bình.
-   - **Plan Agent** → chọn top 2-3 quán, kèm giờ đề xuất và link đặt bàn.
-4. Kết quả trả về dạng Draft Plan → Cả nhóm **vote chọn quán**.
-5. Owner confirm → Hệ thống gửi notification kèm thông tin quán đã chốt.
-
-### Ví dụ 3: Luồng Đi Chơi (ENTERTAINMENT Event)
-1. User tạo Event loại `ENTERTAINMENT`: *"Cuối tuần đi đâu chơi?"*, mời nhóm.
-2. AI gợi ý: *"Tìm chỗ chơi cho nhóm 6 người, thích hoạt động vận động, khu Quận 7"*.
-3. **Orchestrator** nhận `eventType = ENTERTAINMENT` → kích hoạt:
-   - **Location Agent** (filter: `ENTERTAINMENT`) → bowling, escape room, paintball, arcade...
-   - **Research Agent** → giá vé, khung giờ, review, tips.
-   - **Plan Agent** → sắp xếp lịch (VD: 14h bowling → 17h ăn tối gần đó).
-   - **Booking Agent** → link đặt chỗ.
-4. Vote → Confirm → Notification + Export nếu cần.
-
-### Ví dụ 4: Luồng Tham Quan (SIGHTSEEING Event)
-1. User tạo Event loại `SIGHTSEEING`: *"Cuối tuần tham quan Sài Gòn"*.
-2. AI gợi ý các điểm check-in, bảo tàng, di tích lịch sử.
-3. **Orchestrator** nhận `eventType = SIGHTSEEING` → kích hoạt:
-   - **Location Agent** (filter: `ATTRACTION`) → bảo tàng, triển lãm, di tích.
-   - **Research Agent** → giờ mở cửa, giá vé, tips tham quan.
-   - **Plan Agent** → tối ưu tuyến đường đi trong ngày.
-   - **Cost Agent** → tổng chi phí vé + ăn uống.
-4. Vote → Confirm → Notification.
-
-### Ví dụ 5: Luồng Cafe/Hangout (HANGOUT Event)
-1. User tạo Event loại `HANGOUT`: *"Cafe chiều thứ 7"*.
-2. AI gợi ý quán cafe khu vực yêu cầu, so sánh vibe/giá.
-3. Luồng ngắn: Location Agent → Plan Agent (chọn quán + giờ) → Vote → Confirm.
+1. **Tier 1 — Strict Pydantic Schema**: Mọi phản hồi từ LLM phải parse thành công vào Pydantic schema với kiểu dữ liệu chặt chẽ (tên địa điểm, danh mục `StopCategory`, vĩ độ/kinh độ ước tính, khung giá). Nếu sai cấu trúc, parser tự động yêu cầu sửa đổi thay vì làm crash ứng dụng.
+2. **Tier 2 — Live Map Check**: Kiểm tra chéo từng địa điểm với Google Places API và OpenStreetMap (OSM) để xác thực sự tồn tại, lấy Place ID chuẩn xác, kiểm tra trạng thái mở cửa và khung giờ hoạt động thực tế.
+3. **Tier 3 — Distance Guard (Bảo Vệ Cự Ly)**: Áp dụng thuật toán Haversine và Mapbox Matrix API để kiểm tra: khoảng cách giữa 2 điểm dừng liên tiếp trong cùng 1 buổi phải $\le 2.5$\,km và thời gian di chuyển $\le 20$\,phút. Nếu vượt quá, AI tự động loại bỏ và chọn địa điểm khác gần hơn.
+4. **Tier 4 — Member Votes & 1-Click Backup**: Đặt quyền quyết định tối hậu vào tay người dùng. Từng thành viên bỏ phiếu UP/DOWN; điểm dừng bị từ chối được thay thế ngay bằng phương án dự phòng đã được xác thực qua 3 tầng trước đó.
 
 ---
 
-## 3.5. Luồng Plan Thủ Công (Không Dùng AI)
+## ⚡ 4. Luồng Thực Thi Hoạt Động Từ Đầu Đến Cuối (End-to-End Operational Flow)
 
-> [!NOTE]
-> **Bất kỳ member nào** cũng có thể tự tạo plan thủ công mà không cần qua AI. Plan thủ công được đối xử **hoàn toàn bình đẳng** với plan AI — có thể export PDF, xem trên bản đồ, chia chi phí, nhận nhắc nhở.
+Kiến trúc vận hành giữa 6 thành phần hệ thống thông qua các giao diện **(1)--(6)** và 8 bước xử lý:
 
 ```mermaid
-flowchart LR
-    A[AI Plan Generator] --> C[status = DRAFT]
-    B[Manual Plan Builder] --> C
-    C --> D[status = VOTING]
-    D --> E[status = CONFIRMED]
-    D --> F[status = ARCHIVED]
+sequenceDiagram
+    autonumber
+    actor C as Client (React on Vercel)
+    participant GW as Gateway (FastAPI on Render)
+    participant Q as Redis Infra (Upstash Serverless)
+    participant AI as AI Worker (LangGraph on Render)
+    participant DB as Database (Supabase Postgres 16)
+    participant EXT as Travel APIs (PyBreaker / Live)
 
-    style C fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
-    style D fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    style E fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
-```
-
-### Quy tắc Vote chung:
-1. **Mọi Plan** (dù AI hay thủ công) khi tạo đều có `status = DRAFT`.
-2. Người tạo bấm "Gửi cho nhóm vote" → `VOTING` → notification tới tất cả member.
-3. Member vote + comment góp ý.
-4. **Chỉ Owner** mới có quyền xác nhận → `CONFIRMED`.
-5. Event chỉ có **1 người** → cho phép skip voting, confirm trực tiếp.
-
----
-
-## 4. Tích Hợp DeepSeek API Trong Kiến Trúc AI Agent (Python Native)
-
-Vì Backend sử dụng Python FastAPI, hệ thống tích hợp trực tiếp **LangGraph Python (`langgraph`)** và DeepSeek API trong cùng một codebase Python mượt mà:
-
-```mermaid
-graph TD
-    UI[Client Frontend React] -->|HTTPS / WSS| FastAPI[FastAPI Backend / Security / JWT]
-    FastAPI --> Orchestrator[LangGraph Python Orchestrator]
+    %% Step 1
+    C->>GW: Gửi Chat / Vote Điểm dừng (Kèm OTel context)
+    GW-->>C: Phản hồi Status OK tức thì (Non-blocking WS ACK < 80ms)
     
-    Orchestrator -->|Intent / Chat / Tool Calling| V3[deepseek-chat V3]
-    Orchestrator -->|Reasoning / Planning / Conflict| R1[deepseek-reasoner R1]
-
-    style UI fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
-    style FastAPI fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
-    style Orchestrator fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    style V3 fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
-    style R1 fill:#fbe9e7,stroke:#d84315,stroke-width:2px;
+    %% Step 2
+    GW->>DB: Bước 2a: Lưu tin nhắn/phiếu vote vào Supabase (core schema)
+    GW->>Q: Bước 2b: Đẩy tác vụ vào Redis Streams (XADD)
+    
+    %% Step 3
+    Q->>AI: Bước 3: AI Worker kéo tác vụ về xử lý (XREADGROUP)
+    
+    %% Step 4
+    AI->>DB: Bước 4: Tải checkpoint phiên làm việc từ DAL (checkpoints schema)
+    DB-->>AI: Trả về Typed AgentState Context
+    
+    Note over AI: Đánh giá đồng thuận & chuyển Pha (Macro -> Micro State)
+    
+    %% Step 5
+    AI->>EXT: Bước 5: Truy vấn Places/Hotels qua PyBreaker Circuit Breaker
+    EXT-->>AI: Trả về địa điểm thật có Place ID (hoặc fallback Cache)
+    
+    %% Step 6
+    AI->>DB: Bước 6: Ghi các điểm dừng đã chuẩn hóa vào bảng plan_stops (qua DAL)
+    
+    %% Step 7
+    AI->>Q: Bước 7: Bắn sự kiện PUBLISH plan:updated (Redis Pub/Sub)
+    Q->>GW: Broadcast sự kiện tới toàn bộ instance FastAPI Gateway
+    
+    %% Step 8
+    GW->>C: Bước 8: Phát sóng cập nhật qua WebSockets tới mọi thành viên trong phòng
 ```
 
-- **`deepseek-chat` (DeepSeek-V3):**
-  - **Tác vụ:** Chat tự do với người dùng, **phân loại EventType** và intent, gọi công cụ (Function Calling) để lấy thông tin thời tiết, địa điểm, nhà hàng, chỗ chơi, trích xuất dữ liệu thô.
-  - **Ưu điểm:** Tốc độ phản hồi cực nhanh, hỗ trợ SSE/WebSocket streaming mượt mà, giá thành siêu rẻ.
-- **`deepseek-reasoner` (DeepSeek-R1):**
-  - **Tác vụ:** Lên lịch trình tối ưu (sắp xếp thứ tự đi, thời gian giữa các điểm dừng), cân đối ngân sách, **gợi ý menu/món ăn phù hợp nhóm** (DINING), **chọn hoạt động phù hợp số người** (ENTERTAINMENT), phân tích và giải quyết xung đột ý kiến (Conflict Resolver).
-  - **Ưu điểm:** Khả năng suy nghĩ sâu (reasoning tokens), tư duy logic chặt chẽ giúp giải quyết các bài toán tối ưu lộ trình và dung hòa ý kiến nhóm tốt hơn hẳn LLM thông thường.
+### Bảng tóm tắt các bước thực thi:
+
+| Bước | Giao diện | Phương thức | Phụ thuộc | Chức năng vận hành |
+|:---:|---|:---:|---|---|
+| **1** | **(1)** Frontend $\rightarrow$ Gateway | Sync | Thao tác người dùng | Truyền tin nhắn chat hoặc vote điểm dừng kèm OpenTelemetry trace context. |
+| **2a** | **(3)** Gateway $\rightarrow$ Database | Sync | Bước 1 | Lưu vết tin nhắn và số lượt vote vào Supabase (`core` schema). |
+| **2b** | **(2)** Gateway $\rightarrow$ Redis (Streams) | Async | Bước 1 | Đẩy task vào Redis Streams (`XADD`); trả về HTTP/WS ACK ngay lập tức. |
+| **3** | **(2)** Redis (Streams) $\rightarrow$ AI Agent | Async | Bước 2b | LangGraph Worker kéo task về xử lý qua Consumer Group (`XREADGROUP`). |
+| **4** | **(5)** AI Agent $\leftarrow$ Database | Async | Bước 3 | Tải checkpoint và ngữ cảnh phòng từ schema `checkpoints` qua DAL. |
+| **4b** | LangGraph State Transition | Internal | Bước 4 | Đánh giá điều kiện đồng thuận và chuyển đổi giữa Macro State và Micro State. |
+| **5** | **(4)** AI Agent $\leftrightarrow$ Travel APIs | Parallel | Bước 4b | Gọi Google Places/Agoda qua PyBreaker; tự động lấy từ L2 Cache nếu API ngoài lỗi. |
+| **6** | **(5)** AI Agent $\rightarrow$ Database | Async | Bước 5 | Ghi các điểm dừng đã kiểm chứng và chuẩn hóa vào bảng `plan_stops` qua DAL. |
+| **7** | **(6)** AI Agent $\rightarrow$ Redis $\rightarrow$ Gateway | Async | Bước 6 | Bắn sự kiện `PUBLISH plan:updated` qua Redis Pub/Sub để đồng bộ các node Gateway. |
+| **8** | **(1)** Gateway $\rightarrow$ Frontend | Push | Bước 7 | Phát sóng lộ trình mới nhất qua WebSockets tới tất cả thành viên trong phòng. |
 
 ---
 
-## 5. Quy Tắc Bảo Mật Và Chi Phí Trong Doanh Nghiệp (Enterprise Standards)
+## 🎯 5. Hai Phạm Vi Kế Hoạch Linh Hoạt (Dual Planning Scopes)
 
-1. **Bảo Mật Đầu Vào:** Mọi câu lệnh chat từ user đều được validate độ dài và lọc mã độc (Sanitization) qua Pydantic & bleach trước khi truyền vào prompt của DeepSeek.
-2. **Bảo Mật Đầu Out:** Dữ liệu trả về từ DeepSeek (như danh sách địa điểm dạng JSON) bắt buộc phải đi qua parser sử dụng **Pydantic v2** để xác thực kiểu dữ liệu. Nếu JSON lỗi cấu trúc, hệ thống sẽ tự động bắt lỗi thay vì hiển thị trực tiếp lên UI làm crash ứng dụng.
-3. **Quản Lý Token & Chi Phí:** Mọi lượt gọi DeepSeek API đều được Logger ghi lại (số input/output token, thời gian xử lý, ID người dùng) và lưu vào bảng `agent_logs`. Admin Dashboard sẽ dựa vào đây để cảnh báo hoặc thiết lập Rate Limit/giới hạn quota theo ngày cho từng user.
+TripMate AI hỗ trợ 2 kịch bản sử dụng thực tế:
+
+### 5.1. Đi Chơi Trong Ngày (Day Hangouts)
+- **Mục tiêu**: Lên kèo tụ tập nhanh cho buổi chiều hoặc tối cuối tuần.
+- **Kịch bản**: *"Nhóm 4 người, chiều thứ 7 hẹn cafe view rooftop Quận 1 lúc 15h, sau đó chơi board game, tối ăn lẩu bò, ngân sách 300k/người"*.
+- **Cơ chế xử lý**: Bỏ qua việc tìm khách sạn; ưu tiên tối đa các địa điểm đang mở cửa, khoảng cách giữa các điểm $\le 1.5$\,km, kiểm tra chỗ gửi xe và giá menu trung bình.
+
+### 5.2. Kỳ Nghỉ Nhiều Ngày (Multi-Day Vacations)
+- **Mục tiêu**: Lập kế hoạch du lịch hoàn chỉnh cho nhóm bạn hoặc gia đình.
+- **Kịch bản**: *"Chuyến đi Đà Nẵng - Hội An 4 ngày 3 đêm cho nhóm 6 người, thích trải nghiệm ẩm thực địa phương, tắm biển, có người già nên di chuyển thong thả, ngân sách 6 triệu/người"*.
+- **Cơ chế xử lý**: 
+  - Giai đoạn vĩ mô: Chia Day 1 (Đà Nẵng), Day 2 (Bà Nà Hills), Day 3 (Hội An phố cổ), Day 4 (Mua sắm đặc sản & về).
+  - Giai đoạn vi mô: Gợi ý khách sạn trung tâm, xếp tuyến tham quan theo buổi, gom cụm bán kính $\le 2.5$\,km, tính toán chi phí di chuyển xe đưa đón qua 12Go Asia / Grab.
+
+---
+
+## 🛡️ 6. Bảo Mật Đa Tầng, Quyền Riêng Tư & Kiểm Soát Con Người (Human-in-the-Loop)
+
+1. **Nguyên tắc Con người Quyết định Tối hậu (Human-in-the-Loop)**: AI không bao giờ tự ý chốt kế hoạch chính thức. AI chỉ đóng vai trò người trợ lý tạo bản nháp và tính toán phương án tối ưu. **Chỉ có Host của phòng mới có quyền bấm Khóa Kế Hoạch (Lock)**.
+2. **Cách Ly Dữ Liệu Bằng Supabase Row Level Security (RLS)**: Các chính sách RLS ở tầng database đảm bảo người dùng chỉ có thể đọc và ghi dữ liệu thuộc về phòng mà họ đã tham gia hợp lệ (`event_members`).
+3. **Bình Chọn Bất Khả Xâm Phạm (Atomic Voting)**: Sử dụng các câu lệnh cập nhật SQL nguyên tử (`UPDATE ... WHERE ...`) và Redis transaction để triệt tiêu hoàn toàn tình trạng race condition khi nhiều thành viên cùng bấm vote tại một phần nghìn giây.
+4. **Phòng Chống Prompt Injection**: Toàn bộ nội dung chat từ người dùng được làm sạch (sanitization) qua Pydantic v2 và thư viện bảo mật trước khi đưa vào template prompt của LLM. Tách biệt hoàn toàn giữa vai trò `system` và `user`.
+5. **Khôi Phục Phiên Tự Động (Session Recovery)**: Trạng thái của LangGraph được checkpoint liên tục vào Supabase. Nếu container AI Worker trên Render bị restart đột ngột, tác vụ sẽ tự động khôi phục chính xác từ checkpoint gần nhất mà không làm mất dữ liệu của người dùng.

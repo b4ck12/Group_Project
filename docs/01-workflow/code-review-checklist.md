@@ -1,51 +1,64 @@
-# Code Review Checklist
+# Code Review Checklist & Documentation Gate
 
-## Dành cho tác giả PR (tự kiểm tra trước khi request review)
-- [ ] PR chỉ giải quyết **1 vấn đề/task**, diff lý tưởng < 400 dòng (nếu lớn hơn, cân nhắc tách nhỏ)
-- [ ] Đã tự chạy lint + test local, CI xanh
-- [ ] Đã cập nhật doc liên quan nếu đổi API/schema/kiến trúc theo chuẩn [post-task-documentation.md](post-task-documentation.md) (`03-architecture/`, `02-standards/api-design-guide.md`, `04-tasks/`)
-- [ ] Không còn `console.log`/code debug thừa, không có TODO không giải thích
-- [ ] Không commit secrets/`.env`/API key (xem [security-guidelines.md](../05-security/security-guidelines.md))
-- [ ] Đã điền đầy đủ template PR, liệt kê rõ các file Docs đã sửa trong mục Updated Docs
-- [ ] Đã tự review lại diff của chính mình trên GitHub trước khi gắn reviewer
+> **Tiêu chí tối cao**: **"No Docs = No Merge"**.  
+> Người review có toàn quyền và nghĩa vụ bấm **Request Changes** nếu PR có thay đổi code nhưng thiếu cập nhật tài liệu kỹ thuật hoặc chưa tick tracking tiến độ trên task board.
 
-## Dành cho reviewer
+---
 
-### Đúng đắn (Correctness)
-- [ ] Logic có đúng với yêu cầu task/Issue không?
-- [ ] Có xử lý các edge case: input rỗng, null, số âm, mảng rỗng, timeout API bên thứ 3?
-- [ ] Có race condition khi nhiều user cùng vote/sửa event không?
+## 🧑‍💻 1. Dành Cho Tác Giả PR (Tự kiểm tra trước khi gán Reviewer)
 
-### Bảo mật
-- [ ] Input từ user có được validate trước khi vào DB/AI Agent không? (chống SQL/Input injection & data corruption)
-- [ ] Endpoint có đúng middleware Auth + kiểm tra phân quyền (Owner/Member/Viewer) không?
-- [ ] Không có thông tin nhạy cảm bị log ra console/log file?
+- [ ] PR chỉ giải quyết **1 task duy nhất** (`TASK-xxx`), diff lý tưởng < 400 dòng.
+- [ ] Đã tự chạy lint + test local: `poetry run ruff check . && poetry run pytest` (Backend) hoặc `pnpm run lint && pnpm run test` (Frontend), CI GitHub Actions xanh 100%.
+- [ ] **Tài liệu kỹ thuật**: Đã cập nhật đầy đủ các file docs liên quan (`api-design-guide.md`, `database-schema.md`, `ai-agent-architecture.md`, `deployment-guide.md`, `.env.example`).
+- [ ] **Tiến độ Tracking**: Đã đổi `[ ]` thành `[x]` trong file task cá nhân (`docs/04-tasks/person-X-*.md`) và master board (`docs/TASKS.md`) kèm thông tin PR.
+- [ ] Không còn `console.log`, `print()`, code debug thừa, không có comment TODO vô nghĩa.
+- [ ] Tuyệt đối không commit secrets / API keys / mật khẩu database lên repo.
+- [ ] Đã điền đầy đủ PR template theo [.github/PULL_REQUEST_TEMPLATE.md](../../.github/PULL_REQUEST_TEMPLATE.md).
+- [ ] Đã tự xem lại toàn bộ Git diff của chính mình trên giao diện GitHub trước khi tag Reviewer.
 
-### Chất lượng code
-- [ ] Đặt tên biến/hàm/class có tuân theo [naming-conventions.md](../02-standards/naming-conventions.md)?
-- [ ] Có đoạn code trùng lặp nên tách hàm/service dùng chung không?
-- [ ] Function có làm đúng 1 việc (Single Responsibility) không, có quá dài (>50 dòng) không?
+---
 
-### Test
-- [ ] Có unit test cho logic mới/thay đổi không? (xem [testing-guide.md](../02-standards/testing-guide.md))
-- [ ] Test có cover cả case fail, không chỉ happy path?
+## 🧐 2. Dành Cho Reviewer (Kiểm tra chặn trước khi Approve)
 
-### Performance
-- [ ] Có query N+1 vào DB không (đặc biệt ở Nhóm 2 — Event/Plan)?
-- [ ] Có cache kết quả API bên thứ 3 khi phù hợp không (Nhóm 3)?
-- [ ] Với AI Agent: có giới hạn số lần gọi LLM/loop vô hạn trong graph không?
+### 2.1. Cổng Tài Liệu & Tracking (BẮT BUỘC KIỂM TRA ĐẦU TIÊN)
+- [ ] **Checklist Docs**: Tác giả đã tick chọn danh sách docs đã sửa trong PR Description chưa?
+- [ ] **Task Tracking**: Trong commit của PR đã có thay đổi tick `[x] TASK-xxx` trong `docs/TASKS.md` và file cá nhân chưa?
+- [ ] **Khớp Schema / Contract**: Kiểu dữ liệu Pydantic / TypeScript trong code có khớp chuẩn xác với tài liệu kỹ thuật không?
+> ⛔ **Nếu thiếu docs hoặc tracking**: Reviewer bấm ngay **Request Changes** với ghi chú `[blocking] Thiếu cập nhật tài liệu kỹ thuật và task tracking theo quy định dự án`.
 
-### Kiến trúc & Docs
-- [ ] Thay đổi có phá vỡ hợp đồng API với FE/Agent khác không? Đã thông báo team chưa?
-- [ ] Docs liên quan đã được cập nhật đúng vị trí theo [post-task-documentation.md](post-task-documentation.md) chưa? (Bắt buộc reject PR nếu thiếu docs).
+### 2.2. Tính Đúng Đắn & Nghiệp Vụ (Correctness)
+- [ ] Logic có thỏa mãn đầy đủ Acceptance Criteria của task trong `docs/TASKS.md` không?
+- [ ] Có xử lý các edge cases: danh sách rỗng, null, timeout từ external travel APIs, dữ liệu không hợp lệ?
+- [ ] Có đảm bảo tính toàn vẹn dữ liệu khi nhiều người cùng thao tác (ví dụ: atomic updates khi vote điểm dừng)?
 
-## Mức độ comment khi review
-| Prefix | Ý nghĩa |
-|---|---|
-| `[blocking]` | Bắt buộc sửa trước khi merge |
-| `[suggestion]` | Gợi ý cải thiện, tác giả tự quyết định |
-| `[question]` | Cần tác giả giải thích, không nhất thiết phải sửa |
-| `[nit]` | Vấn đề rất nhỏ (style, chính tả), không chặn merge |
+### 2.3. Bảo Mật (Security)
+- [ ] Input từ người dùng được validate và lọc sạch mã độc (sanitized) qua Pydantic v2 trước khi xử lý hoặc truyền vào prompt LLM?
+- [ ] Endpoint có đúng Auth Guard và phân quyền theo vai trò (Host/Owner vs Member/Viewer) không?
+- [ ] Không log thông tin nhạy cảm (mật khẩu, JWT token, full headers) ra hệ thống logging.
 
-## Thời gian phản hồi
-- Reviewer nên phản hồi PR trong vòng **24h** (ngày làm việc) để không chặn tiến độ nhóm khác đang phụ thuộc (đặc biệt PR liên quan schema DB — Nhóm 2).
+### 2.4. Hiệu Năng & Khả Năng Mở Rộng (Performance)
+- [ ] Không gây ra N+1 query vào PostgreSQL (dùng `selectinload` / join phù hợp trong SQLAlchemy).
+- [ ] Có sử dụng Redis cache với TTL hợp lý khi gọi external APIs (Google Places, Weather, Currency).
+- [ ] AI Agent: Đảm bảo graph bounded memory, có `recursion_limit` và không rơi vào vòng lặp vô tận.
+
+### 2.5. Kiểm Thử (Testing)
+- [ ] Có unit test / integration test đi kèm cho logic mới không?
+- [ ] Test có bao phủ cả trường hợp lỗi (unhappy path, circuit breaker trip), không chỉ test trường hợp thành công?
+
+---
+
+## 🏷️ 3. Mức Độ Comment Khi Review
+
+| Tiền tố | Ý nghĩa | Hành động yêu cầu |
+|---|---|---|
+| `[blocking]` | Lỗi nghiêm trọng, hổng bảo mật, thiếu docs, thiếu test | **Bắt buộc sửa** trước khi được phép merge. |
+| `[suggestion]` | Gợi ý tối ưu code hoặc cách viết thanh thoát hơn | Tác giả tự cân nhắc, không chặn merge nếu có lý do hợp lý. |
+| `[question]` | Cần tác giả giải thích rõ hơn về dụng ý kỹ thuật | Tác giả trả lời trên PR. |
+| `[nit]` | Lỗi chính tả nhỏ, format lặt vặt | Sửa nhanh hoặc merge nếu không ảnh hưởng logic. |
+
+---
+
+## ⏱️ 4. Thời Gian Phản Hồi Review
+
+- Reviewer có trách nhiệm phản hồi PR trong vòng **24 giờ làm việc**.
+- Nếu PR liên quan đến Contract API hoặc DB Schema cốt lõi, reviewer cần ưu tiên review ngay trong vòng **4–6 giờ** để không làm nghẽn tiến độ của các thành viên đang phụ thuộc.

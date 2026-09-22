@@ -1,53 +1,55 @@
-# 🎨 Design Docs — UI/UX (Sprint 0)
+# 🎨 Design Docs — UI/UX & Design System (Sprint 0)
+## Dự án: TripMate AI — Intelligent Group Activity & Travel Planning Platform
 
-> Đây là **nguồn chân lý thiết kế (single source of truth)** cho toàn bộ giao diện.
-> Được tạo ở **Sprint 0** song song với Contract Session, làm trước khi FE Dev A & B bắt đầu code.
-> Mọi màn hình ở Sprint 1–4 phải bám theo bộ tài liệu này; đổi thiết kế giữa chừng → theo quy trình Contract Change ([contract-first-workflow.md](../01-workflow/contract-first-workflow.md)).
+> Đây là **nguồn chân lý thiết kế (single source of truth)** cho toàn bộ giao diện người dùng của nền tảng TripMate AI.
+> Được khởi tạo ở **Sprint 0** song song với Contract Session, định hình toàn bộ trải nghiệm cho cả 6 thành viên trước khi bắt tay vào code.
 
-## Quy trình làm việc (Design → Code)
+---
+
+## 🔄 Quy Trình Triển Khai Thiết Kế (Design $\rightarrow$ Code)
 
 ```
-TASK-009 (Design Tokens) ──► TASK-111 (Project Skeleton & Design System) ──► mọi màn hình
-TASK-010 (User Flows & Wireframes) ──► layout/component từng page (Sprint 1–4)
-TASK-011 (Hi-fi Mockups + Component Library + A11y) ──► Figma cho FE dev & review
+TASK-009 (Design Tokens: Primary Blue, Accent Teal) ──► TASK-111 (Tailwind & shadcn Design System) ──► Mọi màn hình
+TASK-010 (User Flows: Two-Stage Consensus & Living Itinerary) ──► Layout & Components (Interactive Timeline, Stop Cards)
+TASK-011 (Hi-fi Mockups + Component Library + WCAG AA) ──► Figma & Specs cho Frontend Dev A & B
 ```
 
-- **FE Dev B** (TASK-009): định nghĩa design tokens → áp vào Tailwind/shadcn config.
-- **FE Dev B** (TASK-010, 011): vẽ wireframe + hi-fi mockup → chuyển cho cả team làm theo.
-- Đối chiếu lại **trước Integration Day** cuối mỗi Sprint để tránh lệch pixel với hiện thực.
+- **Nguyễn Minh Đức (FE Dev B)**: Định nghĩa design tokens (TASK-009), vẽ flowchart & wireframes (TASK-010), xây dựng mockup hi-fi và thư viện component (TASK-011).
+- **Hà Đăng Huy (FE Dev A)**: Áp dụng design tokens vào dự án Vite + Tailwind (TASK-111) để dựng Dashboard, Interactive Timeline và Mapbox Canvas.
+- **Đối chiếu tại Integration Day**: Cuối mỗi Sprint, kiểm tra đối chiếu giao diện thực tế với mockup thiết kế để tránh lệch pixel và sai sót trải nghiệm người dùng.
 
-## Cấu trúc thư mục
+---
+
+## 📁 Cấu Trúc Thư Mục Tài Liệu Thiết Kế
 
 ```
 docs/06-design/
-├── README.md            ← File này: overview + quy trình
-├── design-tokens.md     ← Palette (light/dark), typography, spacing, radius, shadow (TASK-009)
-├── user-flows.md        ← Flowchart các luồng chính bằng Mermaid/ASCII (TASK-010)
-├── wireframes/          ← Wireframe từng page: layout + component + empty/loading/error state (TASK-010)
-└── mockups.md           ← Link hi-fi mockups trên Figma + ghi chú responsive/a11y (TASK-011)
+├── README.md            ← File này: Tổng quan & Quy trình thiết kế
+├── design-tokens.md     ← Bảng màu (Primary Blue #12305c, Accent Teal #186c8e), Typography, Spacing, Radius (TASK-009)
+├── user-flows.md        ← Flowchart các luồng: Two-Stage Consensus, 1-Click Swap, Living Itinerary khi trời mưa (TASK-010)
+├── wireframes/          ← Wireframe từng màn hình: Room Chat, Timeline, Voting Cards, Mapbox Canvas (TASK-010)
+└── mockups.md           ← Link Hi-fi mockups trên Figma + Checklist kiểm tra tương phản WCAG AA (TASK-011)
 ```
 
-## Các luồng phải cover (User Flows)
+---
 
-1. Register/Login (kèm OAuth2) → Event Dashboard
-2. Tạo event (6 `EventType`) → Mời member (Invitation)
-3. Tạo plan thủ công / AI gợi ý → Vote → Confirm
-4. AI Chat streaming (tạo/hỏi điều chỉnh plan)
-5. Chia chi phí: Fund pool → Expense → Settlement tối ưu
-6. Admin Dashboard (token usage, user management)
+## 🧭 Các Luồng Trải Nghiệm Cốt Lõi Phải Cover (User Flows)
 
-## Nguyên tắc thiết kế bắt buộc
+1. **Đăng nhập / Đăng ký (OAuth2 & Email)** $\rightarrow$ **Danh sách phòng & Chọn phạm vi** (`DAY_HANGOUT` hoặc `VACATION`).
+2. **Khởi tạo phòng & Mời bạn bè qua Link** $\rightarrow$ Quản lý thành viên (Host vs Member).
+3. **Pha 1: Thu thập mong muốn qua Room Chat** $\rightarrow$ AI đề xuất Roadmap Vĩ mô $\rightarrow$ **Host Khóa Lộ Trình (Macro Lock - Consensus 1)**.
+4. **Pha 2: Dòng thời gian tương tác (Interactive Timeline)** $\rightarrow$ **Thẻ bình chọn điểm dừng (Vote UP / DOWN)** $\rightarrow$ **1-Click Swap** đổi địa điểm dự phòng.
+5. **Chốt Kế Hoạch Chính Thức (Final Lock - Consensus 2)** $\rightarrow$ Bản đồ Mapbox GL Canvas $\rightarrow$ Xuất file PDF & Calendar (.ics).
+6. **Lịch trình Động (Living Itinerary)** $\rightarrow$ Thông báo Toast thích ứng khi đổi quán cafe lúc trời mưa.
+7. **Quản lý Tài chính Chuyến Đi** $\rightarrow$ Thu quỹ trước $\rightarrow$ Hóa đơn chi tiêu $\rightarrow$ Giao diện Quyết toán nợ tối ưu (Min-Cash-Flow).
+8. **Admin Dashboard UI** $\rightarrow$ Biểu đồ tiêu thụ token, active rooms và cache hit rate.
 
-- **Design Tokens trước, component sau**: không hardcode màu/typography lẻ tẻ trong component.
-- **Mỗi component đủ states**: default / hover / disabled / loading / empty / error.
-- **Responsive**: mobile-first, breakpoint chuẩn Tailwind (sm/md/lg/xl).
-- **Accessibility (WCAG AA)**: contrast ≥ 4.5:1 cho text, focus visible, label cho form control.
-- **i18n sẵn sàng**: text UI đi qua `react-i18next` (vi/en), mockup ghi rõ chỗ text động.
+---
 
-## Task liên quan
+## 📐 Nguyên Tắc Thiết Kế Bắt Buộc
 
-| Task | Chủ sở hữu | Output |
-|---|---|---|
-| [TASK-009](../TASKS.md) | FE Dev B | `design-tokens.md` + theme config |
-| [TASK-010](../TASKS.md) | FE Dev B | `user-flows.md` + `wireframes/` |
-| [TASK-011](../TASKS.md) | FE Dev B | `mockups.md` + component variants + a11y |
+- **Design Tokens là nguồn sự thật**: Tuyệt đối không hardcode mã màu hex hoặc kích thước lẻ tẻ trong component; luôn dùng token class của Tailwind.
+- **Đầy đủ 6 trạng thái Component**: Default, Hover, Active, Disabled, Loading (Skeleton), Empty, Error.
+- **Responsive Mobile-First**: Tối ưu trải nghiệm cho điện thoại thông minh (375px+), tablet và desktop màn hình rộng.
+- **Tiêu chuẩn Tiếp cận (WCAG AA)**: Tỷ lệ tương phản văn bản $\ge 4.5:1$, hỗ trợ điều hướng bàn phím (Keyboard accessibility).
+- **Hỗ trợ Đa ngôn ngữ (i18n)**: Toàn bộ text nhúng qua `react-i18next` (Tiếng Việt và English), mockup hiển thị rõ vị trí chuỗi text động.

@@ -1,106 +1,104 @@
-# Danh Sách Tính Năng
-## Dự án: Web Lên Kế Hoạch Nhóm Tích Hợp AI Multi-Agent
+# 📋 Danh Sách Tính Năng Kỹ Thuật (Feature List)
+## Dự án: TripMate AI — Intelligent Group Activity & Travel Planning Platform
+
+> Danh mục tính năng hoàn chỉnh của nền tảng TripMate AI, được chuẩn hóa theo tài liệu Technical Proposal, phân bổ cho 6 thành viên triển khai trong 4 Sprint.
 
 ---
 
-## Các loại sự kiện hỗ trợ (EventType)
+## 🎯 Phân Loại Hai Phạm Vi Kế Hoạch Cốt Lõi (Dual Planning Scopes)
 
-| Loại | Ví dụ |
-|---|---|
-| `TRAVEL` | Đà Lạt 3N2Đ, Phú Quốc 5 ngày |
-| `DINING` | "Tối nay ăn gì?" — chọn quán, chọn món |
-| `HANGOUT` | Cafe chiều thứ 7, gặp mặt bạn bè |
-| `ENTERTAINMENT` | Karaoke, bowling, escape room, arcade |
-| `SIGHTSEEING` | Bảo tàng, triển lãm, di tích, check-in |
-| `CUSTOM` | Teambuilding, sinh nhật, picnic |
-
----
-
-## Nhóm 1 — Tài Khoản & Bảo Mật
-
-| # | Tính năng | Mô tả |
+| Phạm vi | Đặc điểm nghiệp vụ | Xử lý kỹ thuật |
 |---|---|---|
-| 1 | Đăng nhập OAuth | Login qua Google / Facebook |
-| 2 | Đăng ký tài khoản | Email + mật khẩu (hash bcrypt) |
-| 3 | Quên mật khẩu | Gửi email reset password, token 1 lần |
-| 4 | Hồ sơ cá nhân | Tạo / xem / sửa profile (tên, avatar) |
-| 5 | Refresh Token | Tự động gia hạn phiên đăng nhập |
+| ☕ **Đi chơi trong ngày (Day Hangouts)** | Dành cho các buổi hẹn hò, cafe, ăn uống, tụ tập ngẫu hứng cuối tuần (*"cafe $\rightarrow$ board game $\rightarrow$ lẩu"*). | Ưu tiên địa điểm đang mở cửa, khoảng cách $\le 1.5$\,km, kiểm tra giờ đóng cửa và chỗ gửi xe, không cần đặt khách sạn. |
+| ✈️ **Kỳ nghỉ nhiều ngày (Multi-Day Vacations)** | Lịch trình du lịch hoàn chỉnh nhiều ngày tại Việt Nam hoặc ASEAN miễn visa (*"4 ngày 3 đêm tại Đà Nẵng - Hội An"*). | Phân bổ nhịp độ theo ngày, tích hợp gợi ý khách sạn, nhà hàng đặc sản, vé vui chơi Klook, tuyến đường tối ưu trên Mapbox. |
 
 ---
 
-## Nhóm 2 — Quản Lý Event & Plan
+## 🔐 Nhóm 1 — Xác Thực, Danh Tính & Bảo Mật Đa Thuê Bao (Auth & Security)
 
-| # | Tính năng | Mô tả |
-|---|---|---|
-| 6 | Tạo event | Chọn loại (TRAVEL / DINING / ENTERTAINMENT / ...), đặt tên, ngày, khu vực |
-| 7 | Mời thành viên | Gửi lời mời qua link / email, quản lý trạng thái (Pending / Accepted / Declined) |
-| 8 | Phân quyền | Owner / Member / Viewer — mỗi role có hành động khác nhau |
-| 9 | Xem & quản lý event | Danh sách event, lịch sử, tìm kiếm |
-| 10 | Xem các plan trong event | Danh sách plan (AI + thủ công), so sánh |
-| 11 | Tạo plan thủ công | Tự thêm điểm dừng bằng tay, có autocomplete Google Places. **Đi qua luồng Vote → Confirm giống plan AI** |
-| 12 | Chỉnh sửa plan | Đổi thứ tự điểm dừng, xóa / thêm stop, sửa ghi chú |
-| 13 | Vote cho plan | Mỗi member vote UP / DOWN / NEUTRAL + comment góp ý |
-| 14 | Xác nhận plan | Chỉ Owner mới confirm plan → chuyển DRAFT → CONFIRMED |
-| 15 | Lưu yêu thích | Lưu danh sách địa điểm / quán ăn / chỗ chơi yêu thích |
-| 16 | Tham khảo plan công khai | Xem plan của nhóm khác để lấy ý tưởng *(backlog)* |
+| # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
+|:---:|:---:|---|---|:---:|
+| 1 | `TASK-103` | **Đăng nhập OAuth2** | Đăng nhập an toàn qua Google OAuth2 / Facebook SDK, tự động tạo tài khoản hoặc liên kết profile. | Phạm Đình Ánh Dương |
+| 2 | `TASK-102` | **Đăng ký tài khoản mật khẩu** | Đăng ký bằng Email + Mật khẩu, mã hóa chuẩn `bcrypt` (cost factor $\ge 10$), xác thực Pydantic schema. | Phạm Đình Ánh Dương |
+| 3 | `TASK-105` | **Quên & Đặt lại mật khẩu** | Luồng reset password gửi email chứa token 1 lần (TTL 15 phút) qua SMTP server bất đồng bộ. | Phạm Đình Ánh Dương |
+| 4 | `TASK-104` | **Xoay vòng JWT Token** | Cơ chế Access Token (15 phút) và Refresh Token (7 ngày) lưu trong cookie `httpOnly`, chống rò rỉ XSS. | Phạm Đình Ánh Dương |
+| 5 | `TASK-106` | **Quản lý hồ sơ cá nhân** | Xem và cập nhật thông tin cá nhân (họ tên, ảnh đại diện avatar), tích hợp Supabase Auth. | Phạm Đình Ánh Dương |
+| 6 | `TASK-116` | **Bảo mật Đa thuê bao (Supabase RLS)** | Áp dụng chính sách Row Level Security ở tầng PostgreSQL để cách ly dữ liệu giữa các phòng. | Đinh Tiến Luân |
 
 ---
 
-## Nhóm 3 — Tra Cứu & Tích Hợp Bên Ngoài
+## 🏠 Nhóm 2 — Quản Lý Phòng & Không Gian Cộng Tác (Room & Member Management)
 
-| # | Tính năng | Mô tả |
-|---|---|---|
-| 17 | Tra cứu địa điểm | Tìm điểm du lịch, nhà hàng, quán cafe, chỗ chơi, điểm tham quan (Google Places) |
-| 18 | So sánh khách sạn | So sánh giá, đánh giá, tiện nghi giữa các khách sạn |
-| 19 | Hiển thị bản đồ | Bản đồ tương tác hiển thị các stop trong plan (Mapbox / Google Maps) |
-| 20 | Thời tiết | Tra cứu thời tiết điểm đến (OpenWeatherMap) |
-| 21 | Chuyển đổi tiền tệ | Quy đổi tỷ giá giữa các đồng tiền |
-| 22 | Cache dữ liệu | Cache kết quả API bên thứ 3 qua Redis (tránh vượt rate limit) |
+| # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
+|:---:|:---:|---|---|:---:|
+| 7 | `TASK-201` | **Khởi tạo phòng kế hoạch** | Tạo phòng với tên chuyến đi, ngày bắt đầu/kết thúc, phân loại Day Hangout hoặc Vacation. | Tạ Quang Huy |
+| 8 | `TASK-203` | **Mời thành viên qua Link** | Sinh liên kết chia sẻ tức thì (`/join/{token}`), quản lý danh sách thành viên (Pending / Accepted). | Phạm Đình Ánh Dương |
+| 9 | `TASK-204` | **Phân quyền Host vs Member** | Phân định rạch ròi: `Host` (khóa kế hoạch, đổi cài đặt phòng) và `Member` (chat, vote điểm, swap địa điểm). | Tạ Quang Huy |
+| 10 | `TASK-213` | **Dashboard tổng quan phòng** | Giao diện quản lý các chuyến đi của người dùng, phân loại chuyến sắp đi, lịch sử và trạng thái phòng. | Hà Đăng Huy |
 
 ---
 
-## Nhóm 4 — Hệ Thống AI Multi-Agent ⭐ (trọng tâm đồ án)
+## ⚡ Nhóm 3 — Động Cơ Đồng Thuận 2 Giai Đoạn (Two-Stage Consensus Engine)
 
-| # | Tính năng | Mô tả |
-|---|---|---|
-| 23 | Orchestrator Agent | Điều phối toàn bộ sub-agent, routing theo EventType |
-| 24 | Location Agent | Tìm địa điểm / nhà hàng / quán cafe / chỗ chơi phù hợp yêu cầu nhóm |
-| 25 | Research Agent | Tổng hợp review, thông tin chi tiết, gợi ý menu/món ăn (DINING), giá vé (ENTERTAINMENT) |
-| 26 | Plan Agent | Tạo lịch trình tối ưu theo ngày, quản lý ngân sách |
-| 27 | Booking Agent | Đưa link đặt khách sạn / đặt bàn / đặt vé (không tự đặt hộ) |
-| 28 | Note Agent | Gợi ý lưu ý khi đi (thời tiết, đồ mang theo, tips) |
-| 29 | Cost Agent | Tính tổng chi phí, chia đều / chia theo món cho nhóm |
-| 30 | Conflict Resolver Agent | Phân giải xung đột khi vote hòa, đề xuất phương án dung hòa |
-| 31 | Chat Agent | Hội thoại tự do với AI, hỗ trợ streaming (SSE / WebSocket) |
-| 32 | Màn hình chat | UI chat với AI, hiển thị đề xuất plan dạng card/timeline |
+| # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
+|:---:|:---:|---|---|:---:|
+| 11 | `TASK-301` | **Mô hình dữ liệu Plan & Stops** | Schema chuẩn hóa lưu trữ lộ trình vĩ mô và danh sách chi tiết các điểm dừng (`plan_stops`). | Tạ Quang Huy |
+| 12 | `TASK-302` | **Giai đoạn 1: Khóa Lộ Trình Vĩ Mô (Macro Lock)** | Host bấm nút khóa khung chương trình vĩ mô (**Consensus Checkpoint 1**) sau khi cả nhóm đã thảo luận thống nhất. | Tạ Quang Huy |
+| 13 | `TASK-304` | **Giai đoạn 2: Bình chọn Điểm dừng (Stop Voting)** | Thành viên vote **UP** hoặc **DOWN** trên từng điểm dừng, cập nhật atomic counter ngăn race condition. | Tạ Quang Huy |
+| 14 | `TASK-305` | **Đổi địa điểm dự phòng trong 1 click (1-Click Swap)** | Khi điểm dừng bị vote DOWN, người dùng bấm 1 nút để thay thế bằng điểm dự phòng đã nạp sẵn (pre-fetched). | Tạ Quang Huy |
+| 15 | `TASK-306` | **Chốt Kế Hoạch Chính Thức (Final Confirmation)** | Host bấm xác nhận kế hoạch hoàn chỉnh (**Consensus Checkpoint 2**), khóa toàn bộ lộ trình và kích hoạt xuất file. | Tạ Quang Huy |
+| 16 | `TASK-307` | **Lịch trình Động (Living Itinerary & Dynamic Adaptation)** | Khi gặp biến cố bất ngờ trong chuyến đi (trời mưa), cập nhật duy nhất 1 dòng trong bảng `plan_stops`. | Tạ Quang Huy |
 
 ---
 
-## Nhóm 5 — Thông Báo & Xuất Dữ Liệu
+## 🤖 Nhóm 4 — AI Agent Hợp Nhất & Hàng Rào Chống Ảo Giác (Unified AI & Grounding)
 
-| # | Tính năng | Mô tả |
-|---|---|---|
-| 33 | Nhắc nhở email | Nhắc lịch trình sắp đến, vote sắp đóng, lời mời chưa trả lời |
-| 34 | Export PDF | Xuất lịch trình ra file PDF (bản đồ + timeline + chi phí) |
-| 35 | Checklist chuẩn bị | Danh sách đồ cần mang theo, tùy theo loại event và thời tiết |
-
----
-
-## Nhóm 6 — Quản Trị Hệ Thống
-
-| # | Tính năng | Mô tả |
-|---|---|---|
-| 36 | Admin Dashboard | Thống kê user, event, token/chi phí API, cache hit rate |
-| 37 | Quản lý người dùng | Xem / khóa / xóa tài khoản |
-| 38 | Giới hạn lượt dùng AI | Rate limit theo user, cảnh báo khi gần hết quota *(backlog)* |
+| # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
+|:---:|:---:|---|---|:---:|
+| 17 | `TASK-109` | **LangGraph State Machine (Two-Phase)** | Máy trạng thái LangGraph Python chạy tuần tự qua 2 pha: Phase 1 (Macro State) và Phase 2 (Micro State). | Nguyễn Tùng Dương |
+| 18 | `TASK-110` | **Model Abstraction Layer** | Bọc mô hình chính **DeepSeek-V4**, tự động fallback sang GPT-4o, Claude 3.5, hoặc Gemini 1.5 Pro. | Nguyễn Tùng Dương |
+| 19 | `TASK-209` | **Tier 1: Ràng buộc Pydantic Schema** | Chuẩn hóa đầu ra LLM bằng Pydantic v2 (tên, phân khúc, thời lượng, category), loại bỏ text lan man. | Nguyễn Tùng Dương |
+| 20 | `TASK-210` | **Tier 2: Kiểm tra Bản đồ Thực tế (Live Map Check)** | Đối chiếu dữ liệu với Google Places API và OpenStreetMap, xác thực Place ID và giờ mở cửa thật 100%. | Nguyễn Tùng Dương |
+| 21 | `TASK-211` | **Tier 3: Thuật toán Gom cụm Địa lý (Distance Guard)** | Áp dụng công thức Haversine gom cụm các điểm dừng trong bán kính $\le 2.5$\,km ($\le 20$\,phút di chuyển). | Nguyễn Tùng Dương |
+| 22 | `TASK-308` | **Nạp sẵn Phương án Dự phòng (Pre-fetched Backups)** | Tự động truy vấn và chuẩn bị sẵn 2 phương án thay thế cho mỗi điểm dừng chính phục vụ 1-Click Swap. | Nguyễn Tùng Dương |
+| 23 | `TASK-401` | **Lưu vết Checkpoint (AsyncPostgresSaver)** | Ghi nhận trạng thái hội thoại vào schema `checkpoints` qua Data Access Layer (DAL) có xác thực. | Nguyễn Tùng Dương |
 
 ---
 
-## Nhóm 7 — Giao Diện & Trải Nghiệm Chung
+## 🌐 Nhóm 5 — Tích Hợp API Du Lịch Bên Ngoài & Độ Bền PyBreaker
 
-| # | Tính năng | Mô tả |
-|---|---|---|
-| 39 | Landing page | Giới thiệu trang web, tính năng, CTA đăng ký |
-| 40 | Đa ngôn ngữ (i18n) | Hỗ trợ Tiếng Việt / English |
-| 41 | Chia sẻ chi phí | Chia đều hoặc chia theo mục cho thành viên event |
-| 42 | Responsive UI | Tương thích mobile, tablet, desktop |
+| # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
+|:---:|:---:|---|---|:---:|
+| 24 | `TASK-108` | **Tra cứu Google Places API** | Tìm kiếm địa điểm, nhà hàng, khách sạn, điểm check-in bằng `httpx` async kèm phân loại `StopCategory`. | Hà Đăng Huy |
+| 25 | `TASK-205` | **Tích hợp Dịch vụ Khách sạn & Tour** | Kết nối dữ liệu chỗ ở (Agoda, Booking.com) và hoạt động trải nghiệm (Klook, 12Go Asia). | Hà Đăng Huy |
+| 26 | `TASK-207` | **Dự báo Thời tiết (OpenWeatherMap)** | Tra cứu thời tiết theo tọa độ điểm đến, lưu cache 3 giờ để cảnh báo mưa gió cho nhóm. | Hà Đăng Huy |
+| 27 | `TASK-107` | **Lớp Ngắt Mạch PyBreaker Circuit Breaker** | Ngắt mạch tự động (timeout 2.5s) khi API ngoài quá tải, chuyển luồng về L2 Cache/DB fallback. | Hà Đăng Huy |
+| 28 | `TASK-208` | **Upstash Redis L2 Caching Service** | Lưu trữ kết quả tra cứu địa điểm trong 24 giờ trên Upstash Redis, giảm 80% chi phí API calls. | Hà Đăng Huy |
+
+---
+
+## 💻 Nhóm 6 — Giao Diện Người Dùng & Bản Đồ Lộ Trình (Frontend Experience)
+
+| # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
+|:---:|:---:|---|---|:---:|
+| 29 | `TASK-111` | **Hệ thống Design Tokens & Theme** | Xây dựng theme chuẩn (Dark/Light mode) với Tailwind CSS và thư viện component shadcn/ui. | Nguyễn Minh Đức |
+| 30 | `TASK-114` | **Trang Landing Page & Giới thiệu** | Trang chủ hiện đại giới thiệu tính năng, mô phỏng luồng 2-Stage Consensus, nút Call-to-Action. | Nguyễn Minh Đức |
+| 31 | `TASK-115` | **Hỗ trợ Đa ngôn ngữ (i18n)** | Chuyển đổi ngôn ngữ Tiếng Việt / Tiếng Anh mượt mà bằng thư viện `react-i18next`. | Nguyễn Minh Đức |
+| 32 | `TASK-215` | **Canvas Bản đồ Tương tác Mapbox GL** | Hiển thị các điểm dừng trên bản đồ số, vẽ tuyến đường di chuyển trực quan giữa các điểm. | Hà Đăng Huy |
+| 33 | `TASK-314` | **Dòng Thời Gian Kế Hoạch (Interactive Timeline)** | Danh sách thẻ điểm dừng trực quan, hỗ trợ kéo thả sắp xếp thứ tự và hiển thị thời gian lưu lại. | Hà Đăng Huy |
+| 34 | `TASK-406` | **Giao diện Room Chat & Token Streaming** | Màn hình chat phòng thời gian thực, stream từng token của AI (TTFT $< 800$\,ms) qua WebSockets. | Nguyễn Minh Đức |
+| 35 | `TASK-408` | **Thẻ Bình Chọn Điểm Dừng (Stop Voting Cards)** | Thẻ hiển thị hình ảnh, giá, nút vote UP/DOWN và nút 1-Click Swap thay thế địa điểm tức thì. | Nguyễn Minh Đức |
+| 36 | `TASK-312` | **Xuất File Lịch Trình PDF** | Tạo file PDF đẹp mắt, chuyên nghiệp chứa bản đồ, timeline, chi phí dự kiến qua WeasyPrint. | Phạm Đình Ánh Dương |
+| 37 | `TASK-313` | **Xuất File Lịch (.ics Calendar Export)** | Đồng bộ toàn bộ lịch trình chuyến đi vào Google Calendar, Apple Calendar chỉ với 1 click. | Phạm Đình Ánh Dương |
+
+---
+
+## 💰 Nhóm 7 — Quản Lý Tài Chính Nhóm & Giám Sát Hệ Thống (Expenses & Ops)
+
+| # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
+|:---:|:---:|---|---|:---:|
+| 38 | `TASK-404` | **Ghi nhận Thu Quỹ & Chi Phí Nhóm** | Hỗ trợ thu quỹ trước (`ExpenseType.ADVANCE`) và ghi nhận hóa đơn chi tiêu thực tế phát sinh. | Phạm Đình Ánh Dương |
+| 39 | `TASK-405` | **Thuật toán Bù trừ Nợ Tối ưu (Settlement)** | Tính toán số dư ròng của từng người và gợi ý số lượng giao dịch chuyển khoản ít nhất (Min-Cash-Flow). | Phạm Đình Ánh Dương |
+| 40 | `TASK-409` | **Giao diện Quyết toán Chi phí** | Màn hình hiển thị tổng quỹ, chi tiết ai đã chi, ai nợ ai bao nhiêu tiền kèm nút xác nhận đã bank. | Nguyễn Minh Đức |
+| 41 | `TASK-410` | **Dashboard Giám Sát Quản Trị (Admin UI)** | Thống kê số lượng phòng hoạt động, token LLM tiêu thụ, cache hit rate và thời gian phản hồi. | Nguyễn Minh Đức |
+| 42 | `TASK-414` | **Hạ tầng Giám sát OpenTelemetry & LangSmith** | Đo lường độ trễ end-to-end (Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ DB), theo dõi sức khỏe hệ thống. | Đinh Tiến Luân |

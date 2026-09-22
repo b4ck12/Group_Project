@@ -1,107 +1,134 @@
-# AI Multi-Agent Architecture (Nhóm 4)
+# 🤖 AI Agent Architecture: Unified DeepSeek-V4 & Four-Tier Grounding
+## Dự án: TripMate AI — Intelligent Group Activity & Travel Planning Platform
 
-## 1. Tổng quan
-Hệ thống dùng mô hình **Orchestrator–Worker** trên nền **LangGraph Python (`langgraph`)**: 1 agent điều phối (orchestrator) nhận yêu cầu, quyết định gọi sub-agent nào, tổng hợp kết quả trả về. Vì Backend viết bằng **Python FastAPI**, AI Agent chạy trực tiếp trong cùng môi trường Python, gọi `deepseek-chat` (V3) và `deepseek-reasoner` (R1) thông qua SDK chính thức.
+> Tài liệu kỹ thuật chi tiết về kiến trúc **AI Agent hợp nhất (Unified AI Agent)**, mô hình suy luận **DeepSeek-V4**, máy trạng thái 2 pha trên **LangGraph Python**, tầng trừu tượng hóa mô hình (**Model Abstraction Layer**), và hàng rào 4 tầng chống ảo giác (**Four-Tier Grounding Pipeline**), bám sát 100% Mục 3, Hình 2 và Hình 3 trong Technical Proposal.
+
+---
+
+## 🧠 1. Kiến Trúc AI Agent Hợp Nhất (Unified AI Agent with Two-Phase State Execution)
+
+Thay vì chia nhỏ thành nhiều sub-agent phân mảnh gây nghẽn độ trễ (latency bottleneck) và khó kiểm thử, TripMate AI ứng dụng **một Agent hợp nhất duy nhất chạy DeepSeek-V4 trên LangGraph Python**, hoạt động qua 2 pha trạng thái tách biệt:
 
 ```mermaid
-graph TD
-    User[User Request / UI Chat] --> Orchestrator[Orchestrator Agent<br/>LangGraph Python State]
+flowchart TD
+    subgraph Row1 ["Pha 1: Lập Kế Hoạch Vĩ Mô (Macro Planning)"]
+        IN["Ngữ Cảnh Phòng Chat (Room Input Context)<br/>• Tin nhắn mong muốn, ngân sách, ngày đi"]
+        MACRO["Phase 1: Macro Planning State<br/>• Đề xuất số ngày, chủ đề từng buổi, nhịp độ<br/>• KHÔNG gọi API ngoài tốn phí"]
+        LLM["Model Abstraction Layer<br/>• Động cơ chính: DeepSeek-V4<br/>• Fallback trong suốt: GPT-4o / Claude / Gemini"]
+    end
 
-    Orchestrator -->|Route by EventType & Intent| Location[Location Agent]
-    Orchestrator -->|Route by EventType & Intent| Research[Research Agent]
-    Orchestrator -->|Route by EventType & Intent| Plan[Plan Agent - DeepSeek R1]
-    Orchestrator -->|Route by EventType & Intent| Booking[Booking Agent]
-    Orchestrator -->|Route by EventType & Intent| Cost[Cost Agent]
-    Orchestrator -->|Route by EventType & Intent| Conflict[Conflict Resolver Agent]
+    subgraph Row2 ["Pha 2: Tuyển Chọn Chi Tiết & Tích Hợp (Micro Curation)"]
+        STATE["PostgreSQL Checkpoints<br/>• Typed AgentState qua DAL<br/>• AsyncPostgresSaver"]
+        MICRO["Phase 2: Micro Curation State<br/>• Gọi Places/Agoda qua PyBreaker<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Nạp sẵn 2 backup stops cho 1-Click Swap"]
+        TOOLS["Resilient APIs & Database<br/>• Google Places, OSM, Agoda, Klook<br/>• PyBreaker Circuit Breaker (2.5s)<br/>• Ghi plan_stops qua DAL"]
+    end
 
-    Location --> DB[(PostgreSQL Session)]
-    Research --> DB
-    Plan --> DB
-    Booking --> DB
-    Cost --> DB
-    Conflict --> DB
+    IN -->|"Kích hoạt (Trigger)"| MACRO
+    MACRO <-->|"Suy luận (Reasoning)"| LLM
+    IN -->|"Lưu vết (Persist)"| STATE
+    MACRO -->|"Chốt đồng thuận vĩ mô (Macro Consensus)"| MICRO
+    STATE <-->|"Đồng bộ State (State Sync)"| MICRO
+    MICRO <-->|"Truy vấn công cụ & Ghi DB"| TOOLS
 
-    style User fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
-    style Orchestrator fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    style Plan fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
-    style Conflict fill:#fbe9e7,stroke:#d84315,stroke-width:2px;
+    style IN fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
+    style MACRO fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
+    style LLM fill:#ffffff,stroke:#283241,stroke-width:1.5px;
+    style STATE fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
+    style MICRO fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
+    style TOOLS fill:#ffffff,stroke:#283241,stroke-width:1.5px;
 ```
 
-`Note Agent` và `Chat Agent` hoạt động song song, Chat Agent sử dụng FastAPI WebSockets hoặc SSE (`EventSourceResponse`) để streaming câu trả lời.
+### 1.1. Phase 1 — Macro Planning State (Trạng Thái Lập Kế Hoạch Vĩ Mô)
+- **Mục tiêu**: Đề xuất ngày đi, nhịp độ và chủ đề cho từng buổi sáng/chiều/tối dựa trên mong muốn của nhóm.
+- **Tiết kiệm Token & Chi phí**: Ở pha này, Agent **tuyệt đối không gọi các API du lịch bên ngoài** (Google Places, Agoda, Klook), bảo tồn token và giảm tối đa chi phí cho đến khi nhóm đạt được thỏa thuận vĩ mô.
+- **Độ trễ**: Thời gian phản hồi nhanh ($6$--$12$\,giây).
 
-## 1.1 Routing theo loại sự kiện (EventType)
+### 1.2. Phase 2 — Micro Curation State (Trạng Thái Tuyển Chọn Địa Điểm Chi Tiết)
+- **Kích hoạt**: Chỉ được kích hoạt **sau khi Host bấm nút Khóa Lộ Trình Vĩ Mô (Macro Consensus)**.
+- **Nghiệp vụ**: Thực thi các lệnh gọi công cụ ngoài qua PyBreaker, áp dụng thuật toán gom cụm khoảng cách Haversine ($\le 2.5$\,km, thời gian di chuyển $\le 20$\,phút), và chuẩn bị sẵn 2 địa điểm dự phòng cho mỗi điểm dừng chính phục vụ cơ chế 1-Click Swap.
+- **Độ trễ**: $10$--$20$\,giây (truy vấn song song các địa điểm thực tế).
 
-Orchestrator nhận `eventType` từ context event và điều chỉnh chiến lược gọi sub-agent phù hợp:
+---
 
-| EventType | Luồng Agent chính | Ghi chú |
-|---|---|---|
-| `TRAVEL` | Location → Research → Plan → Booking → Cost | Luồng mặc định, lên lịch trình nhiều ngày |
-| `DINING` | Location (filter: nhà hàng/quán ăn) → Research (menu, review) → Plan (chọn quán + giờ) → Booking (đặt bàn) | Gợi ý **món ăn** dựa trên sở thích nhóm, dị ứng, ngân sách |
-| `HANGOUT` | Location (filter: cafe/bar) → Plan (chọn quán + giờ) | Luồng ngắn, ít bước |
-| `ENTERTAINMENT` | Location (filter: khu vui chơi, karaoke, bowling...) → Research (giá vé, khung giờ) → Plan → Booking | Gợi ý hoạt động phù hợp số người, độ tuổi |
-| `SIGHTSEEING` | Location (filter: bảo tàng, di tích, triển lãm) → Research (giờ mở cửa, giá vé, tips) → Plan → Cost | Tối ưu tuyến đường tham quan |
-| `CUSTOM` | Chat Agent xử lý tự do, user tự thêm stop thủ công | Orchestrator ở chế độ trợ lý, không tự động generate full plan |
+## 🛡️ 2. Hàng Rào Chống Ảo Giác 4 Tầng (Four-Tier Grounding Pipeline)
 
-> **Lưu ý**: Location Agent dùng chung cho mọi loại sự kiện, nhưng nhận thêm tham số `category` filter (`StopCategory`: RESTAURANT, CAFE, ENTERTAINMENT, ATTRACTION...) để thu hẹp kết quả Google Places phù hợp context.
-
-## 2. Vai trò từng Agent
-| Agent | Input chính | Output | Ghi chú |
-|---|---|---|---|
-| Orchestrator | Yêu cầu người dùng (text/action) + context event | Quyết định route + tổng hợp kết quả | LangGraph Python state machine, `deepseek-chat` |
-| Location Agent | Sở thích, ngân sách, khu vực, category filter | Danh sách địa điểm gợi ý | Gọi Google Places API qua `httpx`, có cache Redis |
-| Research Agent | Địa điểm cụ thể | Thông tin chi tiết, review, **menu/món ăn** (DINING), giá vé (ENTERTAINMENT) | Có thể dùng RAG (`pgvector`) nếu có dữ liệu tích lũy |
-| Plan Agent | Danh sách địa điểm + ràng buộc thời gian | Lịch trình theo ngày + ngân sách sơ bộ | Dùng `deepseek-reasoner` để tối ưu lộ trình |
-| Booking Agent | Địa điểm/khách sạn đã chọn | Link đặt chỗ sẵn (không tự đặt hộ) | Chỉ đưa link, không thực hiện giao dịch thay user |
-| Note Agent | Loại chuyến đi, thời tiết | Checklist/lưu ý khi đi chơi | Dùng data OpenWeatherMap |
-| Conflict Resolver | Kết quả vote (nhiều ý kiến trái chiều) | Đề xuất phương án dung hoà | Dùng `deepseek-reasoner` phân tích lý do vote |
-| Cost Agent | Danh sách stop + giá ước tính | Tổng chi phí, chia đều / chia theo món | Ưu tiên tính bằng Python code, LLM trích xuất giá từ text |
-| Chat Agent | Hội thoại tự do của user | Trả lời + gọi tool tới agent khác | Expose qua `/api/v1/ai/chat`, dùng FastAPI SSE/WebSocket streaming |
-
-## 3. State & Checkpoint (LangGraph Python)
-- Dùng Pydantic `TypedDict` / `BaseModel` cho LangGraph state:
-  ```python
-  class AgentState(TypedDict):
-      event_id: str
-      event_type: str
-      user_intent: str
-      retrieved_places: list[dict]
-      draft_plan: dict | None
-      budget_constraint: float | None
-      conversation_history: list[dict]
-  ```
-- Checkpoint bằng AsyncSqliteSaver / AsyncPostgresSaver theo `eventId` để lưu giữ ngữ cảnh hội thoại.
-
-## 4. Vote & Confirm — áp dụng cho MỌI loại Plan
-
-Luồng Vote → Confirm **áp dụng bình đẳng** cho cả Plan do AI tạo lẫn Plan tạo thủ công (#11):
+Để đảm bảo **0% địa điểm ảo** và giải quyết triệt để vấn đề "bịa đặt thông tin" của mô hình ngôn ngữ lớn, TripMate AI bắt buộc mọi địa điểm xuất xưởng phải vượt qua 4 tầng rào chắn:
 
 ```mermaid
 flowchart LR
-    AI[AI Plan Generator] --> Draft[status = DRAFT]
-    Manual[Manual Plan Builder] --> Draft
-    Draft --> Voting[status = VOTING]
-    Voting --> Confirmed[status = CONFIRMED]
-    Voting --> Archived[status = ARCHIVED]
+    T1["Tier 1: Strict Schema<br/>• Pydantic Schema cố định<br/>• Loại bỏ text tự do lan man"] --> T2["Tier 2: Live Map Check<br/>• Google Places & OSM<br/>• Xác thực Place ID & Giờ mở cửa"]
+    T2 --> T3["Tier 3: Distance Guard<br/>• Gom cụm Haversine + Mapbox<br/>• Bán kính <= 2.5km, di chuyển <= 20p"]
+    T3 --> T4["Tier 4: Member Votes<br/>• Vote UP / DOWN<br/>• 1-Click Swap backup đã pre-fetch"]
 
-    style Draft fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
-    style Voting fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    style Confirmed fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+    style T1 fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
+    style T2 fill:#f7f9fc,stroke:#186c8e,stroke-width:1.5px;
+    style T3 fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
+    style T4 fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
 ```
 
-### Quy tắc:
-- **Mọi Plan** (dù AI hay thủ công) khi tạo đều có `status = DRAFT`.
-- Người tạo plan (Owner hoặc Member) bấm **"Gửi cho nhóm vote"** → `status = VOTING` → notification tới tất cả member.
-- Member vote (UP / DOWN / NEUTRAL) + comment góp ý.
-- Nếu vote phân tán → Conflict Resolver Agent có thể được gọi để đề xuất dung hòa (chỉ áp dụng nếu user chọn nhờ AI hỗ trợ).
-- **Chỉ Owner** mới có quyền xác nhận → `status = CONFIRMED`.
-- AI **không tự động chốt plan cuối cùng** — AI hỗ trợ ra quyết định, **không thay quyền quyết định của người dùng**.
+### Chi tiết 4 tầng bảo vệ:
+1. **Tier 1 (Strict Schema)**: Ép đầu ra của LLM vào cấu trúc Pydantic nghiêm ngặt (`PlaceCandidate`), gồm các trường bắt buộc: `name`, `category`, `estimated_stay_minutes`, `budget_tier`, `lat_hint`, `lng_hint`. Bất kỳ đầu ra nào không khớp schema sẽ bị Pydantic v2 chặn lại và yêu cầu LLM format lại ngay lập tức.
+2. **Tier 2 (Live Map Check)**: Xác thực chéo từng địa điểm với Google Places API (New) và OpenStreetMap. Bắt buộc phải tìm được `place_id` có thật, kiểm tra cờ `open_now` và đối chiếu giờ đóng/mở cửa với khung giờ dự kiến ghé thăm.
+3. **Tier 3 (Distance Guard — Gom Cụm Thông Minh)**:
+   - Sử dụng công thức khoảng cách Haversine:
+     $$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta \phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right)}\right)$$
+   - Kết hợp Mapbox Matrix API: Các điểm dừng trong cùng nửa ngày bắt buộc phải nằm trong bán kính **$2.0$--$2.5$\,km** và thời gian di chuyển **$\le 20$\,phút**. Loại bỏ hoàn toàn lộ trình ziczac qua lại giữa các quận xa nhau.
+4. **Tier 4 (Member Votes & 1-Click Swap)**: Đặt quyền quyết định vào tay người dùng. Từng thành viên trong phòng vote UP/DOWN cho điểm dừng; điểm dừng bị từ chối lập tức được thay thế bằng 1 trong 2 địa điểm dự phòng đã được xác thực sẵn thông qua nút bấm **1-Click Swap** (thời gian đổi chỉ $3$--$6$\,giây).
 
-## 5. Bảo mật đầu vào (phối hợp Nhóm 1 + Nhóm 4)
-- Mọi input tự do từ user qua Pydantic validation & bleach/sanitize trước khi đưa vào prompt.
-- Dùng cấu trúc message role user/system tách biệt của DeepSeek API, không tự ghép chuỗi thô.
-- Giới hạn độ dài input, giới hạn số bước trong LangGraph recursion_limit (đặt 15 bước, xem `AI_MAX_STEPS_PER_SESSION`).
-- Output từ LLM được validate qua Pydantic schema trước khi lưu DB.
+---
 
-## 6. Theo dõi chi phí
-- Mỗi lần gọi Agent ghi log vào bảng `agent_logs` (input/output tokens, duration_ms, agent_name).
-- Admin Dashboard tổng hợp chi phí theo user/ngày để quản lý quota.
+## 🔄 3. Lớp Trừu Tượng Hóa Mô Hình (Model Abstraction Layer)
+
+Để loại bỏ rủi ro phụ thuộc vào một nhà cung cấp duy nhất (Vendor Lock-in), toàn bộ logic gọi AI đều đi qua lớp trừu tượng hóa:
+
+```python
+class LLMModelAbstraction:
+    """Lớp trừu tượng hóa mô hình ngôn ngữ lớn hỗ trợ fallback tự động."""
+    
+    PRIMARY_MODEL = "deepseek-v4"
+    FALLBACK_MODELS = ["gpt-4o", "claude-3-5-sonnet", "gemini-1.5-pro"]
+    
+    async def generate_response(self, messages: list[dict], tools: list[dict] = None):
+        try:
+            # 1. Ưu tiên gọi DeepSeek-V4
+            return await self._call_deepseek_v4(messages, tools)
+        except (RateLimitException, APITimeoutException, ServiceUnavailableException) as exc:
+            logger.warning(f"DeepSeek-V4 gặp sự cố ({exc}). Kích hoạt fallback...")
+            # 2. Tự động chuyển luồng sang GPT-4o / Claude / Gemini
+            return await self._call_fallback_llm(messages, tools)
+```
+
+---
+
+## 💾 4. Quản Lý Trạng Thái & Checkpoint (Typed State Persistence)
+
+Trạng thái của LangGraph được định nghĩa chặt chẽ bằng Pydantic `TypedDict` và lưu trữ bền bỉ trong schema `checkpoints` của Supabase PostgreSQL thông qua `AsyncPostgresSaver`:
+
+```python
+from typing import TypedDict, Optional, List
+from pydantic import BaseModel
+
+class PlaceStopDTO(BaseModel):
+    place_name: str
+    place_ref_id: str  # Google Place ID thật 100%
+    category: str      # RESTAURANT | CAFE | ATTRACTION | HOTEL | ENTERTAINMENT
+    lat: float
+    lng: float
+    duration_minutes: int
+    estimated_cost: float
+    backup_options: List[dict]  # 2 địa điểm dự phòng cho 1-click swap
+
+class AgentState(TypedDict):
+    event_id: str
+    phase: str                  # "MACRO_PLANNING" | "MICRO_CURATION" | "FINALIZED"
+    macro_locked: bool          # True khi Host đã bấm Consensus 1
+    final_locked: bool          # True khi Host đã bấm Consensus 2
+    daily_themes: List[dict]    # Khung chương trình vĩ mô từng ngày
+    plan_stops: List[dict]      # Danh sách điểm dừng chi tiết đã qua 4-Tier Grounding
+    user_desires: dict          # Ngân sách, khẩu vị, ngày đi
+    messages: List[dict]        # Lịch sử hội thoại trong phòng
+```
+
+### Cơ chế khôi phục phiên tự động (Fault Recovery):
+- Mỗi khi người dùng chat hoặc vote, `AsyncPostgresSaver` ghi nhận checkpoint mới nhất gắn liền với `event_id`.
+- Nếu container AI Worker trên Render bị restart hoặc đứt kết nối mạng giữa chừng, tiến trình worker mới chỉ cần đọc checkpoint từ PostgreSQL qua Data Access Layer (DAL) là có thể tiếp tục xử lý chính xác tác vụ mà không làm mất bất kỳ dữ liệu nào của phòng.

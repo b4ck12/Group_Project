@@ -1,118 +1,162 @@
-# 🚀 Project Overview — Nền Tảng Lên Kế Hoạch Nhóm Tích Hợp AI Multi-Agent
+# 🚀 Project Overview — TripMate AI
+### Intelligent Group Activity & Travel Planning Platform (Unified AI Agent & Cloud Architecture)
 
 > [!NOTE]
-> **Tóm Tắt Dự Án (Elevator Pitch)**: TripMate AI là nền tảng web giúp các nhóm bạn và gia đình lên kế hoạch & chốt nhanh mọi hoạt động chung — từ chuyến du lịch nhiều ngày, bữa tối nhóm, buổi cafe chiều thứ 7, đến các hoạt động giải trí cuối tuần (karaoke, bowling, tham quan). Hệ thống kết hợp cơ chế bình chọn công khai cùng đội ngũ trợ lý AI Multi-Agent (LangGraph Python + DeepSeek API) để tự động hóa việc tìm địa điểm thật, lên lộ trình tối ưu, gợi ý menu/món ăn, tính chi phí và phân giải xung đột ý kiến.
+> **Tóm Tắt Dự Án (Executive Summary)**:  
+> **TripMate AI** là nền tảng cộng tác lập kế hoạch thông minh dành cho nhóm (2--10 người) đi chơi cuối tuần hoặc du lịch nhiều ngày (Việt Nam & các nước Đông Nam Á miễn thị thực). Hệ thống giải quyết triệt để tình trạng tranh cãi kéo dài và quá tải cho trưởng nhóm bằng việc kết hợp phòng cộng tác thời gian thực với **mô hình AI Agent hợp nhất (DeepSeek-V4)** chạy trên **LangGraph Python**, hoạt động theo **Quy trình đồng thuận 2 giai đoạn (Two-Stage Consensus Planning Flow)** và **Hàng rào kiểm chứng thực tế 4 tầng (Four-Tier Grounding Pipeline)** để đảm bảo 0% địa điểm ảo. Nền tảng được kiến trúc sẵn sàng cho môi trường đám mây thực tế kết hợp **Vercel, Render, Supabase và Upstash Redis**.
 
 ---
 
-## 💔 1. Nỗi Đau Thực Tế (Real-World Pain Points)
+## 💔 1. Nỗi Đau Thực Tế (Pain Points in Group Trip Planning)
 
-Khi một nhóm từ 3 đến 10 người muốn tổ chức một hoạt động cùng nhau, họ luôn gặp phải 4 vấn đề lớn:
+Lên kế hoạch đi chơi hoặc du lịch cùng nhóm bạn bè luôn gặp phải 3 rào cản lớn:
 
-| Nỗi đau | Biểu hiện thực tế | Hậu quả |
+| Nỗi đau | Biểu hiện thực tế | Hậu quả kỹ thuật & tâm lý |
 |---|---|---|
-| 💬 **Tranh cãi vô tận & Trôi tin nhắn** | *"Tối nay ăn gì?"*, *"Cuối tuần đi đâu chơi?"* dẫn đến hàng trăm tin nhắn trên Zalo/Messenger. | Hàng giờ trôi qua mà nhóm không chốt được địa điểm. |
-| 🎒 **Gánh nặng "Trưởng nhóm"** | Chỉ 1 người phải tự tìm địa điểm, xem review, lên lịch trình, hỏi từng người. | Người làm mệt mỏi, dễ bị trách móc nếu nhóm không vừa ý. |
-| ⚡ **Xung đột ý kiến & Vote hòa** | Người thích đồ Nhật, người thích đồ Việt; vote phân tán mỗi người 1 ý. | Nhóm rơi vào bế tắc và dễ rơi vào tình trạng "hủy kèo". |
-| 📍 **Thiếu thông tin chi tiết** | Chọn quán ăn không biết menu/giá; đi chơi không biết giá vé/giờ mở cửa. | Phát sinh chi phí ngoài dự kiến, di chuyển tốn thời gian. |
+| 📱 **Phân mảnh công cụ (Tool Fragmentation)** | Người dùng phải nhảy qua lại giữa 5+ ứng dụng rời rạc: Google Maps, review foody/TikTok, Agoda, Booking.com, chat Messenger/Zalo. | Mất tập trung, dữ liệu rời rạc, không có một nguồn sự thật duy nhất (Single Source of Truth). |
+| ⚡ **Bế tắc sở thích & Xung đột ngầm (Preference Deadlocks)** | Mâu thuẫn về ngân sách (người muốn tiết kiệm, người thích sang chảnh), khẩu vị ẩm thực, giờ giấc sinh hoạt. | Thảo luận kéo dài 2--3 ngày không đi đến hồi kết, dễ dẫn đến "hủy kèo". |
+| 🎒 **Kiệt sức Trưởng nhóm & Trôi ngữ cảnh (Organizer Burnout & Buried Context)** | Các bình chọn, link quán ăn và ý kiến bị trôi mất dưới hàng trăm tin nhắn chat. Một người phải ôm đồm việc tổng hợp và sửa lịch trình. | Trưởng nhóm quá tải và mệt mỏi; nhóm thiếu sự đồng thuận thực sự. |
 
 ---
 
-## 💡 2. Giải Pháp Của Hệ Thống (Our Solution)
+## 🎯 2. Đối Tượng Người Dùng & Phạm Vi Thực Tế (Target Users & Scope)
 
-Dự án áp dụng luồng nghiệp vụ **Event → Plan → Vote → Confirm** minh bạch, kết hợp giữa sự chủ động của con người và năng lực tính toán của AI Multi-Agent:
+- **Đối tượng người dùng mục tiêu**: Các nhóm nhỏ từ **2 đến 10 thành viên** (nhóm bạn thân, sinh viên đại học, đồng nghiệp công ty) lên kế hoạch cho các buổi đi chơi cuối tuần trong ngày hoặc các kỳ nghỉ du lịch ngắn/dài ngày.
+- **Phạm vi thực tế (Practical Scope)**: Tập trung vào du lịch nội địa tại Việt Nam và các điểm đến miễn thị thực (visa-free) trong khối ASEAN. Hệ thống tập trung tối đa vào bài toán **sắp xếp lịch trình thông minh, tối ưu cụm địa lý (geo-clustering) và cộng tác thời gian thực** mà không bị vướng vào các thủ tục visa phức tạp.
+
+---
+
+## 💡 3. Giải Pháp: Quy Trình Đồng Thuận 2 Giai Đoạn (Two-Stage Consensus Planning Flow)
+
+TripMate AI hợp nhất toàn bộ trải nghiệm nhóm vào một phòng cộng tác duy nhất, được điều phối bởi **AI Agent hợp nhất (DeepSeek-V4)** dẫn dắt nhóm qua hai chốt chặn đồng thuận minh bạch:
 
 ```mermaid
-graph TD
-    A["1. TẠO EVENT & MỜI BẠN<br/>• Owner chọn loại Event: TRAVEL, DINING, HANGOUT...<br/>• Gửi lời mời qua link / email (Invitation Service)"] --> B
+flowchart LR
+    S1["1. Group Chat<br/>• Mong muốn & Ngân sách<br/>• Lưu vào Supabase DB"] --> S2["2. Macro Plan<br/>• Phân bổ số ngày & Chủ đề<br/>• Pha 1: Macro State"]
+    S2 --> S3{"3. Macro Lock<br/>🔒 Khóa Roadmap<br/>(Consensus 1)"}
+    S3 --> S4["4. Micro Spots<br/>• POIs, Quán ăn, Chỗ chơi<br/>• Gom cụm 2-3km<br/>• Pha 2: Micro State"]
+    S4 --> S5["5. Stop Voting<br/>• Vote UP / DOWN<br/>• 1-Click Swap dự phòng"]
+    S5 --> S6{"6. Final Lock<br/>🔒 Chốt Kế Hoạch<br/>(Consensus 2)"}
+    S6 --> S7["7. Living Itinerary<br/>• Xuất PDF & Calendar .ics<br/>• Mapbox điều hướng<br/>• Đổi điểm khi trời mưa"]
 
-    B["2. ĐỀ XUẤT PLAN (AI + THỦ CÔNG)<br/>• 🤖 AI Agent (LangGraph): Tìm địa điểm thật, lên lịch, gợi ý menu<br/>• ✏️ Member tạo tay: Thêm điểm dừng với autocomplete Google Places<br/>➔ Trạng thái: DRAFT Plan"] --> C
-
-    C["3. VOTE & PHÂN GIẢI XUNG ĐỘT<br/>• Thành viên Vote UP / DOWN / NEUTRAL + comment ý kiến<br/>• 🤖 Conflict Resolver Agent (DeepSeek-R1): Đề xuất phương án dung hòa"] --> D
-
-    D["4. CHỐT PLAN & VẬN HÀNH<br/>• Owner xác nhận ➔ Trạng thái: CONFIRMED Plan<br/>• Xuất PDF lịch trình, Email nhắc nhở, Checklist đồ đạc, Chia chi phí"]
-
-    style A fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
-    style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
-    style C fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    style D fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+    style S1 fill:#f0f4f8,stroke:#12305c,stroke-width:1.5px;
+    style S2 fill:#f0f4f8,stroke:#12305c,stroke-width:1.5px;
+    style S3 fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
+    style S4 fill:#f0f4f8,stroke:#12305c,stroke-width:1.5px;
+    style S5 fill:#f0f4f8,stroke:#12305c,stroke-width:1.5px;
+    style S6 fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
+    style S7 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
 ```
 
----
-
-## ⭐ 3. Điểm Độc Đáo & Ưu Thế Kỹ Thuật (Core Differentiators)
-
-### 🌟 3.1. Đa Dạng Loại Sự Kiện (Multi-EventType)
-Không chỉ giới hạn ở use-case "du lịch 3-5 ngày", hệ thống phục vụ **mọi nhu cầu sinh hoạt nhóm thường ngày**:
-
-> [!TIP]
-> **Tự động thay đổi tiêu chí tìm kiếm theo danh mục**: Với sự kiện `DINING`, AI tự động tìm nhà hàng & gợi ý menu món ăn; với `ENTERTAINMENT`, AI tra cứu giá vé & khung giờ chơi; với `SIGHTSEEING`, AI kiểm tra giờ mở cửa & tips tham quan.
-
-| EventType | Ví dụ thực tế | AI Trợ lý làm gì khác biệt? |
-|---|---|---|
-| ✈️ `TRAVEL` | Du lịch Đà Lạt 3N2Đ, Phú Quốc 4N3Đ | Tìm khách sạn → xếp tuyến đường tham quan theo ngày → tính ngân sách |
-| 🍜 `DINING` | "Tối thứ 7 ăn gì?" (Nhóm 5 người) | Tìm nhà hàng → **gợi ý menu/món ăn đặc sắc** → tính giá trung bình/người |
-| ☕ `HANGOUT` | Cafe chiều thứ 7 | Tìm quán cafe theo vibe (rooftop, yên tĩnh, sống ảo) → chọn giờ mượt |
-| 🎳 `ENTERTAINMENT` | Karaoke, bowling, escape room | Tìm chỗ chơi → **tra cứu giá vé/khung giờ** → gợi ý đặt chỗ |
-| 🏛️ `SIGHTSEEING` | Tham quan bảo tàng, di tích, check-in | Tìm điểm check-in → giờ mở cửa, giá vé, tips gửi xe |
-| 🎈 `CUSTOM` | Teambuilding, sinh nhật, picnic | User tự do thêm hoạt động, AI đóng vai trò trợ lý hỏi đáp |
+### Chi tiết các bước thực hiện:
+1. **Thu thập mong muốn (Desires Capture)**: Thành viên chat tự do về ngày đi, khung ngân sách, phong cách chuyến đi; tin nhắn được lưu trực tiếp vào Supabase (`core` schema).
+2. **Đồng thuận Vĩ mô (Macro Consensus - Consensus 1)**: AI Agent (Phase 1 Macro State) phác thảo số ngày và chủ đề từng ngày mà **chưa gọi các API địa điểm tốn kém**. Cả nhóm thảo luận và Host bấm khóa khung chương trình.
+3. **Tuyển chọn Chi tiết & Bình chọn Điểm dừng (Micro Curation & Stop Voting)**: AI Agent (Phase 2 Micro State) truy vấn live APIs (Google Places, Agoda, Klook), gom cụm địa lý trong bán kính $2.0$--$2.5$\,km ($\le 20$\,phút di chuyển). Thành viên vote UP/DOWN cho từng điểm dừng, hỗ trợ đổi địa điểm dự phòng trong 1 click (**1-Click Swap**).
+4. **Chốt Kế Hoạch Chính Thức (Final Confirmation - Consensus 2)**: Host xác nhận kế hoạch hoàn chỉnh, lưu các bản ghi đã chuẩn hóa vào bảng `plan_stops` trong PostgreSQL, sinh file PDF và lịch (.ics), kích hoạt bản đồ lộ trình Mapbox GL.
+5. **Lịch trình Sống Động (Living Itinerary & Dynamic Adaptation)**: Kế hoạch không bị đóng băng cứng nhắc. Khi có biến động thực tế (ví dụ trời mưa bất chợt), thành viên chat yêu cầu đổi quán cafe trong nhà gần đó, AI chỉ cập nhật duy nhất 1 dòng trong bảng `plan_stops` mà không làm xáo trộn toàn bộ lịch trình.
 
 ---
 
-### 🧠 3.2. Chiến Lược Mô Hình AI Kép (DeepSeek Dual-Model Strategy)
-Tối ưu hóa chi phí và tốc độ suy luận bằng cách phân công 2 mô hình LLM chuyên biệt:
+## ⭐ 4. Tính Năng Nền Tảng & Trải Nghiệm Người Dùng (Platform Features)
 
-- **`deepseek-chat` (DeepSeek-V3)**: Đảm nhận 80% tác vụ hội thoại tự do, phân loại `eventType`, phân tích ý định (Intent Classification), gọi công cụ (Function Calling) tra cứu thời tiết, địa điểm. Tốc độ siêu nhanh, chi phí rất rẻ.
-- **`deepseek-reasoner` (DeepSeek-R1)**: Đảm nhận các tác vụ tư duy sâu (Reasoning Tokens): lên lịch trình tối ưu thời gian di chuyển, cân đối ngân sách, phân tích phản hồi vote của từng thành viên để dung hòa xung đột.
+### 4.1. Hai Phạm Vi Kế Hoạch Linh Hoạt (Dual Planning Scopes)
+- **Đi chơi trong ngày (Day Hangouts)**: Dành cho các buổi hẹn hò, cafe, ăn uống, tụ tập cuối tuần ngẫu hứng (*"cafe $\rightarrow$ board game $\rightarrow$ lẩu"*), ưu tiên các địa điểm đang mở cửa với thời gian di chuyển ngắn nhất.
+- **Kỳ nghỉ nhiều ngày (Multi-Day Vacations)**: Lịch trình du lịch hoàn chỉnh (*"4 ngày tại Đà Nẵng & Hội An"*) kết hợp gợi ý khách sạn, địa điểm ăn uống đặc sản, điểm tham quan và lộ trình di chuyển tối ưu theo ngày.
 
----
+### 4.2. Phòng Cộng Tác Chung & Bản Đồ Sống (Shared Room & Live Map Canvas)
+- **Mời qua Link & Phân Quyền**: Vào phòng tức thì qua link chia sẻ. Phân định rõ quyền **Host** (khóa kế hoạch, cài đặt phòng) và **Member** (chat, vote điểm dừng, swap địa điểm dự phòng).
+- **Dòng Thời Gian Tương Tác & Mapbox GL**: Các thẻ điểm dừng trực quan hiển thị hình ảnh thực tế, giờ mở cửa, thời lượng ước tính và lộ trình định tuyến trực tiếp trên nền Mapbox.
 
-### 🐍 3.3. Đồng Bộ 100% Python Ecosystem (FastAPI + LangGraph Python)
-- **Backend FastAPI**: Tốc độ cao, async/await native, tự động sinh OpenAPI spec (`/docs`).
-- **LangGraph Python**: AI Agents chạy trực tiếp trong mã nguồn Backend, chia sẻ chung SQLAlchemy DB Models & Pydantic Schemas mà không cần qua IPC hay REST API trung gian giữa 2 ngôn ngữ.
-
----
-
-### 🤝 3.4. Nguyên Tắc Human-in-the-Loop
-> [!IMPORTANT]
-> AI **không bao giờ tự ý chốt quyết định thay con người**. AI chỉ đóng vai trò người cố vấn tạo ra bản nháp (`DRAFT`). Con người vote và **chỉ Owner của Event mới có quyền bấm CONFIRM** chuyển sang kế hoạch chính thức.
+### 4.3. Động Cơ Đồng Thuận 2 Tầng (Two-Tier Consensus Engine)
+- **Tầng 1 (Macro Approval)**: Khóa khung chương trình trước khi gọi các API tốn kém token và chi phí.
+- **Tầng 2 (Micro Stop Voting)**: Bình chọn từng điểm dừng. Điểm dừng bị vote DOWN lập tức hiển thị 2 phương án thay thế đã được nạp sẵn (pre-fetched) để swap chỉ trong 1 click.
 
 ---
 
-## 🎯 4. Phạm Vi Dự Án (Scope of Work)
+## 🤖 5. Kiến Trúc AI Agent Hợp Nhất & Hàng Rào Chống Ảo Giác (Grounding Pipeline)
 
-### 🟢 Trong phạm vi MVP (Hoàn thành trong 4 Sprint)
-- **Auth & Identity**: Đăng ký, đăng nhập Google/Facebook OAuth2, JWT access/refresh token rotation, quên mật khẩu, hồ sơ cá nhân.
-- **Event & Member Management**: Tạo Event theo 6 loại (`EventType`), mời bạn bè qua link/email (`Invitation`), phân quyền Owner / Member / Viewer.
-- **Plan & Vote Engine**: Tạo plan thủ công (drag & drop, autocomplete Google Places) và plan AI. Luồng vote công khai (UP/DOWN/NEUTRAL + comment), chuyển trạng thái DRAFT → VOTING → CONFIRMED.
-- **Data Lookup & Redis Caching**: Gọi Google Places API (lọc theo `StopCategory`: RESTAURANT, CAFE, ENTERTAINMENT, ATTRACTION, HOTEL), OpenWeatherMap, Tỷ giá tiền tệ, cache Redis.
-- **AI Multi-Agent System**: Đội ngũ 9 Agents (Orchestrator, Location, Research, Plan, Booking, Note, Cost, Conflict Resolver, Chat Agent) chạy trên LangGraph Python & DeepSeek API. Realtime streaming qua SSE/WebSockets.
-- **Utility Services**: Gửi email thông báo (SMTP), xuất PDF lịch trình (WeasyPrint), checklist đồ đạc, tính toán chia chi phí nhóm.
-- **Admin Dashboard**: Thống kê số lượng user, event, token usage DeepSeek, cache hit rate.
+### 5.1. Unified AI Agent (DeepSeek-V4) với Two-Phase State Execution
+Thay vì chia thành nhiều sub-agent rời rạc gây nghẽn độ trễ và khó kiểm thử, TripMate AI sử dụng **một AI Agent hợp nhất duy nhất chạy DeepSeek-V4 trên nền LangGraph Python**, thực thi qua 2 pha trạng thái:
+- **Phase 1 (Macro Planning State)**: Đề xuất ngày đi, nhịp độ và chủ đề hàng ngày mà không gọi API du lịch bên ngoài, tiết kiệm tối đa token cho đến khi đạt đồng thuận vĩ mô.
+- **Phase 2 (Micro Curation State)**: Kích hoạt sau khi có Macro Approval. Thực thi các lệnh gọi công cụ ngoài, áp dụng gom cụm địa lý bán kính $2.0$--$2.5$\,km để tránh lộ trình ziczac, và chuẩn bị sẵn các điểm dừng thay thế.
+- **Model Abstraction Layer**: Xây dựng trên nền tảng LangChain/LangGraph model abstraction. DeepSeek-V4 là động cơ suy luận chính, hỗ trợ fallback mượt mà sang OpenAI (GPT-4o), Anthropic Claude, hoặc Google Gemini để phòng tránh rủi ro phụ thuộc một nhà cung cấp (vendor lock-in).
+- **Typed State Persistence**: Lưu vết checkpoint của `AgentState` vào PostgreSQL thông qua `AsyncPostgresSaver` kết nối qua Data Access Layer (DAL) có xác thực.
 
-### 🔴 Mở rộng tương lai (Backlog sau MVP)
-- Đăng tải & tham khảo Plan công khai từ cộng đồng (#13).
-- Gói tài khoản Premium giới hạn lượt dùng AI (#10).
-- Tích hợp thanh toán trực tiếp cho đặt phòng / đặt bàn.
+### 5.2. Four-Tier Grounding Pipeline (Hàng Rào 4 Tầng Loại Bỏ Ảo Giác AI)
+
+```mermaid
+flowchart LR
+    T1["Tier 1: Strict Schema<br/>• Pydantic Schema cố định<br/>• Không text tự do lan man"] --> T2["Tier 2: Live Map Check<br/>• Google Places & OSM<br/>• Xác thực Place ID & Giờ mở cửa"]
+    T2 --> T3["Tier 3: Distance Guard<br/>• Gom cụm Haversine + Mapbox<br/>• Bán kính <= 2.5km, di chuyển <= 20p"]
+    T3 --> T4["Tier 4: Member Votes<br/>• Vote UP / DOWN<br/>• 1-Click Swap dự phòng chuẩn hóa"]
+
+    style T1 fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
+    style T2 fill:#f7f9fc,stroke:#186c8e,stroke-width:1.5px;
+    style T3 fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
+    style T4 fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
+```
+
+1. **Tier 1 (Strict Schema)**: Ràng buộc đầu ra của AI theo Pydantic schema nghiêm ngặt (tên địa điểm, danh mục, thời lượng dừng, phân khúc giá), ngăn chặn việc sinh text lan man hoặc thiếu trường dữ liệu.
+2. **Tier 2 (Live Map Check)**: Xác thực từng địa điểm qua Google Places API và OpenStreetMap để đảm bảo địa điểm có thật 100%, đang mở cửa và đúng giờ hoạt động.
+3. **Tier 3 (Distance Guard)**: Áp dụng công thức khoảng cách Haversine và Mapbox định tuyến, đảm bảo các điểm dừng trong cùng một buổi sáng/chiều nằm trong bán kính $\le 2.5$\,km và thời gian di chuyển $\le 20$\,phút.
+4. **Tier 4 (Member Votes & 1-Click Swap)**: Thành viên nhóm trực tiếp vote UP/DOWN; các điểm dừng bị phản đối lập tức được thay thế bằng phương án dự phòng đã được xác thực sẵn.
 
 ---
 
-## 👥 5. Mô Hình Phân Công 6 Thành Viên (6-Track Execution)
+## ☁️ 6. Kiến Trúc Điện Toán Đám Mây & Hạ Tầng Triển Khai (Cloud Deployment)
 
-| Track | Thành viên | Vai trò & Trách nhiệm | File task chi tiết |
+Hệ thống được thiết kế theo kiến trúc phi tập trung, phân bổ tải tối ưu trên các nền tảng đám mây hiện đại:
+
+- **Frontend (Vercel Edge CDN)**: React 18 SPA + TypeScript được phân phối trên mạng lưới Global Edge CDN của Vercel, thời gian nạp trang dưới 100ms trên toàn cầu, không có độ trễ khởi động lạnh (zero cold-start), hỗ trợ Preview Deployments cho từng PR.
+- **Backend Gateway (Render.com Web Service)**: FastAPI ASGI application (Python 3.11+) xử lý RESTful endpoints và WebSocket room server. Được cấu hình cron ping tự động tới `/api/healthz` để ngăn service rơi vào trạng thái ngủ khi đang trong phiên lập kế hoạch.
+- **AI Agent Worker (Render.com Background Worker)**: Tiến trình LangGraph Python chạy độc lập, giới hạn bộ nhớ $\le 512$\,MB RAM, tiêu thụ tác vụ bất đồng bộ từ hàng đợi Redis Streams (`XREADGROUP`).
+- **Database & BaaS (Supabase)**: Managed PostgreSQL 16 tích hợp extension `pgvector`, chia tách 3 schema độc lập:
+  - `core`: Lưu trữ users, events, event_members, plans, plan_stops, plan_votes, chat_messages, expenses.
+  - `checkpoints`: Lưu trạng thái `AgentState` của LangGraph qua `AsyncPostgresSaver`.
+  - `vectors`: Lưu trữ vector embeddings phục vụ tra cứu địa điểm tương tự.
+  - **Supavisor Connection Pooler (port 6543, Transaction Mode)**: Ghép hơn 200 phiên client qua 15 kết nối cơ sở dữ liệu vật lý, đảm bảo không bao giờ cạn kiệt connection pool.
+  - **Row Level Security (RLS)**: Cách ly dữ liệu nhiều người dùng ở cấp độ database.
+- **Queue & Cache (Upstash Redis)**: Serverless Redis 7 quản lý:
+  - **Redis Streams (`XADD`)**: Đẩy tác vụ sinh kế hoạch bất đồng bộ từ Gateway sang AI Worker mà không block người dùng.
+  - **Redis Pub/Sub (`plan:updated`)**: Đồng bộ sự kiện cập nhật kế hoạch tới tất cả các instance FastAPI Gateway để broadcast qua WebSockets.
+  - **L2 Cache (TTL 24h)**: Lưu trữ kết quả truy vấn địa điểm từ Google Places API để giảm chi phí và chống rate limit.
+- **Độ Bền & Khả Năng Kháng Lỗi (PyBreaker Resilience)**: Mọi lệnh gọi API bên thứ 3 (Google Places, Agoda, Booking.com, Klook, 12Go Asia) đều được bọc qua **PyBreaker Circuit Breaker** với timeout 2.5 giây; khi có sự cố mạng hoặc lỗi API, hệ thống tự động ngắt mạch và chuyển sang dữ liệu cache/DB fallback.
+- **Giám Sát & Truy Vết (Observability)**: Tích hợp **OpenTelemetry** truy vết phân tán xuyên suốt luồng Client $\rightarrow$ Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ Supabase $\rightarrow$ WebSocket, và **LangSmith** theo dõi chất lượng prompt của LLM.
+
+---
+
+## 📊 7. Mục Tiêu Hiệu Năng & Tiêu Chí Đánh Giá (System Targets & KPIs)
+
+### 7.1. Ngân Sách Độ Trễ (Latency Budget)
+- **Phản hồi thao tác người dùng (User Action / Vote ACK)**: $< 80$\,ms qua WebSocket với atomic database update.
+- **Streaming token AI đầu tiên (TTFT)**: $< 800$\,ms để người dùng thấy phản hồi tức thì, không nhìn màn hình trắng.
+- **Soạn thảo Roadmap Vĩ mô (Macro Drafting)**: $6$--$12$\,giây (Pha 1 LangGraph).
+- **Tuyển chọn Chi tiết (Micro Grounding)**: $10$--$20$\,giây (Pha 2 LangGraph kèm kiểm tra Google Places song song).
+- **Đổi địa điểm 1-Click Swap**: $< 500$\,ms TTFT, hoàn thành trong $3$--$6$\,giây.
+
+### 7.2. Tải & Năng Lực Phục Vụ (Capacity Targets)
+- **Đồng thời (Concurrency)**: Hỗ trợ $50$--$100$ người dùng hoạt động đồng thời (CCU) trải đều trên $10$--$20$ phòng lập kế hoạch hoạt động song song ($3$--$6$ người/phòng).
+- **Thông lượng (Throughput)**: $150$--$250$\,requests/giây trên FastAPI gateway; $5$--$8$ tác vụ AI Agent xử lý song song với bộ đệm hàng đợi Redis Streams.
+- **Lưu trữ**: Hơn $30,000$ chuyến đi được lưu trữ trong PostgreSQL; 200+ kết nối client qua Supavisor pooler (port 6543).
+
+### 7.3. Tiêu Chí Đánh Giá Thành Công (Evaluation Targets)
+- **Độ chính xác AI (AI Grounding Accuracy)**: $\ge 98\%$ địa điểm được xác thực trên Google Places với Place ID hợp lệ ($0\%$ địa điểm ảo); $\ge 95\%$ tuân thủ ràng buộc khoảng cách ($\le 2.5$\,km) và ngân sách.
+- **Tốc độ đạt đồng thuận (Consensus Speed)**: Rút ngắn thời gian chốt kế hoạch nhóm từ $2$--$3$\,ngày tranh cãi xuống **dưới 15 phút**; $\ge 85\%$ điểm dừng được chấp thuận ngay từ lượt đề xuất đầu tiên.
+- **Độ sẵn sàng hệ thống (System Health)**: Uptime $\ge 99.5\%$; độ trễ đồng bộ WebSocket giữa nhiều người dùng trong cùng một phòng $< 100$\,ms.
+
+---
+
+## 👥 8. Mô Hình Phân Công 6 Thành Viên & Nguyên Tắc Docs-as-Code
+
+Dự án được phân bổ đồng đều cho 6 thành viên phụ trách 6 mảng kỹ thuật cốt lõi:
+
+| Track | Thành viên | Vai trò kỹ thuật theo Proposal | File theo dõi cá nhân |
 |---|---|---|---|
-| **BE-Core / AI Tooling** | **Tạ Quang Huy** | Backend Dev A (Core Domain: Schema DB gốc, Event, Plan, Vote) & AI Agent Tooling Integration (WebSocket/SSE, Token Logging) | [person-1-backend-core.md](../04-tasks/person-1-backend-core.md) |
-| **BE-Platform / FE-Core** | **Hà Đăng Huy** | Backend Dev B (Places/Weather API, Redis Cache) & Frontend Dev A (UI Auth, Event Dashboard, Plan Builder, Vote UI) | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) / [person-4-frontend-core.md](../04-tasks/person-4-frontend-core.md) |
-| **BE-Services** | **Phạm Đình Ánh Dương** | Backend Dev C (Auth & User APIs, Email Notifications SMTP, PDF Export WeasyPrint, Invitations, Forgot/Reset Email, Expense Splitting & Settlement, Admin APIs) | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) |
-| **FE-Growth** | **Nguyễn Minh Đức** | Frontend Dev B (Realtime AI Chat UI, Landing Page, i18n, Shared Expenses UI, Admin UI) | [person-5-frontend-growth.md](../04-tasks/person-5-frontend-growth.md) |
-| **AI Lead** | **Nguyễn Tùng Dương** | AI Agent Lead (LangGraph Architecture, 9 Sub-Agents, DeepSeek V3/R1 integration, Reasoning Engine) | [person-3-ai-engineer.md](../04-tasks/person-3-ai-engineer.md) |
-| **DevOps & Security** | **Đinh Tiến Luân** | Cyber Security & DevOps (Docker Compose, CI/CD GitHub Actions, FastAPI Security, Pentest OWASP) | [person-6-security-devops.md](../04-tasks/person-6-security-devops.md) |
+| **BE-Core & DAL** | **Tạ Quang Huy** | Thiết kế Schema DB gốc Supabase, Event/Room CRUD, Two-Stage Consensus APIs, RolesGuard, LangGraph DAL Bridge, WebSocket Room Server | [person-1-backend-core.md](../04-tasks/person-1-backend-core.md) |
+| **BE-Platform & FE-Core** | **Hà Đăng Huy** | External Travel APIs (Places, Agoda, Klook), PyBreaker Circuit Breaker, Upstash Redis Cache, React 18 Core UI, Auth, Mapbox GL Canvas | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) / [person-4-frontend-core.md](../04-tasks/person-4-frontend-core.md) |
+| **BE-Services** | **Phạm Đình Ánh Dương** | Supabase Auth Integration, Link Invitations, Notification Services, PDF & Calendar (.ics) Export, Quản lý tài chính & Optimal Settlement | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) |
+| **FE-Growth** | **Nguyễn Minh Đức** | Realtime Room Chat & AI Streaming UI, Interactive Timeline, Stop Voting Cards (1-Click Swap), Design System, Shared Expenses UI | [person-5-frontend-growth.md](../04-tasks/person-5-frontend-growth.md) |
+| **AI Lead** | **Nguyễn Tùng Dương** | Unified AI Agent Architecture, Two-Phase State Machine, Model Abstraction Layer, Four-Tier Grounding Pipeline, Geo-Clustering | [person-3-ai-engineer.md](../04-tasks/person-3-ai-engineer.md) |
+| **DevOps & Security** | **Đinh Tiến Luân** | Multi-Cloud Deployment (Vercel + Render + Supabase), CI/CD GitHub Actions, OpenTelemetry Tracing, Pentest OWASP Top 10, Concurrency Benchmark | [person-6-security-devops.md](../04-tasks/person-6-security-devops.md) |
 
----
-
-## 📊 6. Chỉ Số Thành Công Đánh Giá (Key Performance Indicators)
-
-1. ⏱️ **Thời gian chốt plan nhóm**: Giảm từ 2-3 ngày tranh cãi xuống dưới **15 phút**.
-2. 🎯 **Tỷ lệ chấp nhận đề xuất AI**: ≥ 70% các điểm dừng do Plan Agent đề xuất được giữ lại trong bản plan cuối.
-3. 🤝 **Độ chính xác phân giải xung đột**: Conflict Resolver Agent giải quyết thành công ≥ 80% các trường hợp vote hòa.
-4. ⚡ **Hiệu năng hệ thống**: Thời gian phản hồi API tra cứu địa điểm < 200ms (Redis cache); AI Chat streaming token đầu < 1.5s.
+> 📜 **Cam kết thực thi chất lượng**: Toàn bộ 6 thành viên thực hiện nghiêm ngặt nguyên tắc **"No Docs = Not Done & No Merge"**. Bất kỳ ai sửa đổi code logic hay cơ chế hệ thống đều phải cập nhật tài liệu kỹ thuật và đánh dấu tracking tiến độ trên task board tương ứng.

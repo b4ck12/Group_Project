@@ -1,84 +1,95 @@
 # 👤 Person 5 — Nguyễn Minh Đức (Frontend Dev B: AI Experience & Growth UI)
 
-> **Người phụ trách**: **Nguyễn Minh Đức**
-> **Sở hữu**: UI Realtime Chat AI streaming, Landing Page, i18n đa ngôn ngữ (VI/EN), Design Tokens & Design System, Checklist UI, Shared Expenses Calculator & Admin Dashboard UI.
+> **Người phụ trách**: **Nguyễn Minh Đức**  
+> **Sở hữu**: Giao diện Room Chat thời gian thực & AI Token Streaming (TTFT $< 800$\,ms), Thẻ xem trước lộ trình vĩ mô, Thẻ bình chọn điểm dừng (Stop Voting Cards UP/DOWN kèm nút 1-Click Swap), Thông báo thích ứng động khi trời mưa (Dynamic Adaptation Alert), Design System (Tailwind/shadcn), Đa ngôn ngữ (i18n), UI Quyết toán chi phí & Admin Dashboard.  
+> **Quy định tracking bắt buộc**: Sau khi hoàn thành code và test mỗi task, đổi `[ ]` thành `[x]` kèm link PR, ngày hoàn thành và cập nhật tài liệu kỹ thuật tương ứng theo [post-task-documentation.md](../01-workflow/post-task-documentation.md).
 
 ---
 
 ## 📊 Progress Tracker
 
-| Sprint | Task Count | Done | Status |
-|---|---|---|---|
+| Sprint | Số Tasks | Đã hoàn thành | Trạng thái |
+|:---:|:---:|:---:|:---:|
 | **Sprint 0** | 4 Tasks | 0/4 | 🔲 To Do |
 | **Sprint 1** | 2 Tasks | 0/2 | 🔲 To Do |
-| **Sprint 2** | 0 Tasks (Support AI Chat Mock) | 0/0 | 🔲 To Do |
-| **Sprint 3** | 1 Task (Packing Checklist UI) | 0/1 | 🔲 To Do |
+| **Sprint 2** | 0 Tasks (Hỗ trợ Chat Mock & User Flows) | 0/0 | 🔲 To Do |
+| **Sprint 3** | 2 Tasks | 0/2 | 🔲 To Do |
 | **Sprint 4** | 5 Tasks | 0/5 | 🔲 To Do |
+| **Tổng cộng** | **13 Tasks** | 0/13 | 🔲 Sẵn sàng bắt tay vào làm |
 
 ---
 
 ## 🛠️ Detailed Sprint Backlog
 
-### Sprint 0 — MSW Mock, User Flows & Hi-fi Mockups
-- [ ] **`TASK-005`** **MSW Streaming Mock Setup for AI Chat**
-  - **Feature**: #31, #32
+### Sprint 0 — MSW Streaming Mock, Design Tokens & Wireframes
+- [ ] **`TASK-005`** **MSW Mock Handlers Setup Cho Realtime AI Streaming**
+  - **Feature**: #34
   - **Target Files**: `frontend/src/mocks/handlers/ai.ts`
-  - **Acceptance Criteria**: Simulates SSE / WebSocket chunked responses for chat UI testing without calling real backend.
+  - **Acceptance Criteria**: Giả lập gửi từng chunk token (TTFT $< 800$\,ms) và broadcast sự kiện `plan:updated` cho chat UI testing mà không cần backend thật.
+  - **Docs & Tracking**: Cập nhật `frontend/src/mocks/` + tick `[x]`.
 - [ ] **`TASK-009`** **Design Tokens & Design System Spec**
-  - **Feature**: #42
+  - **Feature**: #29
   - **Target Files**: `docs/06-design/design-tokens.md`, `frontend/src/styles/theme.ts`, `frontend/tailwind.config.js`
-  - **Acceptance Criteria**: Chốt palette (light/dark), typography scale, spacing, radius, shadow; mapping sang shadcn/Tailwind theme config; là nguồn duy nhất cho mọi màn hình (feed vào TASK-111).
-- [ ] **`TASK-010`** **User Flows & Page Wireframes**
-  - **Feature**: #1 → #42
-  - **Target Files**: `docs/06-design/user-flows.md`, `docs/06-design/wireframes/` (Mermaid/ASCII hoặc Figma)
-  - **Acceptance Criteria**: Flowchart các luồng chính: register/login → tạo event → mời member → tạo/vote plan → confirm → chia chi phí; wireframe từng page chốt layout + component + empty/loading/error state.
-- [ ] **`TASK-011`** **Hi-fi Mockups, Component Library & Accessibility**
-  - **Feature**: #42
-  - **Target Files**: `docs/06-design/mockups.md` (link Figma), `frontend/src/components/ui/` (variants)
-  - **Acceptance Criteria**: Hi-fi mockups cho 6 EventType + AI chat streaming + expense/settlement; component variants (Button/Input/Card/Dialog/Toast) theo design tokens (TASK-009); responsive breakpoints (mobile/tablet/desktop) + contrast WCAG AA.
+  - **Acceptance Criteria**: Chốt bảng màu Primary Blue (`#12305c`) và Accent Teal (`#186c8e`), typography, radius, shadow; mapping sang Tailwind và shadcn/ui.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/design-tokens.md` + tick `[x]`.
+- [ ] **`TASK-010`** **User Flows & Wireframes (Two-Stage Consensus & Dynamic Living Itinerary)**
+  - **Feature**: #12, #15, #16
+  - **Target Files**: `docs/06-design/user-flows.md`, `docs/06-design/wireframes/`
+  - **Acceptance Criteria**: Flowchart và wireframe đầy đủ: Room Chat $\rightarrow$ Macro Lock $\rightarrow$ Stop Voting $\rightarrow$ 1-Click Swap $\rightarrow$ Final Lock $\rightarrow$ On-Trip Edit khi trời mưa.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
+- [ ] **`TASK-011`** **Hi-fi Mockups, Thư Viện Component & Tiêu Chuẩn WCAG AA**
+  - **Feature**: #29
+  - **Target Files**: `docs/06-design/mockups.md`, `frontend/src/components/ui/`
+  - **Acceptance Criteria**: Dựng component variants (Button, Card, Modal, Progress bar), responsive trên mobile/desktop, độ tương phản đạt chuẩn WCAG AA.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/mockups.md` + tick `[x]`.
 
 ### Sprint 1 — Landing Page & i18n
-- [ ] **`TASK-114`** **Landing Page & Hero Section**
-  - **Feature**: #39
+- [ ] **`TASK-114`** **Landing Page & Hero Showcase**
+  - **Feature**: #30
   - **Target Files**: `frontend/src/features/landing/pages/LandingPage.tsx`
-  - **Acceptance Criteria**: Showcases 6 event types (Travel, Dining, Hangout, Entertainment, Sightseeing, Custom) with CTA buttons.
-- [ ] **`TASK-115`** **i18n Setup (react-i18next)**
-  - **Feature**: #40
+  - **Acceptance Criteria**: Giới thiệu nền tảng TripMate AI, mô phỏng luồng Two-Stage Consensus và các nút Call-to-Action.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
+- [ ] **`TASK-115`** **i18n Setup (Tiếng Việt & English)**
+  - **Feature**: #31
   - **Target Files**: `frontend/src/i18n/`, `frontend/src/locales/` (`vi.json`, `en.json`)
-  - **Acceptance Criteria**: Header language toggle switches entire UI seamlessly between Vietnamese and English.
+  - **Acceptance Criteria**: Header language toggle chuyển đổi toàn bộ ngôn ngữ giao diện mượt mà.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
 
-### Sprint 3 — Packing Checklist UI
-- [ ] **`TASK-317`** **Packing Checklist UI Screen**
+### Sprint 3 — Granular Stop Voting Cards & Packing Checklist UI
+- [ ] **`TASK-315`** **Granular Stop Voting Cards & 1-Click Swap UI**
   - **Feature**: #35
+  - **Target Files**: `frontend/src/features/plan/components/StopVotingCard.tsx`
+  - **Acceptance Criteria**: Thẻ điểm dừng hiển thị hình ảnh thật, nút vote UP/DOWN, progress bar đồng thuận và nút 1-Click Swap thay thế tức thì địa điểm dự phòng.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
+- [ ] **`TASK-317`** **Packing Checklist UI Screen**
+  - **Feature**: Checklist
   - **Target Files**: `frontend/src/features/checklist/pages/ChecklistPage.tsx`
-  - **Acceptance Criteria**: Interactive checklist with item check/uncheck, custom item add/delete, progress bar.
+  - **Acceptance Criteria**: Checklist hành lý thông minh tương tác check/uncheck, thêm/xóa đồ dùng cá nhân.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
 
-### Sprint 4 — Realtime Chat UI, Shared Expenses & Admin Dashboard
-- [ ] **`TASK-406`** **AI Chat Interface with Streaming Output**
-  - **Feature**: #31, #32
-  - **Target Files**: `frontend/src/features/ai-chat/pages/ChatPage.tsx`
-  - **Acceptance Criteria**: Chat interface renders streaming response, user typing indicator, suggestion quick-chips.
-- [ ] **`TASK-407`** **Interactive Draft Plan Card Renderer**
-  - **Feature**: #32
-  - **Target Files**: `frontend/src/features/ai-chat/components/PlanCardPreview.tsx`
-  - **Acceptance Criteria**: Renders AI proposal inside chat as structured card with "Accept as Draft" or "Modify" buttons.
-- [ ] **`TASK-408`** **Category-Specific Stop Cards Rendering**
-  - **Feature**: #25, #32
-  - **Target Files**: `frontend/src/features/plan/components/StopCategoryCard.tsx`
-  - **Acceptance Criteria**: Custom card designs: displays menu items for RESTAURANT, activity ticket prices for ENTERTAINMENT, opening hours/tips for SIGHTSEEING.
-- [ ] **`TASK-409`** **Shared Expense & Settlement UI**
-  - **Feature**: #41
-  - **Target Files**: `frontend/src/features/expense/pages/ExpensePage.tsx`, `frontend/src/features/expense/components/ExpenseForm.tsx`, `frontend/src/features/expense/components/FundPoolCard.tsx`, `frontend/src/features/expense/components/SettlementTable.tsx`
-  - **Acceptance Criteria**: UI tương ứng API TASK-415: form thêm expense chọn SplitType (EQUAL/EXACT/PERCENTAGE), hiển thị fund pool + từng member đóng bao nhiêu, danh sách expense, net balance từng người, bảng settlement tối ưu (ai trả ai bao nhiêu) kèm trạng thái settled toggle. Empty/loading/error states đầy đủ (theo wireframe TASK-010).
+### Sprint 4 — Realtime AI Chat, Dynamic Adaptation Alert & Admin Dashboard
+- [ ] **`TASK-406`** **Realtime Room Chat & Token Streaming UI**
+  - **Feature**: #34
+  - **Target Files**: `frontend/src/features/chat/pages/RoomChatPage.tsx`
+  - **Acceptance Criteria**: Stream từng token phản hồi của AI qua WebSockets với TTFT $< 800$\,ms, hiển thị typing indicator và danh sách thành viên đang online trong phòng.
+  - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
+- [ ] **`TASK-407`** **Macro Roadmap Preview Card Renderer**
+  - **Feature**: #12
+  - **Target Files**: `frontend/src/features/chat/components/MacroRoadmapCard.tsx`
+  - **Acceptance Criteria**: Hiển thị đề xuất khung vĩ mô dạng thẻ tương tác trong chat kèm nút duyệt vĩ mô cho Host.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
+- [ ] **`TASK-408`** **Dynamic On-The-Go Alert & Swap Notification UI**
+  - **Feature**: #16
+  - **Target Files**: `frontend/src/features/plan/components/AdaptationToast.tsx`
+  - **Acceptance Criteria**: Khi có thành viên đổi điểm do trời mưa, UI hiện thông báo toast và tự động cập nhật thẻ điểm dừng mới trên timeline và bản đồ.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
+- [ ] **`TASK-409`** **Shared Expense & Settlement UI Screen**
+  - **Feature**: #40
+  - **Target Files**: `frontend/src/features/expense/pages/ExpensePage.tsx`
+  - **Acceptance Criteria**: Hiển thị tổng quỹ, ai đã chi, ai nợ ai bao nhiêu tiền kèm nút đánh dấu đã thanh toán thành công.
+  - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
 - [ ] **`TASK-410`** **Admin Dashboard UI Screen**
-  - **Feature**: #36, #37
+  - **Feature**: #41
   - **Target Files**: `frontend/src/features/admin/pages/AdminDashboardPage.tsx`
-  - **Acceptance Criteria**: Renders token cost charts (Recharts), active user stats, API usage breakdown, user table.
-
----
-
-## 🤝 Handover & Review Guidelines (Person 5)
-
-1. **Buddy / Backup**: `Person 4` (Frontend Dev A)
-2. **Task Completion**: Run `pnpm run lint` and `pnpm run test`. Push branch `feature/TASK-xxx` and tag `@FE-A` on PR.
-3. **Task Handover**: Follow 4 scenarios in [cross-team-collaboration.md](../01-workflow/cross-team-collaboration.md) Section 3.
+  - **Acceptance Criteria**: Biểu đồ thống kê số phòng hoạt động, token tiêu thụ, cache hit rate và thời gian phản hồi API (Recharts).
+  - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.

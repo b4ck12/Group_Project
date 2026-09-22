@@ -1,173 +1,111 @@
-# 📝 Quy Trình Viết Tài Liệu Sau Khi Hoàn Thành Task (Post-Task Docs)
+# 📝 Quy Trình Viết Tài Liệu & Tracking Dự Án (Post-Task Docs & Progress Tracking)
 
-> **Nguyên tắc vàng**: **"No Docs = Not Done"** (Chưa có tài liệu = Chưa xong task).  
-> Code và tài liệu **bắt buộc nằm chung một Pull Request (PR)**. PR thay đổi logic/API/Schema mà không cập nhật docs tương ứng sẽ bị từ chối (Reject).
-
----
-
-## ⚡ 1. Tóm Tắt Nhanh Trong 30 Giây (Quick Cheatsheet)
-
-Mỗi khi bạn code xong 1 task, chỉ cần làm đúng **4 bước**:
-
-```
-1. Test Local sạch sẽ   →  Chạy pytest / pnpm test & linter pass 100%.
-2. Sửa File Docs        →  Tra bảng ở Mục 2 xem cần sửa file .md nào.
-3. Tick Done Task Board →  Đổi [ ] thành [x] trong file task cá nhân & docs/TASKS.md.
-4. Mở PR kèm Docs       →  Điền danh sách docs đã sửa vào PR Description.
-```
+> **Nguyên tắc cốt lõi của dự án**: **"No Docs = Not Done & No Merge"** (Chưa viết tài liệu & chưa cập nhật tracking = Chưa hoàn thành task và không được duyệt PR).  
+> Mọi thành viên trong nhóm 6 người (**Tạ Quang Huy, Hà Đăng Huy, Phạm Đình Ánh Dương, Nguyễn Minh Đức, Nguyễn Tùng Dương, Đinh Tiến Luân**) đều **bắt buộc** phải viết tài liệu và cập nhật tracking cho mọi dòng code và task của mình.
 
 ---
 
-## 🧭 2. Tôi Vừa Làm Gì ➔ Cần Sửa File Nào? (Tra Cứu Nhanh)
+## ⚡ 1. Vì Sao Ai Cũng Phải Viết Docs & Tracking?
 
-Xác định việc bạn vừa làm ở cột trái để biết chính xác file cần mở và sửa ở cột phải:
-
-| Bạn vừa làm gì? | File tài liệu cần cập nhật | Nội dung cần ghi |
-|---|---|---|
-| ✅ **Hoàn thành bất kỳ task nào** | `docs/04-tasks/person-X-*.md`<br>`docs/TASKS.md` | Đổi `[ ] TASK-xxx` thành `[x] TASK-xxx` kèm link PR |
-| 🔌 **Thêm / Sửa REST API Endpoint** | `docs/02-standards/api-design-guide.md` | Thêm URL, Method, Request Body, Response JSON, Error Codes |
-| 🗄️ **Thêm / Sửa DB Schema / Model** | `docs/03-architecture/database-schema.md` | Thêm/sửa bảng, cột, kiểu dữ liệu, quan hệ FK, file migration Alembic |
-| 🤖 **Sửa AI Agent / Prompt / Tools** | `docs/03-architecture/ai-agent-architecture.md`<br>`explain.md` | Thêm node LangGraph, Prompt mới, Tool schema, model V3/R1 |
-| 🎨 **Thêm trang / component UI mới** | `docs/04-tasks/person-X-*.md`<br>`frontend/src/mocks/handlers/` | Mô tả component, route URL, cập nhật Mock MSW |
-| 🔑 **Thêm biến môi trường / Config** | `.env.example`<br>`docs/05-security/security-guidelines.md` | Thêm key mới vào `.env.example` kèm giá trị mẫu |
-| 💡 **Đưa ra quyết định kỹ thuật lớn** | `docs/03-architecture/adr/ADR-xxx.md` | Viết 1 file ADR mới giải thích lý do chọn giải pháp |
+Trong một dự án gồm 6 thành viên triển khai song song kiến trúc Cloud + AI Agent phức tạp (Vercel, Render, Supabase, Upstash Redis, LangGraph DeepSeek-V4), việc **viết tài liệu và cập nhật tiến độ đồng bộ** giải quyết các vấn đề sống còn:
+1. **Không ai bị mù thông tin**: Nhìn vào bảng task và docs là biết ai đang làm gì, module nào đã hoàn thành, endpoint nào đã sẵn sàng gọi thật.
+2. **Minh bạch hóa đóng góp**: Mọi thành viên đều có bằng chứng lịch sử rõ ràng về công việc mình làm (mã task `TASK-xxx`, file code đã sửa, file docs đã viết, pull request đã merge).
+3. **Tránh conflict kiến trúc**: Khi đổi DB Schema, Contract API hoặc State của AI Agent, người đổi phải cập nhật docs ngay lập tức để 5 thành viên còn lại không code sai hướng.
+4. **Bàn giao trơn tru**: Khi có người bị ốm hoặc cần nhờ người khác hỗ trợ, người tiếp nhận chỉ cần đọc docs của task đó là bắt tay vào code được ngay.
 
 ---
 
-## 🔄 3. Chi Tiết 4 Bước Thực Hiện
+## 🧭 2. Chu Trình Bắt Buộc Khi Làm Bất Kỳ Task Nào (The 5-Step Loop)
+
+Mỗi thành viên khi nhận một mã task (`TASK-xxx`) từ Sprint Backlog bắt buộc tuân thủ quy trình 5 bước khép kín sau:
 
 ```mermaid
-flowchart LR
-    A["1. Code & Test Local<br/>(Lint + Unit test PASS)"] --> B["2. Cập nhật Docs<br/>(API / Schema / Agent)"]
-    B --> C["3. Tick Done Board<br/>([x] TASK-xxx)"]
-    C --> D["4. Mở PR<br/>(Ghi rõ Docs đã update)"]
+flowchart TD
+    A["1. Nhận Task & Đổi Trạng Thái<br/>(Chuyển 🟡 In Progress trên Task Board)"] --> B["2. Code & Chạy Test Local Sạch Sẽ<br/>(Lint + Unit Test 100% PASS)"]
+    B --> C["3. Viết / Cập Nhật Tài Liệu Kỹ Thuật<br/>(API, Schema, Agent, Arch, Deployment)"]
+    C --> D["4. Cập Nhật Bảng Tracking & Nhật Ký<br/>(Đổi [x] TASK-xxx kèm PR #, ngày, tác giả)"]
+    D --> E["5. Mở PR & Review Chặn Docs<br/>(Checklist 'Updated Docs' bắt buộc)"]
 
     style A fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
     style C fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
     style D fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+    style E fill:#fce4ec,stroke:#c2185b,stroke-width:2px;
 ```
 
-### Bước 1: Test Local sạch sẽ
-- **Backend**: `poetry run pytest` và `poetry run ruff check .`
-- **Frontend**: `pnpm run test` và `pnpm run lint`
+### Bước 1: Nhận Task & Đổi Trạng Thái Trên Board
+- Mở file task cá nhân (`docs/04-tasks/person-X-*.md`) và `docs/04-tasks/task-board.md`.
+- Đổi trạng thái từ `🔲 To Do` sang `🟡 In Progress`.
+- Tạo nhánh git theo chuẩn: `git checkout -b feature/TASK-xxx-mo-ta-ngan` (xem [branch-naming.md](branch-naming.md)).
 
-### Bước 2: Cập nhật tài liệu liên quan
-Mở file tài liệu theo bảng ở **Mục 2** và cập nhật nội dung tương ứng (xem mẫu ở Mục 4).
+### Bước 2: Code Logic & Chạy Test Local
+- Code tuân thủ coding convention (`docs/02-standards/coding-conventions.md`).
+- **Backend**: Chạy `poetry run ruff check .` và `poetry run pytest` (đảm bảo test pass 100%).
+- **Frontend**: Chạy `pnpm run lint` và `pnpm run test` (hoặc `pnpm run build`).
 
-### Bước 3: Đánh dấu hoàn thành trên Task Board
-Mở file task cá nhân trong `docs/04-tasks/person-X-*.md` và `docs/TASKS.md`:
-```markdown
-<!-- Đổi từ: -->
-- [ ] **TASK-102**: Viết API đăng ký user
-<!-- Thành: -->
-- [x] **TASK-102**: Viết API đăng ký user *(PR #12 - @ten_ban - 21/08/2026)*
-```
+### Bước 3: Viết / Cập Nhật Tài Liệu Kỹ Thuật (Docs-as-Code)
+Tra cứu bảng ở **Mục 3** để biết chính xác bạn phải viết / sửa file tài liệu nào tương ứng với nội dung code vừa làm.
 
-### Bước 4: Mở PR và liệt kê tài liệu đã sửa
-Trong phần mô tả PR trên GitHub, điền đầy đủ các file tài liệu bạn đã sửa vào mục **Updated Docs**.
+### Bước 4: Đánh Dấu Hoàn Thành & Ghi Nhật Ký Tracking
+- Mở file task cá nhân (`docs/04-tasks/person-X-*.md`) và master board (`docs/TASKS.md` + `docs/04-tasks/task-board.md`).
+- Chuyển `[ ]` thành `[x]` và ghi rõ định dạng tracking:
+  ```markdown
+  - [x] **`TASK-xxx`** **Tên task** *(PR #12 - @NguyenMinhDuc - 22/09/2026)*
+  ```
+- Nếu task có thay đổi so với dự kiến ban đầu, ghi chú tóm tắt 1 dòng lý do kỹ thuật ngay dưới task.
+
+### Bước 5: Mở PR Kèm Docs & Reviewer Thực Hiện Kiểm Tra Chặn
+- Mở Pull Request sử dụng template [PULL_REQUEST_TEMPLATE.md](../../.github/PULL_REQUEST_TEMPLATE.md).
+- Điền đầy đủ mục **`## 📚 Updated Docs`**.
+- Reviewer có quyền bấm **Request Changes** nếu PR có code mới mà không có thay đổi docs tương ứng.
 
 ---
 
-## 📋 4. Các Mẫu Template Copy-Paste Nhanh
+## 🗂️ 3. Ma Trận Tra Cứu: "Tôi Vừa Code Gì ➔ Bắt Buộc Sửa Docs Nào?"
 
-### 4.1. Mẫu ghi API Specification (`docs/02-standards/api-design-guide.md`)
-
-```markdown
-### `POST /api/v1/events/{event_id}/plans`
-
-- **Mô tả**: Tạo kế hoạch mới cho sự kiện.
-- **Quyền (Auth)**: `Bearer JWT` (Role: `OWNER` hoặc `MEMBER`).
-- **Request Body (JSON)**:
-```json
-{
-  "title": "Lịch trình Đà Lạt 3N2Đ",
-  "budget_estimated": 2500000
-}
-```
-- **Response `201 Created`**:
-```json
-{
-  "success": true,
-  "data": {
-    "id": "plan_123",
-    "event_id": "evt_456",
-    "title": "Lịch trình Đà Lạt 3N2Đ",
-    "status": "DRAFT"
-  }
-}
-```
-- **Error Codes**: `401 Unauthorized`, `403 Forbidden`, `404 Event Not Found`, `422 Validation Error`.
-```
+| Loại công việc vừa thực hiện | File tài liệu kỹ thuật bắt buộc cập nhật | Nội dung tài liệu tối thiểu phải viết |
+|---|---|---|
+| 🔌 **Thêm / Sửa REST API hoặc WebSocket** | `docs/02-standards/api-design-guide.md` | Endpoint URL, Method, Auth Guard, Request Body Schema, Response JSON sample, Error codes (400, 401, 403, 404, 422). |
+| 🗄️ **Thêm / Sửa PostgreSQL Model / Migration** | `docs/03-architecture/database-schema.md` | Tên bảng, schema (`core`/`checkpoints`/`vectors`), cột, kiểu dữ liệu, quan hệ FK, indexes, RLS policies, file Alembic migration. |
+| 🤖 **Sửa AI Agent / LangGraph / Prompts** | `docs/03-architecture/ai-agent-architecture.md`<br>`explain.md` | Node LangGraph mới, Two-Phase State changes, Pydantic Schema, prompt versioning, Four-Tier Grounding, model fallback. |
+| 🎨 **Thêm Màn Hình / Component UI / Flow mới** | `docs/06-design/user-flows.md`<br>`frontend/src/mocks/handlers/` | Mô tả luồng tương tác, route URL, wireframe/layout component, mock MSW handler tương ứng để người khác test. |
+| 🚢 **Cấu hình Cloud / DevOps / Docker / Secrets** | `docs/03-architecture/deployment-guide.md`<br>`.env.example`<br>`docs/05-security/security-guidelines.md` | Biến môi trường mới kèm giá trị mẫu, hướng dẫn deploy Render/Vercel/Supabase, cấu hình rate limit, cơ chế bảo mật. |
+| ⚖️ **Quyết định Kỹ thuật Lớn (Kiến trúc)** | `docs/03-architecture/adr/ADR-xxx.md` | File ADR giải thích: Bối cảnh, các lựa chọn xem xét, lý do chọn giải pháp này, hệ quả tích cực/tiêu cực. |
+| ✅ **HOÀN THÀNH BẤT KỲ TASK NÀO** | `docs/04-tasks/person-X-*.md`<br>`docs/TASKS.md`<br>`docs/04-tasks/task-board.md` | Tick `[x]` kèm thông tin PR, tên người làm, ngày hoàn thành để toàn đội theo dõi tiến độ thời gian thực. |
 
 ---
 
-### 4.2. Mẫu ghi DB Schema (`docs/03-architecture/database-schema.md`)
+## 📋 4. Quy Chuẩn Báo Cáo Tracking Hàng Ngày & Hàng Tuần (Daily & Weekly Sync)
 
-```markdown
-#### Bảng `plan_votes`
+Để đảm bảo không ai bị tụt lại và tiến độ được kiểm soát từng ngày:
 
-| Cột | Kiểu | Null | Mặc định | Ghi chú |
-|---|---|---|---|---|
-| `id` | `VARCHAR(36)` | NO | `UUID` | Khóa chính |
-| `plan_id` | `VARCHAR(36)` | NO | FK | Khóa ngoại tới `plans.id` (CASCADE) |
-| `user_id` | `VARCHAR(36)` | NO | FK | Khóa ngoại tới `users.id` |
-| `value` | `VARCHAR(10)` | NO | - | `UP`, `DOWN`, `NEUTRAL` |
-| `created_at` | `TIMESTAMPTZ` | NO | `NOW()` | Thời gian vote |
-
-- **Ràng buộc**: `UNIQUE(plan_id, user_id)` (Mỗi người chỉ vote 1 lần / plan).
+### 4.1. Báo Cáo Async Hàng Ngày (Daily Standup qua Discord / Slack `#daily-sync`)
+Mỗi ngày trước **10:00 sáng**, từng thành viên gửi tin nhắn 3 dòng ngắn gọn:
 ```
+[Họ Tên] - [Vai trò] - [Ngày]
+1. Hôm qua đã làm: TASK-xxx (Link PR hoặc commit) - Đã update docs gì?
+2. Hôm nay sẽ làm: TASK-yyy (Dự kiến xong bước nào?)
+3. Blocker: Có bị nghẽn bởi contract/schema/API của ai không?
+```
+
+### 4.2. Buổi Đồng Bộ Hàng Tuần (Weekly Contract & Tracking Review)
+- Thời gian: 1 buổi/tuần (30–45 phút).
+- Nội dung:
+  1. Đối chiếu master board `docs/TASKS.md` và `docs/04-tasks/task-board.md`.
+  2. Demo tính năng chạy được (nối qua mock hoặc staging).
+  3. Kiểm tra các PR đã merge trong tuần xem đã cập nhật đầy đủ docs tương ứng chưa.
+  4. Tháo gỡ các vướng mắc kỹ thuật và chốt contract cho sprint tiếp theo.
 
 ---
 
-### 4.3. Mẫu quyết định kỹ thuật ADR (`docs/03-architecture/adr/ADR-xxx.md`)
+## 🛡️ 5. Quy Tắc Chặn Khi Code Review (Reviewer Blocking Rules)
 
-```markdown
-# ADR-003: Sử dụng WebSocket + Redis Pub/Sub cho Realtime Voting
+Khi được tag làm Reviewer cho PR của đồng đội, thành viên bắt buộc kiểm tra checklist 5 điểm sau trước khi bấm **Approve**:
 
-- **Trạng thái**: Accepted
-- **Người đề xuất**: Tạ Quang Huy, Nguyễn Minh Đức
+1. [ ] **Docs Checklist**: PR Description có liệt kê đầy đủ các file docs đã cập nhật ở mục `## 📚 Updated Docs` không?
+2. [ ] **Task Board Tracking**: Trong PR có commit tick `[x]` vào file task cá nhân và `docs/TASKS.md` chưa?
+3. [ ] **Khớp Hợp Đồng Kỹ Thuật**: Cấu trúc Pydantic Schema / TypeScript Interfaces trong code có khớp 100% với tài liệu trong `api-design-guide.md` và `database-schema.md` không?
+4. [ ] **Test Coverage**: Logic mới có kèm theo unit test hoặc integration test không?
+5. [ ] **Không Hardcode Secret**: Không có bất kỳ API key, database password, secret token nào bị commit vào code.
 
-## 1. Bối cảnh
-Cần cập nhật kết quả bình chọn theo thời gian thực cho tất cả thành viên trong phòng.
-
-## 2. Lựa chọn
-- *HTTP Polling*: Dễ làm nhưng làm chậm server khi đông người.
-- *WebSocket + Redis Pub/Sub (Chọn)*: Nhanh (<50ms), chịu tải tốt, hỗ trợ multi-instance.
-
-## 3. Quyết định & Hệ quả
-Dùng WebSocket Router tại `backend/app/api/v1/endpoints/ws.py` và kênh Redis `event:{id}:votes`.
-```
-
----
-
-### 4.4. Mẫu điền PR Description (`.github/PULL_REQUEST_TEMPLATE.md`)
-
-```markdown
-## 📌 Thông tin Task
-- **Mã Task**: TASK-108
-- **Mô tả**: Thêm API Vote điểm dừng & WebSocket broadcast
-
-## 📚 Danh sách Docs Đã Cập Nhật (Bắt buộc)
-- [x] `docs/04-tasks/person-1-backend-core.md` (Tick [x] TASK-108)
-- [x] `docs/TASKS.md` (Tick [x] TASK-108)
-- [x] `docs/02-standards/api-design-guide.md` (Thêm API POST /votes)
-- [x] `docs/03-architecture/database-schema.md` (Thêm bảng plan_votes)
-
-## 🧪 Kết quả Test
-- [x] Unit test pass 100% (`pytest tests/test_votes.py`)
-- [x] Lint clean (`ruff check .`)
-```
-
----
-
-## 🛡️ 5. Checklist Dành Cho Reviewer (Trước Khi Bấm Merge)
-
-Khi review PR của đồng đội, kiểm tra 4 điều sau:
-
-1. [ ] Có tick `[x]` trong file task cá nhân và `docs/TASKS.md` chưa?
-2. [ ] PR Description có liệt kê danh sách các file Docs đã sửa không?
-3. [ ] Nếu có sửa API / Database / Config, các file tài liệu tương ứng (`api-design-guide.md`, `database-schema.md`, `.env.example`) đã được sửa trong cùng PR chưa?
-4. [ ] Kiểu dữ liệu trong docs có khớp 100% với code Pydantic / TypeScript không?
-
-> ⚠️ **Quy tắc chặn (Blocking Rule)**: Nếu PR có sửa logic/API/DB mà **thiếu cập nhật docs**, Reviewer bấm **Request Changes** và từ chối merge cho đến khi docs được bổ sung.
+> ⛔ **Quy định nghiêm ngặt**: Nếu PR sửa code logic hoặc API/DB mà **không kèm cập nhật tài liệu và tracking**, Reviewer **bắt buộc chọn Request Changes** với comment: *"Vui lòng cập nhật tài liệu kỹ thuật và tick tracking task tương ứng trước khi merge (theo quy định No Docs = Not Done)"*.

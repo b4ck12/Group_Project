@@ -1,409 +1,400 @@
 # 📌 Master Detailed Task Breakdown (TASKS.md)
-## Dự án: Web Lên Kế Hoạch Nhóm Tích Hợp AI Multi-Agent
-**Tech Stack**: Python 3.11+ FastAPI (Backend) · LangGraph Python (AI Multi-Agent) · React 18 + Vite + TS (Frontend) · PostgreSQL + Redis · DeepSeek API (V3 & R1)
+## Dự án: TripMate AI — Intelligent Group Activity & Travel Planning Platform
+**Tech Stack & Cloud**: React 18 + TS (Vercel Edge CDN) · FastAPI (Render Web Service) · LangGraph Python (Render Worker) · DeepSeek-V4 + Model Abstraction · Supabase PostgreSQL 16 (Supavisor port 6543) · Upstash Redis 7 (Streams & Pub/Sub) · PyBreaker · OpenTelemetry
 
 ---
 
 ## 📊 Quick Status Overview
 
-| Sprint | Focus | Total Micro-Tasks | Status |
-|---|---|---|---|
-| **Sprint 0** | Contract Session, DB Models, OpenAPI Spec, UI/UX Design, Docker & CI/CD | 11 Tasks | 🔲 To Do |
-| **Sprint 1** | Auth Module, Base External APIs, Orchestrator Skeleton, Core UI Foundations, Vercel Deploy | 18 Tasks | 🔲 To Do |
-| **Sprint 2** | Event/Plan/Invitation CRUD, Places/Weather API, Location & Research Agents, UI Event/Plan, Render Deploy | 16 Tasks | 🔲 To Do |
-| **Sprint 3** | Vote Engine, Manual Plan Flow, Plan/Cost/Conflict Agents, Export PDF & Notifications | 17 Tasks | 🔲 To Do |
-| **Sprint 4** | Streaming AI Chat UI, Shared Expenses, Admin Dashboard, Security Pentest & Hardening | 15 Tasks | 🔲 To Do |
-| **Tổng cộng** | 5 Sprint | **77 Tasks** | |
+| Sprint | Trọng tâm Sprint | Số Micro-Tasks | Trạng thái |
+|---|---|:---:|:---:|
+| **Sprint 0** | Contract Session, Supabase Schemas, Two-Phase State DTOs, MSW Mocks, Design Tokens, Docker & CI/CD | 11 Tasks | 🔲 To Do |
+| **Sprint 1** | Supabase Auth, Upstash Redis & PyBreaker Base, LangGraph Skeleton, UI Base, Vercel Edge Deploy | 18 Tasks | 🔲 To Do |
+| **Sprint 2** | Room CRUD, External Travel APIs, Phase 1 Macro State, Four-Tier Grounding, Timeline, Render Deploy | 16 Tasks | 🔲 To Do |
+| **Sprint 3** | Two-Stage Consensus Engine, Stop Voting & 1-Click Swap, Phase 2 Micro State, PDF & .ics Export | 17 Tasks | 🔲 To Do |
+| **Sprint 4** | WebSocket Room Server, Token Streaming UI, Shared Expenses, OpenTelemetry, Locust Load Test | 16 Tasks | 🔲 To Do |
+| **Tổng cộng** | 5 Sprint (Sprint 0 đến 4) | **78 Tasks** | 🔲 Sẵn sàng bắt tay vào làm |
 
 ---
 
-## 👥 Team & Task Mapping Legend
+## 👥 Danh Sách 6 Thành Viên & Ký Hiệu Phân Công
 
-| Tag Code | Domain / Vai trò | Thành viên phụ trách | File task chi tiết |
+| Ký hiệu | Vai trò kỹ thuật theo Proposal | Thành viên phụ trách | File theo dõi cá nhân |
 |---|---|---|---|
-| `[BE-A]` / `[BE-Core]` | Backend Core Domain & DB Schema | **Tạ Quang Huy** | [person-1-backend-core.md](04-tasks/person-1-backend-core.md) |
-| `[BE-B]` / `[BE-Platform]` | External APIs (Places/Weather) & Redis Cache | **Hà Đăng Huy** | [person-2-backend-platform.md](04-tasks/person-2-backend-platform.md) |
-| `[BE-Services]` | Auth, Email, PDF Export, Invitations, Expense & Settlement, Admin | **Phạm Đình Ánh Dương** | [person-2-backend-platform.md](04-tasks/person-2-backend-platform.md) |
-| `[FE-A]` / `[FE-Core]` | Frontend Core Flows UI (Auth, Event, Plan, Map) | **Hà Đăng Huy** | [person-4-frontend-core.md](04-tasks/person-4-frontend-core.md) |
-| `[FE-B]` / `[FE-Growth]` | Frontend AI Chat UI, Shared Expenses & Admin | **Nguyễn Minh Đức** | [person-5-frontend-growth.md](04-tasks/person-5-frontend-growth.md) |
-| `[AI]` | AI Multi-Agent Architecture & Integration | **Nguyễn Tùng Dương** (Lead) & **Tạ Quang Huy** (Tooling) | [person-3-ai-engineer.md](04-tasks/person-3-ai-engineer.md) |
-| `[SEC/DEVOPS]` | Cyber Security & DevOps (CI/CD, Docker, Pentest) | **Đinh Tiến Luân** | [person-6-security-devops.md](04-tasks/person-6-security-devops.md) |
+| `[BE-A]` / `[BE-Core]` | Backend Core Domain, Two-Stage Consensus & AI DAL Bridge | **Tạ Quang Huy** | [person-1-backend-core.md](04-tasks/person-1-backend-core.md) |
+| `[BE-B]` / `[BE-Platform]` | External Travel APIs, PyBreaker Circuit Breaker & Redis Cache | **Hà Đăng Huy** | [person-2-backend-platform.md](04-tasks/person-2-backend-platform.md) |
+| `[BE-Services]` | Supabase Auth, Invitations, Email SMTP, PDF/.ics Export, Settlement | **Phạm Đình Ánh Dương** | [person-2-backend-platform.md](04-tasks/person-2-backend-platform.md) |
+| `[FE-A]` / `[FE-Core]` | Frontend Core Flows UI (Auth, Room Dashboard, Timeline, Mapbox) | **Hà Đăng Huy** | [person-4-frontend-core.md](04-tasks/person-4-frontend-core.md) |
+| `[FE-B]` / `[FE-Growth]` | Frontend AI Chat UI, Stop Voting Cards (1-Click Swap), Expenses UI | **Nguyễn Minh Đức** | [person-5-frontend-growth.md](04-tasks/person-5-frontend-growth.md) |
+| `[AI]` | AI Agent Lead (LangGraph, DeepSeek-V4, Four-Tier Grounding) | **Nguyễn Tùng Dương** (Lead) & **Tạ Quang Huy** (Bridge) | [person-3-ai-engineer.md](04-tasks/person-3-ai-engineer.md) |
+| `[SEC/DEVOPS]` | Cyber Security & DevOps (Multi-Cloud, CI/CD, Tracing, Locust Test) | **Đinh Tiến Luân** | [person-6-security-devops.md](04-tasks/person-6-security-devops.md) |
+
+> ⚠️ **Quy tắc bất biến khi thực hiện mọi task**:  
+> Sau khi hoàn thành code và test, người thực hiện **bắt buộc cập nhật tài liệu kỹ thuật liên quan** (`docs/02-standards/` hoặc `docs/03-architecture/`) và đổi `[ ]` thành `[x]` trong file task cá nhân và `docs/TASKS.md` theo chuẩn [post-task-documentation.md](01-workflow/post-task-documentation.md).
 
 ---
 
 ## 🛠️ Sprint 0 — Contract Session & Infrastructure Setup
 
 ### 0.1 Architecture & Contract Definition
-- [ ] **TASK-001** `[BE-A]` **Design SQLAlchemy & Pydantic Schemas**
-  - **Feature**: N/A (Sprint 0 Contract)
-  - **Target Files**: `backend/app/models/` (`user.py`, `event.py`, `plan.py`, `vote.py`, `invitation.py`, `log.py`, **`expense.py`, `settlement.py`**), `backend/app/schemas/`
-  - **Acceptance Criteria**: Full support for `EventType`, `StopCategory`, `metadata` JSON, `Invitation`, `PlanStatus`. Đủ 3 bảng tài chính trong [database-schema.md](03-architecture/database-schema.md): `expenses`, `expense_splits`, `settlements` (thu quỹ = `Expense.type=ADVANCE`, số dư member tính bằng SQL GROUP BY — không cần bảng MemberBalance) + `total_budget` trên Plan / `estimated_cost` trên PlanStop. Migration passes clean via Alembic.
-- [X] **TASK-002** `[BE-Services]` **FastAPI APIRouter Skeleton**
-  - **Feature**: N/A (Contract)
-  - **Target Files**: `backend/app/api/v1/` (`auth.py`, `events.py`, `plans.py`, `votes.py`, `invitations.py`, `places.py`, `ai.py`)
-  - **Acceptance Criteria**: Routes return `501 Not Implemented` with matching Pydantic response models. Swagger accessible at `http://localhost:8000/docs`.
-- [ ] **TASK-003** `[AI]` **LangGraph State & Fixture Fixtures Definition**
-  - **Feature**: #23
-  - **Target Files**: `backend/app/ai_agents/state.py`, `backend/app/ai_agents/fixtures/` (`mock_places.json`, `mock_plans.json`)
-  - **Acceptance Criteria**: Define Pydantic `AgentState`. Mock fixtures validate cleanly against DB schemas.
-- [ ] **TASK-004** `[FE-A]` **MSW Mock Handlers Setup for Core APIs**
-  - **Feature**: N/A
+- [ ] **TASK-001** `[BE-A]` **Thiết kế SQLAlchemy & Pydantic DB Schemas cho Supabase**
+  - **Mục tiêu**: Chuẩn hóa mô hình dữ liệu cho Supabase PostgreSQL 16 phân tách 3 schema (`core`, `checkpoints`, `vectors`).
+  - **Target Files**: `backend/app/models/` (`user.py`, `event.py`, `plan.py`, `stop.py`, `vote.py`, `chat.py`, `expense.py`, `settlement.py`), `backend/app/schemas/`
+  - **Acceptance Criteria**: Hỗ trợ đầy đủ `scope` (DAY_HANGOUT | VACATION), `macro_locked`, `final_locked`, `plan_stops` với `place_ref_id` và `backup_options` JSONB, 3 bảng tài chính (`expenses`, `expense_splits`, `settlements`). Cấu hình Supavisor Pooler port 6543. Migration Alembic sạch.
+  - **Docs & Tracking**: Cập nhật `database-schema.md` + tick `[x]` task board.
+- [X] **TASK-002** `[BE-Services]` **FastAPI APIRouter Skeleton & Swagger Docs**
+  - **Mục tiêu**: Tạo khung các Router trả về `501 Not Implemented` khớp chuẩn OpenAPI spec.
+  - **Target Files**: `backend/app/api/v1/` (`auth.py`, `events.py`, `consensus.py`, `places.py`, `export.py`, `finance.py`, `admin.py`)
+  - **Acceptance Criteria**: Swagger hiển thị đầy đủ schema tại `http://localhost:8000/docs`, Pydantic DTOs khớp hợp đồng giao diện.
+- [ ] **TASK-003** `[AI]` **LangGraph State Schema & Fixture Data Definition**
+  - **Mục tiêu**: Định nghĩa `AgentState` cho 2 pha thực thi và tạo dữ liệu giả lập để test đồ thị.
+  - **Target Files**: `backend/app/ai_agents/state.py`, `backend/app/ai_agents/fixtures/` (`mock_places.json`, `mock_roadmaps.json`)
+  - **Acceptance Criteria**: Khai báo Pydantic `AgentState` chứa `phase`, `macro_locked`, `daily_themes`, `plan_stops`, `backup_options`. Dữ liệu mock validate pass 100% với DB models.
+- [ ] **TASK-004** `[FE-A]` **MSW Mock Handlers Setup Cho Core APIs**
+  - **Mục tiêu**: Dựng Mock Service Worker chặn các request API core để code UI song song.
   - **Target Files**: `frontend/src/mocks/handlers/` (`auth.ts`, `events.ts`, `plans.ts`)
-  - **Acceptance Criteria**: MSW intercepts `/api/v1/auth/*` and `/api/v1/events/*`, returning mock JSON adhering to OpenAPI contract.
-- [ ] **TASK-005** `[FE-B]` **MSW Streaming Mock Setup for AI Chat**
-  - **Feature**: #31, #32
+  - **Acceptance Criteria**: Giả lập API auth, tạo phòng và lấy danh sách điểm dừng khớp với OpenAPI contract.
+- [ ] **TASK-005** `[FE-B]` **MSW Mock Handlers Setup Cho Realtime AI Streaming**
+  - **Mục tiêu**: Giả lập streaming token và sự kiện cập nhật điểm dừng qua WebSocket/SSE.
   - **Target Files**: `frontend/src/mocks/handlers/ai.ts`
-  - **Acceptance Criteria**: Simulates SSE / WebSocket chunked responses for chat UI testing without calling real backend.
-- [ ] **TASK-006** `[SEC/DEVOPS]` **Docker Compose & Environment Setup**
-  - **Feature**: N/A
+  - **Acceptance Criteria**: Giả lập gửi từng chunk token (TTFT $< 800$\,ms) và broadcast sự kiện `plan:updated`.
+- [ ] **TASK-006** `[SEC/DEVOPS]` **Docker Compose & Môi Trường Local**
+  - **Mục tiêu**: Khởi động PostgreSQL 15, Redis 7 và FastAPI server cục bộ.
   - **Target Files**: `docker-compose.yml`, `backend/Dockerfile`, `.env.example`
-  - **Acceptance Criteria**: `docker compose up -d` starts PostgreSQL 15, Redis 7, FastAPI server without errors.
+  - **Acceptance Criteria**: `docker compose up -d` khởi chạy thành công toàn bộ service với health check pass.
 
 ### 0.2 CI/CD & Code Quality Rules
-- [ ] **TASK-007** `[SEC/DEVOPS]` **GitHub Actions Pipeline Setup**
-  - **Feature**: N/A
+- [ ] **TASK-007** `[SEC/DEVOPS]` **GitHub Actions CI Pipeline Setup**
+  - **Mục tiêu**: Tự động hóa kiểm tra code quality khi mở PR.
   - **Target Files**: `.github/workflows/ci.yml`
-  - **Acceptance Criteria**: Automated runs on PR: `ruff check backend`, `mypy backend`, `pytest backend`, `pnpm run lint frontend`, `pnpm run build frontend`.
-- [ ] **TASK-008** `[SEC/DEVOPS]` **Pre-commit Hooks & Linter Setup**
-  - **Feature**: N/A
+  - **Acceptance Criteria**: Pipeline chạy: `ruff check backend`, `pytest backend`, `pnpm run lint frontend`, `pnpm run test frontend`.
+- [ ] **TASK-008** `[SEC/DEVOPS]` **Pre-commit Hooks & Linter Configuration**
+  - **Mục tiêu**: Chặn commit nếu code vi phạm convention.
   - **Target Files**: `.pre-commit-config.yaml`, `backend/pyproject.toml`
-  - **Acceptance Criteria**: Blocks local git commit if Ruff linting fails or Black formatting drifts.
+  - **Acceptance Criteria**: Chặn commit nếu Ruff hoặc Black phát hiện lỗi format.
 
-### 0.3 UI/UX Design (Sprint 0 — làm trước khi bắt đầu code giao diện)
-> Làm song song với Contract Session. Kết quả là **nguồn chân lý thiết kế** cho FE Dev A & B xuyên suốt các Sprint sau. Tài liệu thiết kế lưu tại `docs/06-design/`.
+### 0.3 UI/UX Design System & Wireframes
 - [ ] **TASK-009** `[FE-B]` **Design Tokens & Design System Spec**
-  - **Feature**: #42
+  - **Mục tiêu**: Xây dựng bảng màu chuẩn (Primary Blue `#12305c`, Accent Teal `#186c8e`), typography, radius, shadow.
   - **Target Files**: `docs/06-design/design-tokens.md`, `frontend/src/styles/theme.ts`, `frontend/tailwind.config.js`
-  - **Acceptance Criteria**: Chốt palette (light/dark), typography scale, spacing, radius, shadow; mapping sang shadcn/Tailwind theme config; được dùng làm nguồn duy nhất cho mọi màn hình (feed vào TASK-111).
-- [ ] **TASK-010** `[FE-B]` **User Flows & Page Wireframes**
-  - **Feature**: #1 → #42
-  - **Target Files**: `docs/06-design/user-flows.md`, `docs/06-design/wireframes/` (Mermaid/ASCII hoặc Figma)
-  - **Acceptance Criteria**: Flowchart các luồng chính: register/login → tạo event → mời member → tạo/vote plan → confirm → chia chi phí; wireframe từng page chốt layout + component + empty/loading/error state.
-- [ ] **TASK-011** `[FE-B]` **Hi-fi Mockups, Component Library & Accessibility**
-  - **Feature**: #42
-  - **Target Files**: `docs/06-design/mockups.md` (link Figma), `frontend/src/components/ui/` (variants)
-  - **Acceptance Criteria**: Hi-fi mockups cho 6 EventType + AI chat streaming + expense/settlement; component variants (Button/Input/Card/Dialog/Toast) theo design tokens; responsive breakpoints (mobile/tablet/desktop) + contrast WCAG AA.
+  - **Acceptance Criteria**: Chốt design tokens theo Proposal, cấu hình tương thích Tailwind CSS và shadcn/ui.
+- [ ] **TASK-010** `[FE-B]` **User Flows & Wireframes (Two-Stage Consensus & Living Itinerary)**
+  - **Mục tiêu**: Vẽ luồng giao diện cho 2 chốt chặn đồng thuận (Consensus 1 & 2), kịch bản 1-Click Swap và đổi điểm khi trời mưa.
+  - **Target Files**: `docs/06-design/user-flows.md`, `docs/06-design/wireframes/`
+  - **Acceptance Criteria**: Flowchart và wireframe đầy đủ các trạng thái empty, loading, error, success.
+- [ ] **TASK-011** `[FE-B]` **Hi-fi Mockups, Thư Viện Component & WCAG AA**
+  - **Mục tiêu**: Dựng mockup chi tiết cho Room Chat, Interactive Timeline, Stop Voting Cards.
+  - **Target Files**: `docs/06-design/mockups.md`, `frontend/src/components/ui/`
+  - **Acceptance Criteria**: Đảm bảo độ tương phản màu sắc đạt chuẩn WCAG AA, responsive trên Mobile và Desktop.
 
 ---
 
-## 🔐 Sprint 1 — Auth & Core Infrastructure
+## 🔐 Sprint 1 — Auth, Infrastructure Baseline & Vercel Edge Deploy
 
-### 1.1 Auth & User Management (Backend Core & Services)
-- [ ] **TASK-101** `[BE-A]` **Database Models & Alembic Initial Migration**
-  - **Feature**: #2, #4
+### 1.1 Auth & Supabase Identity
+- [ ] **TASK-101** `[BE-A]` **Supabase Core Database Models & Alembic Migration**
+  - **Feature**: #1, #2
   - **Target Files**: `backend/app/models/user.py`, `backend/alembic/versions/`
-  - **Acceptance Criteria**: User table created with `id`, `email`, `password_hash`, `full_name`, `avatar_url`, `provider`.
+  - **Acceptance Criteria**: Tạo bảng `core.users` và `core.event_members`, kết nối qua Supavisor pooler port 6543.
 - [ ] **TASK-102** `[BE-Services]` **User Registration & Password Hashing**
   - **Feature**: #2
   - **Target Files**: `backend/app/api/v1/auth.py`, `backend/app/services/auth_service.py`
-  - **Acceptance Criteria**: `POST /api/v1/auth/register` validates Pydantic schema, hashes password using `passlib[bcrypt]`, returns user JWT tokens.
-- [ ] **TASK-103** `[BE-Services]` **OAuth2 Integration (Google & Facebook)**
+  - **Acceptance Criteria**: `POST /auth/register` hash mật khẩu bằng `bcrypt` (cost $\ge 10$), trả về JWT tokens.
+- [ ] **TASK-103** `[BE-Services]` **Google & Facebook OAuth2 Integration**
   - **Feature**: #1
   - **Target Files**: `backend/app/api/v1/auth.py`, `backend/app/core/oauth.py`
-  - **Acceptance Criteria**: `POST /api/v1/auth/login/google` exchanges auth code for token, creates or logs in user, returns JWT access/refresh token.
+  - **Acceptance Criteria**: `POST /auth/login/google` đổi auth code lấy token, lưu user vào database Supabase.
 - [ ] **TASK-104** `[BE-Services]` **JWT Access & Refresh Token Rotation**
-  - **Feature**: #5
+  - **Feature**: #4
   - **Target Files**: `backend/app/core/security.py`, `backend/app/api/v1/auth.py`
-  - **Acceptance Criteria**: Access token expires in 15 mins. `POST /api/v1/auth/refresh-token` validates refresh token in httpOnly cookie and issues new pair.
+  - **Acceptance Criteria**: Access token 15 phút, Refresh token 7 ngày trong httpOnly cookie.
 - [ ] **TASK-105** `[BE-Services]` **Forgot & Reset Password Flow**
   - **Feature**: #3
   - **Target Files**: `backend/app/api/v1/auth.py`, `backend/app/services/email_service.py`
-  - **Acceptance Criteria**: `POST /api/v1/auth/forgot-password` generates single-use 15-min token and sends email via SMTP.
+  - **Acceptance Criteria**: `POST /auth/forgot-password` gửi email token 1 lần (TTL 15 phút) qua SMTP.
 - [ ] **TASK-106** `[BE-Services]` **User Profile API (GET & PATCH)**
-  - **Feature**: #4
+  - **Feature**: #5
   - **Target Files**: `backend/app/api/v1/users.py`, `backend/app/services/user_service.py`
-  - **Acceptance Criteria**: `GET /api/v1/users/me` returns current user profile; `PATCH /api/v1/users/me` updates `full_name`, `avatar_url`.
+  - **Acceptance Criteria**: `GET /users/me` và `PATCH /users/me` cập nhật họ tên, avatar URL.
 
-### 1.2 Platform & External Integration Baseline
-- [ ] **TASK-107** `[BE-B]` **HTTPX Async Client & Redis Caching Service**
-  - **Feature**: #22
+### 1.2 Platform & Upstash Redis Cache Baseline
+- [ ] **TASK-107** `[BE-B]` **HTTPX Async Client & Upstash Redis L2 Caching Service**
+  - **Feature**: #27, #28
   - **Target Files**: `backend/app/core/redis.py`, `backend/app/services/cache_service.py`
-  - **Acceptance Criteria**: Generic cache decorator `cache_response(ttl=3600)` stores and retrieves JSON responses from Redis.
-- [ ] **TASK-108** `[BE-B]` **Google Places API Base Service**
-  - **Feature**: #17
+  - **Acceptance Criteria**: Decorator `@cache_response(ttl=86400)` lưu và đọc kết quả POIs từ Upstash Redis qua giao thức TLS.
+- [ ] **TASK-108** `[BE-B]` **Google Places API Base Service & PyBreaker Wrapper**
+  - **Feature**: #24, #27
   - **Target Files**: `backend/app/services/places_service.py`
-  - **Acceptance Criteria**: `PlacesService.search_places()` queries Google Places API using `httpx.AsyncClient` and caches in Redis.
+  - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s).
 
-### 1.3 AI Multi-Agent Orchestrator Baseline
-- [ ] **TASK-109** `[AI]` **LangGraph Orchestrator Skeleton**
-  - **Feature**: #23
-  - **Target Files**: `backend/app/ai_agents/orchestrator.py`
-  - **Acceptance Criteria**: Graph builds state, routes intent to dummy sub-agents based on `EventType`, respects `recursion_limit=15`.
-- [ ] **TASK-110** `[AI]` **DeepSeek API Provider Wrapper**
-  - **Feature**: #23, #31
-  - **Target Files**: `backend/app/ai_agents/llm_provider.py`
-  - **Acceptance Criteria**: Wraps `deepseek-chat` and `deepseek-reasoner` with retry logic, rate limiting, and token logging.
+### 1.3 AI Agent Two-Phase State Machine Baseline
+- [ ] **TASK-109** `[AI]` **LangGraph Two-Phase State Machine Skeleton**
+  - **Feature**: #17
+  - **Target Files**: `backend/app/ai_agents/state_machine.py`
+  - **Acceptance Criteria**: Xây dựng đồ thị máy trạng thái gồm 2 pha (Phase 1 Macro State và Phase 2 Micro State), kiểm soát chuyển pha dựa trên cờ `macro_locked`.
+- [ ] **TASK-110** `[AI]` **DeepSeek-V4 Provider & Model Abstraction Layer**
+  - **Feature**: #18
+  - **Target Files**: `backend/app/ai_agents/model_abstraction.py`
+  - **Acceptance Criteria**: Gọi mô hình chính `deepseek-v4`, tích hợp cơ chế tự động fallback sang GPT-4o / Claude khi DeepSeek gặp lỗi.
 
-### 1.4 Frontend Core Foundations & Auth UI
-- [ ] **TASK-111** `[FE-A]` **Project Skeleton & Design System (Tailwind + shadcn)**
-  - **Feature**: #42
+### 1.4 Frontend Foundations & Auth UI
+- [ ] **TASK-111** `[FE-A]` **Frontend Skeleton, Tailwind Theme & Layout**
+  - **Feature**: #29
   - **Target Files**: `frontend/src/`, `frontend/tailwind.config.js`
-  - **Acceptance Criteria**: Vite app builds cleanly with Tailwind CSS, shadcn components (Button, Input, Card, Dialog), responsive design.
+  - **Acceptance Criteria**: Khởi tạo project React 18 + Vite + TS, tích hợp Tailwind palette theo proposal.
 - [ ] **TASK-112** `[FE-A]` **Login & Register UI Screens**
   - **Feature**: #1, #2
   - **Target Files**: `frontend/src/features/auth/pages/LoginPage.tsx`, `RegisterPage.tsx`
-  - **Acceptance Criteria**: Form validation with React Hook Form + Zod, Google/Facebook login buttons, submit calls Auth API / MSW.
+  - **Acceptance Criteria**: Form validation với React Hook Form + Zod, nút đăng nhập Google OAuth2.
 - [ ] **TASK-113** `[FE-A]` **Forgot Password & Profile Management UI**
-  - **Feature**: #3, #4
+  - **Feature**: #3, #5
   - **Target Files**: `frontend/src/features/auth/pages/ForgotPasswordPage.tsx`, `ProfilePage.tsx`
-  - **Acceptance Criteria**: Profile page allows avatar upload and name edit, updates Zustand auth store.
-- [ ] **TASK-114** `[FE-B]` **Landing Page & Hero Section**
-  - **Feature**: #39
+  - **Acceptance Criteria**: Đổi thông tin họ tên, avatar và cập nhật Zustand auth store.
+- [ ] **TASK-114** `[FE-B]` **Landing Page & Hero Showcase**
+  - **Feature**: #30
   - **Target Files**: `frontend/src/features/landing/pages/LandingPage.tsx`
-  - **Acceptance Criteria**: Showcases 6 event types (Travel, Dining, Hangout, Entertainment, Sightseeing, Custom) with CTA buttons.
-- [ ] **TASK-115** `[FE-B]` **i18n Setup (react-i18next)**
-  - **Feature**: #40
+  - **Acceptance Criteria**: Giới thiệu nền tảng TripMate AI, mô phỏng luồng Two-Stage Consensus và các nút CTA.
+- [ ] **TASK-115** `[FE-B]` **i18n Setup (Tiếng Việt & English)**
+  - **Feature**: #31
   - **Target Files**: `frontend/src/i18n/`, `frontend/src/locales/` (`vi.json`, `en.json`)
-  - **Acceptance Criteria**: Header language toggle switches entire UI seamlessly between Vietnamese and English.
+  - **Acceptance Criteria**: Nút chuyển đổi ngôn ngữ trên Header đổi toàn bộ giao diện tức thì.
 
-### 1.5 Security & Middleware Setup
-- [ ] **TASK-116** `[SEC/DEVOPS]` **FastAPI Security Middlewares**
-  - **Feature**: Security Baseline
-  - **Target Files**: `backend/app/main.py`
-  - **Acceptance Criteria**: Configures `CORSMiddleware` (restricted origins), `TrustedHostMiddleware`, security headers via middleware.
-- [ ] **TASK-117** `[SEC/DEVOPS]` **Auth Module Security Review**
+### 1.5 Security & Vercel Edge CDN Deploy
+- [ ] **TASK-116** `[SEC/DEVOPS]` **FastAPI Security Middlewares & Supabase RLS Audit**
+  - **Feature**: #6
+  - **Target Files**: `backend/app/main.py`, `docs/05-security/security-guidelines.md`
+  - **Acceptance Criteria**: Cấu hình CORS restricted origins, TrustedHost, security headers, audit chính sách RLS.
+- [ ] **TASK-117** `[SEC/DEVOPS]` **Auth Security Audit**
   - **Feature**: Security
   - **Target Files**: `backend/app/api/v1/auth.py`
-  - **Acceptance Criteria**: Sign-off on bcrypt cost factor ≥ 10, JWT secret length ≥ 32 chars, httpOnly cookie settings, rate limit configuration.
-
-### 1.6 Frontend Deployment — Vercel (CI/CD)
-> Tương ứng feature "Hosting Frontend | **Vercel**" trong [tech-stack.md](../00-overview/tech-stack.md). Chi tiết cấu hình xem [deployment-guide.md](../03-architecture/deployment-guide.md). **Frontend deploy từ Sprint 1** vì TASK-113 đã có UI base — không chờ đến cuối dự án.
-- [ ] **TASK-118** `[SEC/DEVOPS]` **Vercel Deploy Pipeline (Preview + Production)**
-  - **Feature**: N/A (Deployment)
+  - **Acceptance Criteria**: Kiểm tra bcrypt cost $\ge 10$, JWT secret length $\ge 32$ chars, rate limit 10 req/min.
+- [ ] **TASK-118** `[SEC/DEVOPS]` **Vercel Edge CDN Deploy Pipeline (Preview + Production)**
+  - **Feature**: DevOps
   - **Target Files**: `vercel.json`, `.github/workflows/cd-frontend.yml`, `docs/03-architecture/deployment-guide.md`
-  - **Acceptance Criteria**: Mỗi PR tạo **Preview URL** riêng; merge vào `main` tự động deploy **Production**. Cấu hình biến môi trường theo env: `VITE_API_BASE_URL` (Preview → staging, Production → Render domain), `VITE_USE_MOCK=false`, `VITE_MAPBOX_ACCESS_TOKEN`. Smoke test URL live sau deploy (build pass + trang tải được + không lỗi runtime).
-  - **Definition of Done**: `vercel.json` chốt build command + output dir + headers; CD workflow chạy `pnpm build` + upload build; link project trên Vercel team.
+  - **Acceptance Criteria**: Deploy tự động khi merge `main`, tự sinh Preview URL cho PR. Smoke test domain Vercel live.
 
 ---
 
-## 📅 Sprint 2 — Event, Plan & External Integrations
+## 📅 Sprint 2 — Room Management, External APIs, Phase 1 Macro State & Render Deploy
 
-### 2.1 Event & Invitation Management (Backend Core & Services)
-- [ ] **TASK-201** `[BE-A]` **Event Database Models & Alembic Migration**
-  - **Feature**: #6
+### 2.1 Room & Member Management (Backend Core & Services)
+- [ ] **TASK-201** `[BE-A]` **Event & Room Database Models (Day Hangouts & Vacations)**
+  - **Feature**: #7
   - **Target Files**: `backend/app/models/event.py`, `backend/alembic/versions/`
-  - **Acceptance Criteria**: Tables `events` and `event_members` created with `EventType` enum (TRAVEL, DINING, HANGOUT, ENTERTAINMENT, SIGHTSEEING, CUSTOM) and `EventRole` enum (OWNER, MEMBER, VIEWER).
-- [ ] **TASK-202** `[BE-A]` **Event CRUD APIs**
-  - **Feature**: #6, #9
+  - **Acceptance Criteria**: Bảng `core.events` hỗ trợ `scope` (`DAY_HANGOUT` | `VACATION`), `macro_locked`, `final_locked`.
+- [ ] **TASK-202** `[BE-A]` **Room CRUD APIs**
+  - **Feature**: #7
   - **Target Files**: `backend/app/api/v1/events.py`, `backend/app/services/event_service.py`
-  - **Acceptance Criteria**: `POST /events` creates event and assigns creator as `OWNER`. `GET /events` lists user events. `PATCH /events/{id}` updates event info.
-- [ ] **TASK-203** `[BE-Services]` **Invitation Database Model & APIs**
-  - **Feature**: #7
-  - **Target Files**: `backend/app/models/invitation.py`, `backend/app/api/v1/invitations.py`
-  - **Acceptance Criteria**: `POST /events/{id}/invitations` generates invitation link / email. `PATCH /invitations/{id}` allows user to ACCEPT or DECLINE. Joining adds entry to `event_members`.
-- [ ] **TASK-204** `[BE-A]` **RolesGuard Dependency (Owner / Member / Viewer)**
+  - **Acceptance Criteria**: `POST /events` tạo phòng và gán người tạo làm `HOST`. `GET /events` lấy danh sách phòng.
+- [ ] **TASK-203** `[BE-Services]` **Invite via Link & Role Assignment APIs**
   - **Feature**: #8
-  - **Target Files**: `backend/app/api/v1/dependencies.py`
-  - **Acceptance Criteria**: Reusable FastAPI dependency `require_role(min_role)` raises `403 Forbidden` if user lacks permissions.
-
-### 2.2 External Integrations & Caching (Backend Platform)
-- [ ] **TASK-205** `[BE-B]` **Google Places Search with Category Filter**
-  - **Feature**: #17
-  - **Target Files**: `backend/app/api/v1/places.py`, `backend/app/services/places_service.py`
-  - **Acceptance Criteria**: `GET /api/v1/places/search?category=RESTAURANT|CAFE|ENTERTAINMENT|ATTRACTION` filters Google Places API response and attaches category metadata.
-- [ ] **TASK-206** `[BE-B]` **Hotel Data Comparison Service**
-  - **Feature**: #18
-  - **Target Files**: `backend/app/api/v1/places.py`, `backend/app/services/hotel_service.py`
-  - **Acceptance Criteria**: `GET /api/v1/hotels/compare?ids=...` compares price, rating, amenities of hotels side-by-side.
-- [ ] **TASK-207** `[BE-B]` **OpenWeatherMap Integration Service**
-  - **Feature**: #20
-  - **Target Files**: `backend/app/api/v1/utils.py`, `backend/app/services/weather_service.py`
-  - **Acceptance Criteria**: `GET /api/v1/weather?lat=&lng=` returns forecast, temperature, weather conditions. Cached for 3 hours.
-- [ ] **TASK-208** `[BE-B]` **Currency Converter API**
-  - **Feature**: #21
-  - **Target Files**: `backend/app/api/v1/utils.py`, `backend/app/services/currency_service.py`
-  - **Acceptance Criteria**: `GET /api/v1/exchange-rate?from=USD&to=VND` fetches live exchange rates with 12h Redis cache.
-
-### 2.3 AI Location, Research & Note Agents
-- [ ] **TASK-209** `[AI]` **Location Agent Implementation**
-  - **Feature**: #24
-  - **Target Files**: `backend/app/ai_agents/agents/location_agent.py`
-  - **Acceptance Criteria**: Receives category filter and preferences, queries `PlacesService`, returns top 5 structured place suggestions.
-- [ ] **TASK-210** `[AI]` **Research Agent Implementation**
-  - **Feature**: #25
-  - **Target Files**: `backend/app/ai_agents/agents/research_agent.py`
-  - **Acceptance Criteria**: Fetches place reviews, generates menu suggestions for DINING, activity ticket prices for ENTERTAINMENT, opening hours for SIGHTSEEING.
-- [ ] **TASK-211** `[AI]` **Note Agent Implementation**
-  - **Feature**: #28
-  - **Target Files**: `backend/app/ai_agents/agents/note_agent.py`
-  - **Acceptance Criteria**: Combines weather forecast with destination type to generate smart travel/hangout tips.
-
-### 2.4 Event & Plan UI Screens (Frontend Core)
-- [ ] **TASK-212** `[FE-A]` **Event Creation Dialog & EventType Selector**
-  - **Feature**: #6
-  - **Target Files**: `frontend/src/features/event/components/CreateEventModal.tsx`
-  - **Acceptance Criteria**: Form allows selecting `EventType` (TRAVEL, DINING, HANGOUT, ENTERTAINMENT, SIGHTSEEING, CUSTOM), dates, location.
-- [ ] **TASK-213** `[FE-A]` **Event List & Event Detail Dashboard UI**
+  - **Target Files**: `backend/app/models/invitation.py`, `backend/app/api/v1/invitations.py`
+  - **Acceptance Criteria**: `POST /events/{id}/invitations` tạo token mời tức thì, người nhận join vào `event_members`.
+- [ ] **TASK-204** `[BE-A]` **RolesGuard Dependency (Host vs Member Permissions)**
   - **Feature**: #9
-  - **Target Files**: `frontend/src/features/event/pages/EventListPage.tsx`, `EventDetailPage.tsx`
-  - **Acceptance Criteria**: Displays event cards, status badges, member list, navigation tabs (Plans, Members, Chat, Settings).
-- [ ] **TASK-214** `[FE-A]` **Member Invitation Modal & Pending List UI**
-  - **Feature**: #7
-  - **Target Files**: `frontend/src/features/event/components/InviteMemberModal.tsx`
-  - **Acceptance Criteria**: Allows sending email/link invites, displays pending invitations list with status (Pending/Accepted/Declined).
-- [ ] **TASK-215** `[FE-A]` **Interactive Map Component (Mapbox Integration)**
-  - **Feature**: #19
-  - **Target Files**: `frontend/src/components/map/MapView.tsx`
-  - **Acceptance Criteria**: Renders markers for plan stops, centers camera dynamically, shows popup details on marker click.
+  - **Target Files**: `backend/app/api/v1/dependencies.py`
+  - **Acceptance Criteria**: Dependency `require_host` chặn các thao tác khóa kế hoạch nếu user không phải là Host (`403 Forbidden`).
 
-### 2.5 Backend Deployment — Render (CI/CD)
-> Tương ứng feature "Hosting Backend | **Render / Railway / VPS**" trong [tech-stack.md](../00-overview/tech-stack.md). Chi tiết cấu hình xem [deployment-guide.md](../03-architecture/deployment-guide.md). **Backend deploy từ Sprint 2** — sau khi có Event/Plan CRUD thật, để Integration Day cuối Sprint 2 Frontend bỏ mock trỏ API thật.
-- [ ] **TASK-216** `[SEC/DEVOPS]` **Render Deploy Pipeline (FastAPI + Postgres + Redis)**
-  - **Feature**: N/A (Deployment)
-  - **Target Files**: `render.yaml`, `backend/Dockerfile.prod`, `.github/workflows/cd-backend.yml`, `docs/03-architecture/deployment-guide.md`
-  - **Acceptance Criteria**: Render Blueprint (`render.yaml`) khởi tạo FastAPI web service + PostgreSQL 15 + Redis 7. Deploy tự động khi merge vào `main`. Chạy `alembic upgrade head` trong quá trình deploy. `/health` trả green. Secrets (JWT, DB URL, AI keys, email) cấu hình qua Render env, **không** hardcode/.env commit.
-  - **Definition of Done**: `Dockerfile.prod` dùng non-root user + multi-stage; CD workflow build image + push; smoke test curl `/health` sau deploy.
-
----
-
-## 🗳️ Sprint 3 — Voting System, Plan Generation & Exports
-
-### 3.1 Plan & Vote Engine (Backend Core)
-- [ ] **TASK-301** `[BE-A]` **Plan & PlanStop Models with Category Metadata**
-  - **Feature**: #10, #11, #12
-  - **Target Files**: `backend/app/models/plan.py`, `backend/alembic/versions/`
-  - **Acceptance Criteria**: Tables `plans`, `plan_stops`, `plan_votes` created with `created_by_id`, `is_ai_generated`, `PlanStatus` enum (DRAFT, VOTING, CONFIRMED, ARCHIVED), `StopCategory` enum, `metadata` JSON.
-- [ ] **TASK-302** `[BE-A]` **Manual Plan Creation API**
-  - **Feature**: #11
-  - **Target Files**: `backend/app/api/v1/plans.py`, `backend/app/services/plan_service.py`
-  - **Acceptance Criteria**: `POST /events/{id}/plans` with `is_ai_generated=False` creates manual plan with initial status `DRAFT`.
-- [ ] **TASK-303** `[BE-A]` **Plan Stop Management API (Reorder / Add / Delete / Edit)**
-  - **Feature**: #12
-  - **Target Files**: `backend/app/api/v1/plans.py`
-  - **Acceptance Criteria**: `PATCH /events/{id}/plans/{planId}/stops` supports reordering stop sequence, updating notes, cost, and JSON metadata.
-- [ ] **TASK-304** `[BE-A]` **Plan Vote API & Tallying Logic**
-  - **Feature**: #13
-  - **Target Files**: `backend/app/api/v1/votes.py`, `backend/app/services/vote_service.py`
-  - **Acceptance Criteria**: `POST /events/{id}/plans/{planId}/votes` allows voting UP, DOWN, NEUTRAL with optional comment. Enforces unique constraint per `(plan_id, user_id)`.
-- [ ] **TASK-305** `[BE-A]` **Plan Status Transition API (DRAFT → VOTING → CONFIRMED)**
-  - **Feature**: #14
-  - **Target Files**: `backend/app/api/v1/plans.py`
-  - **Acceptance Criteria**: Creator can set `VOTING`. Only `OWNER` can confirm plan (`CONFIRMED`). Updates plan status and locks confirmed version.
-- [ ] **TASK-306** `[BE-A]` **Saved Places API**
-  - **Feature**: #15
-  - **Target Files**: `backend/app/api/v1/saved_places.py`
-  - **Acceptance Criteria**: `POST /saved-places` saves favorite restaurant, place, or venue to user's saved list.
-
-### 3.2 AI Planning, Costing & Conflict Resolution Agents
-- [ ] **TASK-307** `[AI]` **Plan Agent Implementation (DeepSeek-R1)**
+### 2.2 External APIs & PyBreaker Resilience (Backend Platform)
+- [ ] **TASK-205** `[BE-B]` **Google Places Search with Category & Hours Filter**
+  - **Feature**: #24, #25
+  - **Target Files**: `backend/app/api/v1/places.py`, `backend/app/services/places_service.py`
+  - **Acceptance Criteria**: `GET /places/search?category=...` lọc địa điểm kèm cờ `open_now` và gán metadata.
+- [ ] **TASK-206** `[BE-B]` **Lodging & Tours Integration (Agoda, Booking.com, Klook)**
+  - **Feature**: #25
+  - **Target Files**: `backend/app/services/external_travel_service.py`
+  - **Acceptance Criteria**: Cung cấp link và thông tin chỗ ở, vé trải nghiệm Klook.
+- [ ] **TASK-207** `[BE-B]` **OpenWeatherMap Integration Service**
   - **Feature**: #26
-  - **Target Files**: `backend/app/ai_agents/agents/plan_agent.py`
-  - **Acceptance Criteria**: Uses `deepseek-reasoner` to build optimal stop sequence, time allocation, and daily budget based on event type.
-- [ ] **TASK-308** `[AI]` **Cost Agent Implementation**
-  - **Feature**: #29
-  - **Target Files**: `backend/app/ai_agents/agents/cost_agent.py`
-  - **Acceptance Criteria**: Calculates total budget, per-person split, and per-item breakdown.
-- [ ] **TASK-309** `[AI]` **Conflict Resolver Agent Implementation (DeepSeek-R1)**
-  - **Feature**: #30
-  - **Target Files**: `backend/app/ai_agents/agents/conflict_agent.py`
-  - **Acceptance Criteria**: Analyzes vote comments and negative votes, generates a compromised draft plan resolving objections.
-- [ ] **TASK-310** `[AI]` **Booking Agent Implementation**
-  - **Feature**: #27
-  - **Target Files**: `backend/app/ai_agents/agents/booking_agent.py`
-  - **Acceptance Criteria**: Returns direct booking URLs for hotels (Booking.com / Agoda), restaurant reservations, or activity tickets without performing payment.
+  - **Target Files**: `backend/app/api/v1/utils.py`, `backend/app/services/weather_service.py`
+  - **Acceptance Criteria**: `GET /weather?lat=&lng=` trả về thông tin nhiệt độ và cảnh báo mưa; cache 3 giờ trên Redis.
+- [ ] **TASK-208** `[BE-B]` **Currency Converter API & Redis TTL Store**
+  - **Feature**: #28
+  - **Target Files**: `backend/app/api/v1/utils.py`, `backend/app/services/currency_service.py`
+  - **Acceptance Criteria**: `GET /exchange-rate` trả về tỷ giá hối đoái cho các chuyến đi ASEAN; cache 12 giờ.
 
-### 3.3 Notifications & Export (Backend Services)
-- [ ] **TASK-311** `[BE-Services]` **Email Notification Service (SMTP)**
-  - **Feature**: #33
-  - **Target Files**: `backend/app/services/notification_service.py`
-  - **Acceptance Criteria**: Sends email notifications when invited to event, when plan vote opens, and when plan is confirmed.
-- [ ] **TASK-312** `[BE-Services]` **PDF Export Service (WeasyPrint / ReportLab)**
-  - **Feature**: #34
-  - **Target Files**: `backend/app/api/v1/export.py`, `backend/app/services/export_service.py`
-  - **Acceptance Criteria**: `GET /events/{id}/export/pdf` generates downloadable PDF with event timeline, stop details, map snapshot, and expense summary.
-- [ ] **TASK-313** `[BE-Services]` **Packing Checklist Generation Service**
-  - **Feature**: #35
-  - **Target Files**: `backend/app/services/checklist_service.py`
-  - **Acceptance Criteria**: Generates customizable packing list based on EventType and weather forecast.
+### 2.3 Phase 1 Macro Planning State & Four-Tier Grounding Setup (AI Team)
+- [ ] **TASK-209** `[AI]` **Tier 1: Pydantic Schema Enforcement for Macro Drafting**
+  - **Feature**: #19
+  - **Target Files**: `backend/app/ai_agents/schemas.py`, `backend/app/ai_agents/nodes/macro_planner.py`
+  - **Acceptance Criteria**: Ép đầu ra của LLM vào cấu trúc Pydantic nghiêm ngặt, soạn thảo số ngày và chủ đề mà KHÔNG gọi API ngoài.
+- [ ] **TASK-210** `[AI]` **Tier 2: Live Map Check Verification Service**
+  - **Feature**: #20
+  - **Target Files**: `backend/app/ai_agents/grounding/map_verifier.py`
+  - **Acceptance Criteria**: Đối chiếu từng địa điểm với Google Places API và OSM, xác thực `place_id` và giờ mở cửa thật 100%.
+- [ ] **TASK-211** `[AI]` **Tier 3: Haversine Geo-Clustering Algorithm (Distance Guard)**
+  - **Feature**: #21
+  - **Target Files**: `backend/app/ai_agents/grounding/geo_clustering.py`
+  - **Acceptance Criteria**: Gom cụm các điểm dừng trong cùng nửa ngày vào bán kính $\le 2.5$\,km ($\le 20$\,phút di chuyển) bằng công thức Haversine.
 
-### 3.4 Plan, Voting & Checklist UI Screens (Frontend Core & Growth)
-- [ ] **TASK-314** `[FE-A]` **Manual Plan Builder Component (Drag & Drop)**
-  - **Feature**: #11, #12
-  - **Target Files**: `frontend/src/features/plan/components/PlanBuilder.tsx`
-  - **Acceptance Criteria**: Allows adding stops with Google Places autocomplete, reordering stops via drag & drop, editing cost/notes.
-- [ ] **TASK-315** `[FE-A]` **Voting Dashboard & Comment Thread UI**
-  - **Feature**: #13
-  - **Target Files**: `frontend/src/features/plan/components/PlanVotingCard.tsx`
-  - **Acceptance Criteria**: Displays UP/DOWN/NEUTRAL buttons, vote count progress bar, comment thread, "Send for Vote" button.
-- [ ] **TASK-316** `[FE-A]` **Plan Confirmation & Status Badge UI**
-  - **Feature**: #14
-  - **Target Files**: `frontend/src/features/plan/components/PlanHeader.tsx`
-  - **Acceptance Criteria**: Shows status badge (Draft, Voting, Confirmed). Renders "Confirm Plan" button only for Event Owner.
-- [ ] **TASK-317** `[FE-B]` **Packing Checklist UI Screen**
-  - **Feature**: #35
-  - **Target Files**: `frontend/src/features/checklist/pages/ChecklistPage.tsx`
-  - **Acceptance Criteria**: Interactive checklist with item check/uncheck, custom item add/delete, progress bar.
+### 2.4 UI Room Dashboard & Mapbox Route Canvas (Frontend Core)
+- [ ] **TASK-212** `[FE-A]` **Room Creation Modal & Dual Scope Selector**
+  - **Feature**: #7
+  - **Target Files**: `frontend/src/features/event/components/CreateRoomModal.tsx`
+  - **Acceptance Criteria**: Cho phép chọn phạm vi Day Hangout hoặc Vacation, ngày đi và ngân sách.
+- [ ] **TASK-213** `[FE-A]` **Room Dashboard & Navigation Tabs**
+  - **Feature**: #10
+  - **Target Files**: `frontend/src/features/event/pages/RoomDashboardPage.tsx`
+  - **Acceptance Criteria**: Hiển thị danh sách chuyến đi, các tab (Timeline, Chat, Bản đồ, Chi phí, Cài đặt).
+- [ ] **TASK-214** `[FE-A]` **Member Invitation Modal & Shareable Link UI**
+  - **Feature**: #8
+  - **Target Files**: `frontend/src/features/event/components/InviteModal.tsx`
+  - **Acceptance Criteria**: Nút sao chép link mời tức thì, hiển thị danh sách thành viên hiện tại trong phòng.
+- [ ] **TASK-215** `[FE-A]` **Interactive Mapbox GL Route Canvas**
+  - **Feature**: #32
+  - **Target Files**: `frontend/src/components/map/MapboxCanvas.tsx`
+  - **Acceptance Criteria**: Hiển thị markers cho các điểm dừng, vẽ tuyến đường di chuyển tối ưu giữa các điểm.
+
+### 2.5 Backend Deployment — Render.com (FastAPI Gateway + Anti-Sleep Ping)
+- [ ] **TASK-216** `[SEC/DEVOPS]` **Render Deploy Pipeline & Keep-Alive Ping Setup**
+  - **Feature**: DevOps
+  - **Target Files**: `render.yaml`, `backend/Dockerfile.prod`, `backend/app/api/healthz.py`, `.github/workflows/cd-backend.yml`
+  - **Acceptance Criteria**: Deploy FastAPI Web Service lên Render. Endpoint `/api/healthz` phản hồi 200 OK. Thiết lập cron ping 10 phút chống sleep.
 
 ---
 
-## 🚀 Sprint 4 — Realtime AI Chat, Admin Dashboard & Pentest
+## 🗳️ Sprint 3 — Two-Stage Consensus Engine, Phase 2 Micro Curation & Exports
 
-### 4.1 Realtime AI Chat Engine (AI & Backend Integration)
-- [ ] **TASK-401** `[AI]` **Chat Agent & Function Calling Setup**
-  - **Feature**: #31
-  - **Target Files**: `backend/app/ai_agents/agents/chat_agent.py`
-  - **Acceptance Criteria**: Chat Agent routes user queries, calls sub-agent tools dynamically, maintains conversation state.
-- [ ] **TASK-402** `[AI]` **FastAPI WebSocket & SSE Endpoints for Streaming**
-  - **Feature**: #31
-  - **Target Files**: `backend/app/api/v1/ai.py`
-  - **Acceptance Criteria**: `/api/v1/ai/chat/stream` streams LLM output tokens in real-time using `EventSourceResponse` (SSE) or WebSockets.
-- [ ] **TASK-403** `[AI]` **Agent Token Logging Service**
+### 3.1 Two-Stage Consensus Engine (Backend Core)
+- [ ] **TASK-301** `[BE-A]` **Normalized `plan_stops` & `plan_votes` Database Models**
+  - **Feature**: #11
+  - **Target Files**: `backend/app/models/plan.py`, `backend/app/models/stop.py`, `backend/alembic/versions/`
+  - **Acceptance Criteria**: Bảng `plan_stops` hỗ trợ lưu Place ID, tọa độ lat/lng, backup options JSONB; bảng `plan_votes` có ràng buộc unique `(stop_id, user_id)`.
+- [ ] **TASK-302** `[BE-A]` **Macro Consensus Lock API (Consensus Checkpoint 1)**
+  - **Feature**: #12
+  - **Target Files**: `backend/app/api/v1/consensus.py`
+  - **Acceptance Criteria**: `POST /events/{id}/macro-lock` xác nhận khóa khung lộ trình vĩ mô (chỉ Host thực hiện), kích hoạt chuyển sang Phase 2.
+- [ ] **TASK-303** `[BE-A]` **Granular Stop Management & Ordering APIs**
+  - **Feature**: #11
+  - **Target Files**: `backend/app/api/v1/plans.py`
+  - **Acceptance Criteria**: Sắp xếp lại thứ tự điểm dừng, cập nhật thời lượng lưu lại và ghi chú điểm dừng.
+- [ ] **TASK-304** `[BE-A]` **Stop Voting API with Atomic SQL Counter**
+  - **Feature**: #13
+  - **Target Files**: `backend/app/api/v1/consensus.py`, `backend/app/services/vote_service.py`
+  - **Acceptance Criteria**: `POST /events/{id}/stops/{stopId}/vote` vote UP/DOWN với lệnh SQL nguyên tử, triệt tiêu race condition.
+- [ ] **TASK-305** `[BE-A]` **1-Click Swap Alternative POI API**
+  - **Feature**: #14
+  - **Target Files**: `backend/app/api/v1/consensus.py`
+  - **Acceptance Criteria**: `POST /events/{id}/stops/{stopId}/swap` thay thế tức thì điểm dừng bằng 1 trong 2 phương án dự phòng đã nạp sẵn.
+- [ ] **TASK-306** `[BE-A]` **Final Plan Confirmation API (Consensus Checkpoint 2)**
+  - **Feature**: #15
+  - **Target Files**: `backend/app/api/v1/consensus.py`
+  - **Acceptance Criteria**: `POST /events/{id}/final-lock` khóa toàn bộ kế hoạch chính thức (chỉ Host thực hiện) và kích hoạt xuất file.
+- [ ] **TASK-307** `[BE-A]` **Living Itinerary Dynamic Adaptation API (On-Trip Edit)**
+  - **Feature**: #16
+  - **Target Files**: `backend/app/api/v1/consensus.py`
+  - **Acceptance Criteria**: `PATCH /events/{id}/stops/{stopId}` cho phép cập nhật duy nhất 1 điểm dừng khi có biến cố thực tế (ví dụ trời mưa).
+
+### 3.2 Phase 2 Micro Curation State & Typed Checkpointing (AI Team)
+- [ ] **TASK-308** `[AI]` **Phase 2: Micro Curation State & Backup Stops Pre-fetching**
+  - **Feature**: #22
+  - **Target Files**: `backend/app/ai_agents/nodes/micro_curator.py`
+  - **Acceptance Criteria**: Sau khi có Macro Lock, AI truy vấn Google Places/Agoda qua PyBreaker, áp dụng gom cụm 2--3 km và chuẩn bị sẵn 2 backup options.
+- [ ] **TASK-309** `[AI]` **Typed State Persistence with `AsyncPostgresSaver` via DAL**
+  - **Feature**: #23
+  - **Target Files**: `backend/app/ai_agents/dal.py`
+  - **Acceptance Criteria**: Lưu vết checkpoint của `AgentState` vào schema `checkpoints` của Supabase, hỗ trợ khôi phục phiên tự động.
+- [ ] **TASK-310** `[AI]` **Dynamic On-The-Go Adaptation Agent Node**
+  - **Feature**: #16
+  - **Target Files**: `backend/app/ai_agents/nodes/adaptive_replanner.py`
+  - **Acceptance Criteria**: Xử lý yêu cầu khẩn cấp trong chuyến đi (tìm quán cafe trong nhà gần vị trí hiện tại khi trời mưa), sinh thay đổi cho 1 stop duy nhất.
+
+### 3.3 Notifications, PDF & Calendar Export (Backend Services)
+- [ ] **TASK-311** `[BE-Services]` **Email Notification Service (SMTP)**
+  - **Feature**: Notification
+  - **Target Files**: `backend/app/services/notification_service.py`
+  - **Acceptance Criteria**: Gửi email mời vào phòng, thông báo khi mở vote điểm dừng và khi kế hoạch được chốt chính thức.
+- [ ] **TASK-312** `[BE-Services]` **PDF Export Service (WeasyPrint)**
   - **Feature**: #36
-  - **Target Files**: `backend/app/services/agent_logger.py`
-  - **Acceptance Criteria**: Every LLM call logs `input_tokens`, `output_tokens`, `duration_ms`, `agent_name`, `user_id` to `agent_logs` table.
+  - **Target Files**: `backend/app/api/v1/export.py`, `backend/app/services/export_service.py`
+  - **Acceptance Criteria**: `GET /events/{id}/export/pdf` xuất file PDF chuyên nghiệp chứa bản đồ, timeline và chi phí dự kiến.
+- [ ] **TASK-313** `[BE-Services]` **Calendar (.ics) Export Service**
+  - **Feature**: #37
+  - **Target Files**: `backend/app/api/v1/export.py`, `backend/app/services/calendar_service.py`
+  - **Acceptance Criteria**: `GET /events/{id}/export/calendar` tạo file `.ics` đồng bộ vào Google Calendar / Apple Calendar.
 
-### 4.2 Shared Expense Splitting & Settlement (Backend Services)
-- [ ] **TASK-404** `[BE-Services]` **Expense Splitting & Optimal Settlement Algorithm**
-  - **Feature**: #41
-  - **Target Files**: `backend/app/services/expense_service.py`, `backend/app/services/settlement_service.py`
-  - **Acceptance Criteria**: Tính split theo 3 kiểu `SplitType` — `EQUAL`, `EXACT`, `PERCENTAGE`; tính net balance từng member bằng SQL GROUP BY (không cần bảng `MemberBalance`, theo [database-schema.md](../03-architecture/database-schema.md) §3). `SettlementService.settle()` chạy **thuật toán tối ưu số giao dịch** theo ví dụ §3 (A/B/C/D → 3 transactions) — thuật toán greedy: tạo biểu đồ creditor/debtor từ net balance, khớp cặp, số transaction ≤ số người nợ; lưu từng giao dịch bù trừ vào bảng `settlements` (1 dòng `Settlement`, `isSettled=false`). Unit test thuật toán trên cases 2/3/4 người (định nghĩa trong `tests/test_settlement.py`).
-- [ ] **TASK-415** `[BE-Services]` **Fund & Expense CRUD + Settlement Persistence APIs**
-  - **Feature**: #41
-  - **Target Files**: `backend/app/api/v1/funds.py` (router thu quỹ — tạo `Expense(type=ADVANCE)`, không có bảng/model riêng), `backend/app/api/v1/expenses.py`, `backend/app/api/v1/settlements.py`, `backend/app/models/expense.py`, `backend/app/models/settlement.py`
-  - **Acceptance Criteria**: `POST/GET/PATCH/DELETE /events/{id}/fund-contributions` (thu quỹ → tạo `Expense(type=ADVANCE)`) và `/events/{id}/expenses` (mỗi expense tạo `expense_splits` theo SplitType); `GET /events/{id}/balances` trả net balance từng member (SQL GROUP BY); `GET /events/{id}/settlements` + `POST /events/{id}/settlements` (chạy thuật toán TASK-404, ghi bảng `settlements`). Role guard: chỉ OWNER/MEMBER được sửa expense (theo RolesGuard TASK-204). Alembic migration + tests `test_expense.py`, `test_settlement.py`.
+### 3.4 Interactive Timeline, Voting Cards & Packing Checklist UI (Frontend)
+- [ ] **TASK-314** `[FE-A]` **Interactive Timeline Component (Draggable Stop Cards)**
+  - **Feature**: #33
+  - **Target Files**: `frontend/src/features/plan/components/InteractiveTimeline.tsx`
+  - **Acceptance Criteria**: Kéo thả sắp xếp thứ tự điểm dừng, hiển thị thời lượng ghé thăm và khoảng cách di chuyển.
+- [ ] **TASK-315** `[FE-B]` **Granular Stop Voting Cards & 1-Click Swap UI**
+  - **Feature**: #35
+  - **Target Files**: `frontend/src/features/plan/components/StopVotingCard.tsx`
+  - **Acceptance Criteria**: Thẻ điểm dừng hiển thị hình ảnh thật, nút vote UP/DOWN, progress bar đồng thuận và nút 1-Click Swap.
+- [ ] **TASK-316** `[FE-A]` **Macro Lock & Final Confirmation Header UI**
+  - **Feature**: #12, #15
+  - **Target Files**: `frontend/src/features/plan/components/ConsensusHeader.tsx`
+  - **Acceptance Criteria**: Hiển thị nút "Khóa Lộ Trình Vĩ Mô" và "Chốt Kế Hoạch Chính Thức" dành riêng cho Host.
+- [ ] **TASK-317** `[FE-B]` **Packing Checklist UI Screen**
+  - **Feature**: Checklist
+  - **Target Files**: `frontend/src/features/checklist/pages/ChecklistPage.tsx`
+  - **Acceptance Criteria**: Danh sách kiểm tra đồ cần mang theo điều chỉnh theo điểm đến và thời tiết.
 
-### 4.3 Admin Dashboard Service (Backend Services)
-- [ ] **TASK-405** `[BE-Services]` **Admin Statistics APIs**
-  - **Feature**: #36, #37
-  - **Target Files**: `backend/app/api/v1/admin.py`, `backend/app/services/admin_service.py`
-  - **Acceptance Criteria**: `GET /admin/dashboard/overview` returns total users, total events, token usage history, cache hit rate. `GET /admin/users` lists and manages user status.
+---
 
-### 4.4 AI Experience, Shared Expenses & Admin UI (Frontend Growth)
-- [ ] **TASK-406** `[FE-B]` **AI Chat Interface with Streaming Output**
-  - **Feature**: #31, #32
-  - **Target Files**: `frontend/src/features/ai-chat/pages/ChatPage.tsx`
-  - **Acceptance Criteria**: Chat interface renders streaming response, user typing indicator, suggestion quick-chips.
-- [ ] **TASK-407** `[FE-B]` **Interactive Draft Plan Card Renderer**
-  - **Feature**: #32
-  - **Target Files**: `frontend/src/features/ai-chat/components/PlanCardPreview.tsx`
-  - **Acceptance Criteria**: Renders AI proposal inside chat as structured card with "Accept as Draft" or "Modify" buttons.
-- [ ] **TASK-408** `[FE-B]` **Category-Specific Stop Cards Rendering**
-  - **Feature**: #25, #32
-  - **Target Files**: `frontend/src/features/plan/components/StopCategoryCard.tsx`
-  - **Acceptance Criteria**: Custom card designs: displays menu items for RESTAURANT, activity ticket prices for ENTERTAINMENT, opening hours/tips for SIGHTSEEING.
-- [ ] **TASK-409** `[FE-B]` **Shared Expense & Settlement UI**
-  - **Feature**: #41
-  - **Target Files**: `frontend/src/features/expense/pages/ExpensePage.tsx`, `frontend/src/features/expense/components/ExpenseForm.tsx`, `frontend/src/features/expense/components/FundPoolCard.tsx`, `frontend/src/features/expense/components/SettlementTable.tsx`
-  - **Acceptance Criteria**: UI tương ứng API TASK-415: form thêm expense chọn SplitType (EQUAL/EXACT/PERCENTAGE), hiển thị fund pool + từng member đóng bao nhiêu, danh sách expense, net balance từng người, bảng settlement tối ưu (ai trả ai bao nhiêu) kèm trạng thái settled toggle. Empty/loading/error states đầy đủ (theo wireframe TASK-010).
+## 🚀 Sprint 4 — Realtime Synchronization, Shared Expenses, Load Benchmarks & Release
+
+### 4.1 WebSocket Room Server & Redis Pub/Sub Sync (Backend Core)
+- [ ] **TASK-401** `[BE-A]` **FastAPI WebSocket Room Server**
+  - **Feature**: Realtime Sync
+  - **Target Files**: `backend/app/api/v1/ws.py`, `backend/app/services/room_socket_manager.py`
+  - **Acceptance Criteria**: Quản lý các kết nối WebSocket theo `room_id`, phản hồi ACK thao tác người dùng dưới 80ms.
+- [ ] **TASK-402** `[BE-A]` **Redis Streams & Redis Pub/Sub Event Synchronization**
+  - **Feature**: Realtime Sync
+  - **Target Files**: `backend/app/core/redis_events.py`
+  - **Acceptance Criteria**: Gateway đẩy task qua Redis Streams (`XADD`); AI Worker phát sóng sự kiện `PUBLISH plan:updated` để các Gateway gửi WebSockets tới client.
+- [ ] **TASK-403** `[BE-A]` **Token & Latency Metrics Logger**
+  - **Feature**: Observability
+  - **Target Files**: `backend/app/services/metrics_logger.py`
+  - **Acceptance Criteria**: Ghi nhận `input_tokens`, `output_tokens`, `ttft_ms`, `total_duration_ms` cho mỗi lần gọi AI.
+
+### 4.2 Shared Expense Splitting & Optimal Debt Settlement (Backend Services)
+- [ ] **TASK-404** `[BE-Services]` **Thuật toán Bù trừ Nợ Tối ưu (Optimal Settlement Algorithm)**
+  - **Feature**: #38, #39
+  - **Target Files**: `backend/app/services/settlement_service.py`
+  - **Acceptance Criteria**: Tính net balance từng thành viên qua SQL GROUP BY; chạy thuật toán Min-Cash-Flow khớp cặp nợ với số giao dịch ít nhất.
+- [ ] **TASK-415** `[BE-Services]` **Quỹ Nhóm & Chi Phí CRUD APIs**
+  - **Feature**: #38
+  - **Target Files**: `backend/app/api/v1/finance.py`
+  - **Acceptance Criteria**: `POST /events/{id}/fund-contributions` (thu quỹ trước) và `/expenses` (chi tiêu thật), trả về danh sách chuyển khoản tối ưu.
+
+### 4.3 Realtime AI Chat, Shared Expenses & Admin UI (Frontend Growth)
+- [ ] **TASK-406** `[FE-B]` **Realtime Room Chat & Token Streaming UI**
+  - **Feature**: #34
+  - **Target Files**: `frontend/src/features/chat/pages/RoomChatPage.tsx`
+  - **Acceptance Criteria**: Stream từng token phản hồi của AI qua WebSockets với TTFT $< 800$\,ms, hiển thị typing indicator.
+- [ ] **TASK-407** `[FE-B]` **Macro Roadmap Preview Card Renderer**
+  - **Feature**: #12
+  - **Target Files**: `frontend/src/features/chat/components/MacroRoadmapCard.tsx`
+  - **Acceptance Criteria**: Hiển thị đề xuất khung vĩ mô dạng thẻ tương tác trong chat kèm nút duyệt vĩ mô cho Host.
+- [ ] **TASK-408** `[FE-B]` **Dynamic On-The-Go Alert & Swap Notification UI**
+  - **Feature**: #16
+  - **Target Files**: `frontend/src/features/plan/components/AdaptationToast.tsx`
+  - **Acceptance Criteria**: Khi có thành viên đổi điểm do trời mưa, UI hiện thông báo và tự động cập nhật thẻ điểm dừng mới.
+- [ ] **TASK-409** `[FE-B]` **Shared Expense & Settlement UI Screen**
+  - **Feature**: #40
+  - **Target Files**: `frontend/src/features/expense/pages/ExpensePage.tsx`
+  - **Acceptance Criteria**: Hiển thị tổng quỹ, ai đã chi, ai nợ ai bao nhiêu tiền kèm nút đánh dấu đã thanh toán thành công.
 - [ ] **TASK-410** `[FE-B]` **Admin Dashboard UI Screen**
-  - **Feature**: #36, #37
+  - **Feature**: #41
   - **Target Files**: `frontend/src/features/admin/pages/AdminDashboardPage.tsx`
-  - **Acceptance Criteria**: Renders token cost charts (Recharts), active user stats, API usage breakdown, user table.
+  - **Acceptance Criteria**: Biểu đồ thống kê số phòng hoạt động, token tiêu thụ, cache hit rate và thời gian phản hồi API.
 
-### 4.5 Security Hardening & Pentest
-- [ ] **TASK-411** `[SEC/DEVOPS]` **Input Sanitization & Boundary Validation Audit**
+### 4.4 Security Pentest, Load Benchmarks & Production Validation
+- [ ] **TASK-411** `[SEC/DEVOPS]` **Input Sanitization & Prompt Injection Defense Audit**
   - **Feature**: Security
   - **Target Files**: `backend/app/ai_agents/`, `backend/app/schemas/`
-  - **Acceptance Criteria**: Verifies all user inputs are sanitized (Pydantic & bleach); checks system/user/assistant message roles framing without raw string concatenation.
-- [ ] **TASK-412** `[SEC/DEVOPS]` **Pydantic Output Validation Audit**
-  - **Feature**: Security
-  - **Target Files**: `backend/app/ai_agents/llm_provider.py`
-  - **Acceptance Criteria**: Ensures unparseable or malicious LLM outputs trigger graceful fallback without server crash or raw output leakage.
-- [ ] **TASK-413** `[SEC/DEVOPS]` **OWASP Top 10 Security Pentest**
-  - **Feature**: Security
-  - **Target Files**: Entire Application
-  - **Acceptance Criteria**: Verifies SQL injection safety (SQLAlchemy parameterized queries), XSS escaping, CORS enforcement, and authorization guards across all endpoints.
-- [ ] **TASK-414** `[SEC/DEVOPS]` **Production Build & Deployment Validation (Vercel + Render)**
-  - **Feature**: DevOps
-  - **Target Files**: `docker-compose.prod.yml`, `vercel.json`, `render.yaml`, GitHub Actions
-  - **Acceptance Criteria**: Production Docker container builds cleanly; **end-to-end smoke test trên URL production thật** — Frontend tại Vercel domain (từ TASK-118) gọi Backend tại Render domain (từ TASK-216): đăng nhập → tạo event → tạo plan → xem expense, `/health` green, SSL + CORS đúng domain, environment secrets không lộ (quét `.env`/hardcoded key). Có checklist verify trước khi demo cuối.
+  - **Acceptance Criteria**: Kiểm tra làm sạch dữ liệu đầu vào qua Pydantic v2 và bleach; kiểm thử các câu lệnh jailbreak prompt.
+- [ ] **TASK-412** `[SEC/DEVOPS]` **OpenTelemetry Distributed Tracing Setup**
+  - **Feature**: #42
+  - **Target Files**: `backend/app/core/telemetry.py`
+  - **Acceptance Criteria**: Đo lường và trực quan hóa độ trễ qua các chặng Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ DB $\rightarrow$ WebSocket.
+- [ ] **TASK-413** `[SEC/DEVOPS]` **Grounding Benchmark Verification (100 Prompts Test)**
+  - **Feature**: AI Evaluation
+  - **Target Files**: `backend/tests/evaluation/grounding_benchmark.py`
+  - **Acceptance Criteria**: Chạy script 100 prompts tự động qua Google Places API; đạt tỷ lệ xác thực $\ge 98\%$ và **0% địa điểm ảo**.
+- [ ] **TASK-414** `[SEC/DEVOPS]` **Locust Load Stress Test & Multi-Cloud Production Release**
+  - **Feature**: Evaluation & DevOps
+  - **Target Files**: `backend/tests/load_test/locustfile.py`, `docs/03-architecture/deployment-guide.md`
+  - **Acceptance Criteria**: Giả lập 50--100 CCU trong 10--20 phòng trên môi trường production thật (Vercel + Render + Supabase + Upstash); duy trì thông lượng 150--250 req/s, tỷ lệ lỗi $< 0.5\%$, bộ nhớ worker $\le 512$\,MB RAM.

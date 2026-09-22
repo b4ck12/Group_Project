@@ -1,492 +1,271 @@
-# Database Schema (Prisma / PostgreSQL)
+# 🗄️ Database Schema & Supabase Data Architecture
+## Dự án: TripMate AI — Intelligent Group Activity & Travel Planning Platform
 
-> **Tài liệu chuẩn kiến trúc Database** cho dự án Web Lên Kế Hoạch Nhóm Tích Hợp AI Multi-Agent.
->
-> ⚠️ **Quan trọng về ORM**: Schema trong tài liệu này được viết bằng **cú pháp Prisma** để dễ đọc, dễ thảo luận thiết kế trong Sprint 0. **Implementation thực tế dùng SQLAlchemy 2.0 / SQLModel (Async)** với Alembic migrations. Các khái niệm (model, relation, enum, index, constraint) giữ nguyên — chỉ khác cú pháp khai báo. Xem [naming-conventions.md](../02-standards/naming-conventions.md) mục 2 để biết convention SQLAlchemy/SQLModel cụ thể.
->
-> **Cập nhật quan trọng (Tích hợp AI Cost Agent & Hệ thống Quản lý / Chia Tiền Chuyến Đi)**:
-> Bổ sung toàn bộ hệ thống quản lý tài chính 3 giai đoạn: **Dự toán AI (Cost Agent)** $\rightarrow$ **Quỹ nhóm & Ghi nhận chi phí thực tế** $\rightarrow$ **AI Tự động Quyết toán & Bù trừ nợ tối ưu (Optimal Settlement)**.
+> Tài liệu chuẩn hóa kiến trúc cơ sở dữ liệu cho dự án TripMate AI, triển khai trên nền tảng **Supabase PostgreSQL 16 + pgvector**, kết nối qua **Supavisor Connection Pooler (port 6543, Transaction Mode)**, phân tách 3 schema độc lập (`core`, `checkpoints`, `vectors`), và áp dụng chính sách bảo mật **Row Level Security (RLS)** theo đúng Technical Proposal.
 
 ---
 
-## 1. Sơ đồ quan hệ chính (ERD)
+## 🏛️ 1. Cấu Trúc Phân Tách Schema (3 Isolated Schemas)
+
+Để tối ưu hóa hiệu năng, bảo mật và khả năng mở rộng, cơ sở dữ liệu được phân chia thành 3 schema độc lập:
+
+```mermaid
+flowchart TD
+    subgraph S1 ["1. 'core' Schema (Relational ACID Data)"]
+        U["users"]
+        E["events"]
+        EM["event_members"]
+        P["plans"]
+        PS["plan_stops (Normalized)"]
+        PV["plan_votes (Atomic Counters)"]
+        CM["chat_messages"]
+        INV["invitations"]
+        EXP["expenses & expense_splits"]
+        SET["settlements"]
+    end
+
+    subgraph S2 ["2. 'checkpoints' Schema (LangGraph Persistence)"]
+        CK["checkpoints (AsyncPostgresSaver)"]
+        CKB["checkpoint_blobs"]
+        CKW["checkpoint_writes"]
+    end
+
+    subgraph S3 ["3. 'vectors' Schema (Semantic POI Gems)"]
+        VEC["poi_embeddings (pgvector - 1536 dim)"]
+        HNSW["HNSW Index for Fast Cosine Similarity"]
+    end
+
+    style S1 fill:#f0f4f8,stroke:#12305c,stroke-width:1.5px;
+    style S2 fill:#e2f4f4,stroke:#186c8e,stroke-width:1.5px;
+    style S3 fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px;
+```
+
+1. **`core` Schema**: Chứa toàn bộ dữ liệu quan hệ nghiệp vụ của ứng dụng (người dùng, phòng, điểm dừng, bình chọn, tin nhắn chat, quản lý tài chính).
+2. **`checkpoints` Schema**: Dành riêng cho **LangGraph Python (`AsyncPostgresSaver`)** để lưu vết trạng thái `AgentState` theo từng phiên phòng (`event_id`), giúp khôi phục phiên tức thì nếu worker khởi động lại.
+3. **`vectors` Schema**: Sử dụng tiện ích mở rộng `pgvector` để lưu trữ vector embeddings của các địa điểm du lịch, nhà hàng, quán cafe đặc sắc hỗ trợ tra cứu tương đồng.
+
+---
+
+## ⚡ 2. Cấu Hình Supavisor Connection Pooler (Port 6543)
+
+- **Vấn đề**: Khi $50$--$100$ người dùng đồng thời (CCU) trong $10$--$20$ phòng cùng chat và vote, số lượng kết nối client có thể tăng vọt lên hơn 200 connection, dễ làm cạn kiệt connection pool của PostgreSQL.
+- **Giải pháp theo Proposal**: Hệ thống kết nối qua **Supavisor Pooler tại port 6543 ở chế độ Transaction Mode**:
+  - Multiplex **200+ phiên client đồng thời** chỉ thông qua **15 kết nối vật lý** tới PostgreSQL.
+  - Sử dụng biến môi trường:
+    ```env
+    # Kết nối qua Supavisor Pooler (Dùng cho FastAPI Web Service & LangGraph Worker)
+    DATABASE_URL=postgresql+asyncpg://postgres.project_ref:[PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require
+    # Kết nối trực tiếp Direct Connection (Chỉ dùng cho Alembic migration)
+    DIRECT_URL=postgresql+asyncpg://postgres:[PASSWORD]@db.project_ref.supabase.co:5432/postgres?sslmode=require
+    ```
+
+---
+
+## 📊 3. Sơ Đồ Quan Hệ Thực Thể (ERD - `core` Schema)
 
 ```mermaid
 erDiagram
     User ||--o{ EventMember : joins
-    User ||--o{ SavedPlace : saves
     User ||--o{ Plan : creates
     User ||--o{ PlanVote : votes
-    User ||--o{ Notification : receives
-    User ||--o{ Invitation : sent_invitations
     User ||--o{ ChatMessage : sends
-    
-    %% Financial Relations
-    User ||--o{ Expense : pays_expense
-    User ||--o{ ExpenseSplit : owes_split
-    User ||--o{ Settlement : transfers
+    User ||--o{ Invitation : sent_or_received
+    User ||--o{ Expense : pays
+    User ||--o{ ExpenseSplit : owes
 
     Event ||--o{ EventMember : contains
     Event ||--o{ Plan : has
-    Event ||--o{ Invitation : sends
-    Event ||--o{ ChecklistItem : has
-    Event ||--o{ ChatMessage : has
-    
-    %% Financial Relations
-    Event ||--o{ Expense : records_expense
-    Event ||--o{ Settlement : records_settlement
+    Event ||--o{ ChatMessage : holds
+    Event ||--o{ Invitation : invites
+    Event ||--o{ Expense : tracks
+    Event ||--o{ Settlement : settles
 
     Plan ||--o{ PlanStop : includes
-    Plan ||--o{ PlanVote : receives
-    PlanStop ||--o{ Expense : stop_expenses
+    PlanStop ||--o{ PlanVote : receives
+    PlanStop ||--o{ Expense : costs
 
-    Expense ||--o{ ExpenseSplit : divided_into
+    Expense ||--o{ ExpenseSplit : divides
+    Settlement ||--|| User : from_user
+    Settlement ||--|| User : to_user
 ```
 
 ---
 
-## 2. Prisma Schema (Đầy đủ)
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-// ==========================================
-// 1. USER & AUTHENTICATION
-// ==========================================
-
-model User {
-  id            String       @id @default(uuid())
-  email         String       @unique
-  passwordHash  String?      @map("password_hash")   // null nếu login qua OAuth
-  fullName      String       @map("full_name")
-  avatarUrl     String?      @map("avatar_url")
-  provider      AuthProvider @default(LOCAL)
-  role          SystemRole   @default(USER)        // Quyền hệ thống (USER/ADMIN)
-  status        UserStatus   @default(ACTIVE)      // [CHƯA CODE]
-  createdAt     DateTime     @default(now()) @map("created_at") // [CHƯA CODE]
-
-  // Relations
-  eventMembers        EventMember[]
-  savedPlaces         SavedPlace[]            // [CHƯA CODE]
-  createdPlans        Plan[]                  // [CHƯA CODE]
-  notifications       Notification[]          // [CHƯA CODE]
-  votedPlans          PlanVote[]              // [CHƯA CODE]
-  sentInvitations     Invitation[]            @relation("InvitationsSent") // [CHƯA CODE]
-  receivedInvitations Invitation[]            @relation("InvitationsReceived") // [CHƯA CODE]
-  createdChecklistItems ChecklistItem[]         // [CHƯA CODE]
-  chatMessages          ChatMessage[]           // [CHƯA CODE]
-  
-  // Financial Relations (Quản lý tài chính 3 bảng tối ưu)
-  paidExpenses        Expense[]               @relation("ExpensesPaid") // [CHƯA CODE]
-  expenseSplits       ExpenseSplit[]          // [CHƯA CODE]
-  settlementsFrom     Settlement[]            @relation("SettlementsFrom") // [CHƯA CODE]
-  settlementsTo       Settlement[]            @relation("SettlementsTo") // [CHƯA CODE]
-
-  @@map("users")
-}
-
-enum AuthProvider {
-  LOCAL
-  GOOGLE
-  FACEBOOK
-}
-
-enum SystemRole {
-  USER
-  ADMIN
-}
-
-enum UserStatus {
-  ACTIVE
-  SUSPENDED
-}
-
-// ==========================================
-// 2. EVENT & MEMBERSHIP
-// ==========================================
-
-model Event {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  type        EventType @default(TRAVEL)
-  location    String?
-  startDate   DateTime  @map("start_date")
-  endDate     DateTime  @map("end_date")
-  createdAt   DateTime  @default(now()) @map("created_at") // [CHƯA CODE]
-
-  // Relations
-  members           EventMember[]
-  plans             Plan[]                    // [CHƯA CODE]
-  invitations       Invitation[]              // [CHƯA CODE]
-  checklistItems    ChecklistItem[]           // [CHƯA CODE]
-  chatMessages      ChatMessage[]             // [CHƯA CODE]
-  
-  // Financial Relations
-  expenses          Expense[]                 // [CHƯA CODE]
-  settlements       Settlement[]              // [CHƯA CODE]
-
-  @@map("events")
-}
-
-enum EventType {
-  TRAVEL        // Chuyến du lịch (nhiều ngày, lên lịch trình)
-  DINING        // Đi ăn / chọn quán / chọn món
-  HANGOUT       // Cafe, bar, gặp mặt nhẹ
-  ENTERTAINMENT // Chỗ chơi: karaoke, bowling, escape room, arcade...
-  SIGHTSEEING   // Tham quan: bảo tàng, triển lãm, di tích, check-in
-  CUSTOM        // Tự định nghĩa (teambuilding, sinh nhật, ...)
-}
-
-model EventMember {
-  id       String    @id @default(uuid())
-  eventId  String    @map("event_id")
-  userId   String    @map("user_id")
-  role     EventRole @default(MEMBER)
-  joinedAt DateTime  @default(now()) @map("joined_at") // [CHƯA CODE]
-
-  event    Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([eventId, userId])
-  @@map("event_members")
-}
-
-enum EventRole {
-  OWNER
-  MEMBER
-  VIEWER
-}
-
-// ==========================================
-// 3. PLAN & ITINERARY (AI DỰ TOÁN CHI PHÍ)
-// ==========================================
-
-
-model Plan {
-  id            String     @id @default(uuid())
-  eventId       String     @map("event_id")
-  title         String
-  status        PlanStatus @default(DRAFT)          // [CHƯA CODE]
-  isAiGenerated Boolean    @default(false) @map("is_ai_generated")
-  totalBudget   Decimal?   @map("total_budget")   // AI Cost Agent ghi tổng dự toán ngân sách
-  createdById   String?    @map("created_by_id")
-  createdAt     DateTime   @default(now()) @map("created_at") // [CHƯA CODE]
-
-  event         Event      @relation(fields: [eventId], references: [id], onDelete: Cascade) // [CHƯA CODE]
-  createdBy     User?      @relation(fields: [createdById], references: [id], onDelete: SetNull) // [CHƯA CODE]
-  stops         PlanStop[]
-  votes         PlanVote[]                          
-
-  @@map("plans")
-}
-
-enum PlanStatus {
-  DRAFT        // AI đề xuất, chưa chốt
-  VOTING
-  CONFIRMED
-  ARCHIVED
-}
-
-model PlanStop {
-  id              String        @id @default(uuid())
-  planId          String        @map("plan_id")
-  order           Int
-  placeName       String        @map("place_name")
-  placeRefId      String?       @map("place_ref_id")
-  lat             Float?
-  lng             Float?
-  note            String?
-  estimatedCost   Decimal?      @map("estimated_cost") // AI Cost Agent dự tính tiền trước cho điểm này
-  category        StopCategory?
-  startTime       DateTime?     @map("start_time")
-  durationMinutes Int?          @map("duration_minutes")
-  metadata        Json?
-
-  plan            Plan          @relation(fields: [planId], references: [id], onDelete: Cascade)
-  expenses        Expense[]     // [CHƯA CODE] Liên kết các chi phí thực tế phát sinh tại điểm dừng này
-
-  @@map("plan_stops")
-}
-
-enum StopCategory {
-  ATTRACTION    // Điểm tham quan, check-in
-  RESTAURANT    // Nhà hàng, quán ăn
-  CAFE          // Quán cafe
-  HOTEL         // Khách sạn, homestay
-  ENTERTAINMENT // Khu vui chơi, karaoke, bowling
-  TRANSPORT     // Di chuyển (sân bay, xe cộ)
-  SHOPPING      // Mua sắm
-  OTHER         // Khác
-}
-
-model PlanVote {
-  id        String    @id @default(uuid())
-  planId    String    @map("plan_id")
-  userId    String    @map("user_id")
-  value     VoteValue
-  comment   String?
-  createdAt DateTime  @default(now()) @map("created_at")
-
-  plan      Plan      @relation(fields: [planId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([planId, userId])
-  @@map("plan_votes")
-}
-
-enum VoteValue {
-  UP
-  DOWN
-  NEUTRAL
-}
-
-// ==========================================
-// 4. QUẢN LÝ TÀI CHÍNH (CẤU TRÚC 3 BẢNG TỐI ƯU)
-// ==========================================
-
-// Bảng 1: Ghi nhận mọi giao dịch (Thu quỹ & Chi tiêu thật)
-model Expense {
-  id          String        @id @default(uuid())
-  eventId     String        @map("event_id")
-  planStopId  String?       @map("plan_stop_id") // Nếu khoản chi thuộc 1 địa điểm cụ thể
-  paidById    String        @map("paid_by_id")   // Ai đã BỎ TIỀN RA (Nguồn tiền)
-  title       String                             // VD: "Thu quỹ trước", "Tiền phòng khách sạn"
-  amount      Decimal                            
-  type        ExpenseType   @default(PAYMENT)    // Phân biệt Đóng quỹ vs Chi tiêu thực
-  category    StopCategory?
-  splitType   SplitType     @default(EQUAL) @map("split_type")
-  note        String?                            
-  receiptUrl  String?       @map("receipt_url")  
-  createdAt   DateTime      @default(now()) @map("created_at") // [CHƯA CODE]
-
-  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade) // [CHƯA CODE]
-  planStop    PlanStop?     @relation(fields: [planStopId], references: [id], onDelete: SetNull) // [CHƯA CODE]
-  paidBy      User          @relation("ExpensesPaid", fields: [paidById], references: [id], onDelete: Cascade) // [CHƯA CODE]
-  splits      ExpenseSplit[]                     // Chi tiết những ai thụ hưởng khoản này
-
-  @@index([eventId])
-  @@map("expenses")
-}
-
-enum ExpenseType {
-  ADVANCE   // Khoản thu quỹ trước chuyến đi
-  PAYMENT   // Khoản chi tiêu thực tế phát sinh
-}
-
-enum SplitType {
-  EQUAL       // Chia đều
-  EXACT       // Chia theo con số chính xác
-  PERCENTAGE  // Chia theo tỷ lệ phần trăm
-}
-
-// Bảng 2: Chi tiết người gánh khoản chi (Giải quyết bài toán chia không đều)
-model ExpenseSplit {
-  id        String   @id @default(uuid())
-  expenseId String   @map("expense_id")
-  userId    String   @map("user_id")      // Ai là người XÀI tiền
-  amount    Decimal                       // Gánh bao nhiêu tiền trong hóa đơn này
-
-  expense   Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // [CHƯA CODE]
-
-  @@unique([expenseId, userId])
-  @@map("expense_splits")
-}
-
-// Bảng 3: Giao dịch chuyển khoản bù trừ nợ (Kết quả của thuật toán AI)
-model Settlement {
-  id           String          @id @default(uuid())
-  eventId      String          @map("event_id")
-  fromUserId   String          @map("from_user_id") // Người nợ (cần chuyển đi)
-  toUserId     String          @map("to_user_id")   // Người chủ nợ (được nhận về)
-  amount       Decimal                              // Số tiền cần chuyển
-  isSettled    Boolean         @default(false) @map("is_settled") // True = Đã bank tiền thành công
-  createdAt    DateTime        @default(now()) @map("created_at")
-
-  event        Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  fromUser     User            @relation("SettlementsFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUser       User            @relation("SettlementsTo", fields: [toUserId], references: [id], onDelete: Cascade)
-
-  @@index([eventId])
-  @@map("settlements")
-}
-
-// ==========================================
-// 5. CHECKLIST, NOTIFICATION, CHAT & LOGS
-// ==========================================
-
-// [CHƯA CODE - SẼ LÀM Ở TASK SAU]
-model SavedPlace {
-  id         String  @id @default(uuid())
-  userId     String  @map("user_id")
-  placeName  String  @map("place_name")
-  placeRefId String? @map("place_ref_id")
-  rating     Int?
-  note       String?
-
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("saved_places")
-}
-
-
-model Invitation {
-  id            String           @id @default(uuid())
-  eventId       String           @map("event_id")
-  invitedBy     String           @map("invited_by")
-  email         String?
-  invitedUserId String?          @map("invited_user_id")
-  status        InvitationStatus @default(PENDING)
-  createdAt     DateTime         @default(now()) @map("created_at")
-  expiresAt     DateTime?        @map("expires_at")
-
-  event         Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  invitedByUser User             @relation("InvitationsSent", fields: [invitedBy], references: [id], onDelete: Cascade)
-  invitedUser   User?            @relation("InvitationsReceived", fields: [invitedUserId], references: [id], onDelete: SetNull)
-
-  @@map("invitations")
-}
-
-enum InvitationStatus {
-  PENDING
-  ACCEPTED
-  DECLINED
-  EXPIRED
-}
-
-// [CHƯA CODE - SẼ LÀM Ở TASK SAU]
-model ChecklistItem {
-  id            String   @id @default(uuid())
-  eventId       String   @map("event_id")
-  title         String
-  isChecked     Boolean  @default(false) @map("is_checked")
-  isAiGenerated Boolean  @default(false) @map("is_ai_generated")
-  createdById   String?  @map("created_by_id")
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  createdBy     User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
-
-  @@map("checklist_items")
-}
-
-// [CHƯA CODE - SẼ LÀM Ở TASK SAU]
-model Notification {
-  id             String   @id @default(uuid())
-  userId         String   @map("user_id")
-  type           String   // INVITE | VOTE_OPEN | PLAN_CONFIRMED | SETTLEMENT_READY
-  message        String
-  isRead         Boolean  @default(false) @map("is_read")
-  relatedEventId String?  @map("related_event_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("notifications")
-}
-
-// [CHƯA CODE - SẼ LÀM Ở TASK SAU]
-model ChatMessage {
-  id        String   @id @default(uuid())
-  eventId   String   @map("event_id")
-  userId    String?  @map("user_id")
-  role      ChatRole
-  content   String
-  agentName String?  @map("agent_name")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([eventId, createdAt])
-  @@map("chat_messages")
-}
-
-enum ChatRole {
-  USER
-  ASSISTANT
-  SYSTEM
-}
-
-model AgentLog {
-  id           String   @id @default(uuid())
-  agentName    String   @map("agent_name")
-  userId       String?  @map("user_id")
-  eventId      String?  @map("event_id")
-  planId       String?  @map("plan_id")
-  inputTokens  Int      @map("input_tokens")
-  outputTokens Int      @map("output_tokens")
-  durationMs   Int      @map("duration_ms")
-  status       String
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  @@map("agent_logs")
-}
+## 📜 4. Chi Tiết Các Bảng Dữ Liệu Cốt Lõi (`core` Schema)
+
+### 4.1. Bảng `users` & `event_members` (Người dùng & Phân quyền)
+```sql
+-- users: Thông tin người dùng đồng bộ với Supabase Auth
+CREATE TABLE core.users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255),
+    full_name VARCHAR(255) NOT NULL,
+    avatar_url TEXT,
+    role VARCHAR(50) DEFAULT 'USER', -- USER, ADMIN
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- event_members: Quản lý thành viên phòng và phân quyền Host vs Member
+CREATE TABLE core.event_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL REFERENCES core.events(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    role VARCHAR(50) NOT NULL DEFAULT 'MEMBER', -- HOST, MEMBER, VIEWER
+    joined_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT uq_event_member UNIQUE (event_id, user_id)
+);
+```
+
+### 4.2. Bảng `events` & `plans` (Phòng & Kế hoạch)
+```sql
+-- events: Phòng cộng tác lập kế hoạch
+CREATE TABLE core.events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    scope VARCHAR(50) NOT NULL DEFAULT 'VACATION', -- DAY_HANGOUT, VACATION
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    destination VARCHAR(255),
+    budget_tier VARCHAR(50), -- BUDGET, MODERATE, LUXURY
+    macro_locked BOOLEAN DEFAULT FALSE, -- Chốt Consensus 1
+    final_locked BOOLEAN DEFAULT FALSE, -- Chốt Consensus 2
+    created_by UUID REFERENCES core.users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- plans: Kế hoạch chứa lộ trình tổng quan
+CREATE TABLE core.plans (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL REFERENCES core.events(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    status VARCHAR(50) DEFAULT 'DRAFT', -- DRAFT, VOTING, CONFIRMED, ARCHIVED
+    macro_roadmap JSONB, -- Khung chủ đề các ngày (Pha 1 LangGraph)
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### 4.3. Bảng `plan_stops` & `plan_votes` (Điểm dừng Chuẩn hóa & Bình chọn Atomic)
+> **Điểm mấu chốt theo Proposal**: Bảng `plan_stops` lưu trữ từng điểm dừng độc lập để hỗ trợ cập nhật nguyên tử duy nhất 1 dòng khi thực hiện **1-Click Swap** hoặc **Dynamic On-The-Go Adaptation (khi trời mưa)**.
+
+```sql
+-- plan_stops: Chi tiết các điểm dừng đã qua 4-Tier Grounding
+CREATE TABLE core.plan_stops (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    plan_id UUID NOT NULL REFERENCES core.plans(id) ON DELETE CASCADE,
+    day_number INT NOT NULL DEFAULT 1,
+    time_slot VARCHAR(50) NOT NULL, -- MORNING, AFTERNOON, EVENING
+    order_index INT NOT NULL,
+    place_name VARCHAR(255) NOT NULL,
+    place_ref_id VARCHAR(255) NOT NULL, -- Google Place ID thật 100%
+    category VARCHAR(50) NOT NULL, -- RESTAURANT, CAFE, ATTRACTION, HOTEL, ENTERTAINMENT
+    lat DOUBLE PRECISION NOT NULL,
+    lng DOUBLE PRECISION NOT NULL,
+    duration_minutes INT DEFAULT 90,
+    estimated_cost DECIMAL(12, 2) DEFAULT 0,
+    up_votes INT DEFAULT 0,
+    down_votes INT DEFAULT 0,
+    backup_options JSONB, -- 2 phương án dự phòng cho 1-Click Swap
+    note TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- plan_votes: Phiếu vote của từng thành viên cho điểm dừng
+CREATE TABLE core.plan_votes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stop_id UUID NOT NULL REFERENCES core.plan_stops(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    vote_value VARCHAR(10) NOT NULL, -- UP, DOWN
+    comment TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT uq_stop_user_vote UNIQUE (stop_id, user_id)
+);
+```
+
+### 4.4. Bảng `chat_messages` (Tin nhắn Phòng Cộng tác)
+```sql
+CREATE TABLE core.chat_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL REFERENCES core.events(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES core.users(id) ON DELETE SET NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'USER', -- USER, ASSISTANT, SYSTEM
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_chat_event_time ON core.chat_messages(event_id, created_at);
+```
+
+### 4.5. Bảng Quản Lý Tài Chính 3 Bảng Tối Ưu (`expenses`, `expense_splits`, `settlements`)
+```sql
+-- expenses: Ghi nhận thu quỹ trước (ADVANCE) hoặc chi tiêu thực tế (PAYMENT)
+CREATE TABLE core.expenses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL REFERENCES core.events(id) ON DELETE CASCADE,
+    paid_by UUID NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL,
+    type VARCHAR(50) DEFAULT 'PAYMENT', -- ADVANCE, PAYMENT
+    split_type VARCHAR(50) DEFAULT 'EQUAL', -- EQUAL, EXACT, PERCENTAGE
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- expense_splits: Chi tiết phân bổ chi phí cho từng người thụ hưởng
+CREATE TABLE core.expense_splits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    expense_id UUID NOT NULL REFERENCES core.expenses(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    amount DECIMAL(12, 2) NOT NULL,
+    CONSTRAINT uq_expense_user_split UNIQUE (expense_id, user_id)
+);
+
+-- settlements: Kết quả gợi ý chuyển khoản tối ưu (Min-Cash-Flow)
+CREATE TABLE core.settlements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL REFERENCES core.events(id) ON DELETE CASCADE,
+    from_user_id UUID NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    to_user_id UUID NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    amount DECIMAL(12, 2) NOT NULL,
+    is_settled BOOLEAN DEFAULT FALSE,
+    settled_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 ```
 
 ---
 
-## 3. Thuật toán Quyết toán Chi phí (Ví dụ thực tế 3 Bảng)
+## 🛡️ 5. Chính Sách Bảo Mật Row Level Security (RLS)
 
-### 💡 Bài toán 1: "Tiền ai nấy xài, ai chơi nấy chịu" (Chia nhóm nhỏ)
-Giả sử nhóm có 6 người: **A, B, C, D, E, F**.
-- **Tình huống**: Nhóm đi chơi 2 tăng.
-  - Tăng 1: Mua vé xem phim (500k, E trả). 5 người A, B, C, D, E đi, F ở nhà.
-  - Tăng 2: Đi nhậu (300k, C trả). Chỉ có A, B, C đi.
+Để bảo đảm tính riêng tư đa thuê bao (multi-tenant privacy):
 
-**Cách dữ liệu lưu vào Database:**
-1. **Vé xem phim (500k)**:
-   - `Expense`: `E` trả 500k.
-   - `ExpenseSplit`: 5 dòng (A:100k, B:100k, C:100k, D:100k, E:100k).
-2. **Đi nhậu (300k)**:
-   - `Expense`: `C` trả 300k.
-   - `ExpenseSplit`: 3 dòng (A:100k, B:100k, C:100k).
+```sql
+-- Kích hoạt RLS cho toàn bộ các bảng trong core schema
+ALTER TABLE core.events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core.plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core.plan_stops ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core.chat_messages ENABLE ROW LEVEL SECURITY;
 
-**Công thức Backend tính toán:** `Số dư cá nhân = SUM(Tiền Bỏ Ra) - SUM(Tiền Đã Xài)`
-- **A**: Bỏ ra 0đ - Xài (100k phim + 100k nhậu) = **-200k** (A nợ 200k)
-- **B**: Bỏ ra 0đ - Xài (100k phim + 100k nhậu) = **-200k** (B nợ 200k)
-- **C**: Bỏ ra 300k - Xài (100k phim + 100k nhậu) = **+100k** (C dư 100k)
-- **D**: Bỏ ra 0đ - Xài (100k phim ) = **-100k** (D nợ 100k)
-- **E**: Bỏ ra 500k - Xài (100k phim) = **+400k** (E dư 400k)
-- **F**: Bỏ ra 0đ - Xài 0đ = **0đ** (F không liên quan)
+-- Chính sách: Chỉ thành viên trong phòng mới được xem kế hoạch
+CREATE POLICY member_view_plans ON core.plans
+    FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM core.event_members em
+            WHERE em.event_id = core.plans.event_id
+              AND em.user_id = auth.uid()
+        )
+    );
 
-*(Không cần bảng MemberBalance, Backend gọi 1 lệnh SQL Group By là ra toàn bộ số dư)*.
-
-### 💡 Bài toán 2: Kết hợp Thu Quỹ Trước
-- **Tình huống**: Nhóm A, B, C thu quỹ trước mỗi người 1,000k.
-- `Expense`: Tạo 3 dòng `type = ADVANCE` (A nộp 1000k, B nộp 1000k, C nộp 1000k). Không cần tạo `ExpenseSplit`.
-- Lúc này số dư của A tự động trở thành `+1000k`. Nếu A đi chơi xài hết 800k (ghi vào `ExpenseSplit`), số dư tự động tụt xuống `+200k`. Mọi luồng tiền khớp hoàn hảo!
-
----
-
-### 💡 Bước cuối: Tạo `Settlement` (Gợi ý thanh toán)
-Sau khi có bảng Số dư, AI Cost Agent ghép cặp người NỢ và người DƯ để ra danh sách chuyển khoản tối ưu nhất:
-- Tạo các dòng vào bảng `Settlement`: VD `A` nợ `E` 200k $\rightarrow$ `Settlement(from: A, to: E, amount: 200k)`.
-- User mở app thấy gợi ý, chuyển khoản ngoài đời xong bấm nút $\rightarrow$ cập nhật `isSettled = true`.
-- Nếu có thêm khoản chi mới: Backend chỉ việc **Xóa** các Settlement cũ (`isSettled = false`) và tính lại từ đầu cực kì nhẹ nhàng.
-
----
-
-## 4. Index & Quy tắc Performance
-
-- `expenses(event_id)` — Truy vấn mọi khoản thu chi trong sự kiện.
-- `expense_splits(expense_id, user_id)` — Ràng buộc Unique ngăn chia tiền trùng.
-- `settlements(event_id)` — Tra cứu danh sách các yêu cầu chuyển khoản trong sự kiện.
-- Các khoá ngoại (FK) đều được cấu hình `onDelete: Cascade` hoặc `SetNull` đảm bảo toàn vẹn dữ liệu.
-
----
-
-## 5. Nhật ký thay đổi Schema (Change Log)
-
-| Ngày | Người sửa | Nội dung sửa | Lý do |
-|---|---|---|---|
-| Sprint 0 | Tạ Quang Huy | Đã tạm bỏ feature Expense chi tiết | Giảm độ phức tạp ban đầu |
-| **Sprint 1 (Mới)** | **Tạ Quang Huy** | **Chốt kiến trúc Quản lý Tài chính 3 Bảng Tối Ưu** (`Expense`, `ExpenseSplit`, `Settlement`) | Giải quyết triệt để 100% bài toán chia lẻ, thu quỹ trước, gợi ý nợ tự động với ít bảng nhất. Loại bỏ hoàn toàn sự cồng kềnh của mô hình 6 bảng. |
+-- Chính sách: Chỉ Host mới được xác nhận khóa kế hoạch
+CREATE POLICY host_lock_plan ON core.events
+    FOR UPDATE
+    USING (
+        EXISTS (
+            SELECT 1 FROM core.event_members em
+            WHERE em.event_id = core.events.id
+              AND em.user_id = auth.uid()
+              AND em.role = 'HOST'
+        )
+    );
+```

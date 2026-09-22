@@ -1,92 +1,103 @@
-# Documentation Guide
+# Hướng Dẫn Viết Tài Liệu Kỹ Thuật & Tracking (Documentation Guide)
 
-## 1. Nguyên tắc "Docs as Code"
-- Toàn bộ tài liệu sống trong repo dưới dạng Markdown (`/docs`), **được review qua PR** giống code.
-- Không dùng Google Docs/Notion rời rạc cho tài liệu kỹ thuật lâu dài (chỉ dùng cho brainstorm tạm thời) — vì dễ lệch với code thực tế theo thời gian.
-- Thay đổi ảnh hưởng kiến trúc/API/schema **bắt buộc** cập nhật doc tương ứng trong cùng PR với code.
-- **Quy trình chi tiết bắt buộc**: Xem [post-task-documentation.md](../01-workflow/post-task-documentation.md) để biết ma trận vị trí file cần cập nhật và các template mẫu sau mỗi task.
+> **Nguyên tắc bất biến**: **"Docs as Code"** & **"No Docs = Not Done & No Merge"**.  
+> Toàn bộ tài liệu sống trong thư mục `/docs` trong repo, được versioning qua Git và review qua Pull Request giống như source code. Mọi thành viên bắt buộc phải viết docs và cập nhật tracking đồng thời với code.
 
-## 2. README cấp module/service
-Mỗi service (`backend/`, `frontend/`, `ai-service/` nếu tách riêng) có 1 `README.md` gốc gồm tối thiểu:
-```markdown
-# <Tên service>
+---
 
-## Mô tả ngắn
-## Yêu cầu hệ thống (Python/Node version, ...)
-## Cài đặt
+## 1. Mục Đích Của Việc Viết Docs & Tracking Cho Dự Án
 
-### Backend (Python FastAPI)
-​```bash
-poetry install          # hoặc: pip install -r requirements.txt
-cp .env.example .env    # điền các key cần thiết
-docker compose up -d    # PostgreSQL + Redis
-poetry run alembic upgrade head
-poetry run uvicorn app.main:app --reload --port 8000
-​```
+Trong dự án TripMate AI với 6 thành viên và kiến trúc tích hợp phức tạp:
+1. **Theo dõi tiến độ thời gian thực (Progress Tracking)**: Trưởng nhóm và các thành viên luôn nắm được tiến độ chính xác của từng task thông qua `docs/TASKS.md` và `docs/04-tasks/person-X-*.md`.
+2. **Loại bỏ việc hỏi đi hỏi lại**: Khi Frontend cần gọi API, họ chỉ cần mở `docs/02-standards/api-design-guide.md`; khi AI Engineer cần lưu state, họ mở `docs/03-architecture/database-schema.md`.
+3. **Bảo vệ quyền lợi cá nhân**: Đóng góp của từng thành viên được minh chứng rõ ràng thông qua lịch sử commit docs và task board.
+4. **Đáp ứng yêu cầu đồ án tốt nghiệp / hội đồng đánh giá**: Có bộ tài liệu kỹ thuật hoàn chỉnh, chuẩn mực, bám sát proposal.
 
-### Frontend (React + Vite)
-​```bash
-pnpm install
-cp .env.example .env
-pnpm run dev
-​```
+---
 
-## Scripts chính
-| Lệnh | Mô tả |
-|---|---|
-| `ruff check .` | Lint Python (backend) |
-| `pytest` | Chạy test Python (backend) |
-| `pnpm run lint` | Lint TypeScript (frontend) |
-| `pnpm run test` | Chạy test frontend |
+## 2. Quy Chuẩn Cập Nhật Docs Theo Loại Task
 
-## Cấu trúc thư mục
-## Liên kết docs liên quan
-```
+Mỗi khi hoàn thành một task, thành viên bắt buộc cập nhật các file docs sau trong cùng Pull Request (tham khảo chi tiết tại [post-task-documentation.md](../01-workflow/post-task-documentation.md)):
 
-## 3. Comment trong code
-### Backend (Python) — dùng Google-style docstring cho hàm/service public
+| Loại thay đổi | File cần cập nhật | Yêu cầu nội dung |
+|---|---|---|
+| **API Endpoint (REST / WebSocket)** | `docs/02-standards/api-design-guide.md` | Method, URL path, Auth Guard/Role, Request Body JSON, Response JSON, Error Codes. |
+| **Database Model / Migration** | `docs/03-architecture/database-schema.md` | Schema (`core`, `checkpoints`, `vectors`), Tên bảng, cột, kiểu dữ liệu, quan hệ FK, indexes, file Alembic migration. |
+| **AI Agent / LangGraph** | `docs/03-architecture/ai-agent-architecture.md` | Two-Phase State changes, Node LangGraph, Four-Tier Grounding, Pydantic DTOs, Model fallback. |
+| **Hạ tầng / Deploy / Biến MT** | `docs/03-architecture/deployment-guide.md`<br>`.env.example` | Cấu hình Vercel, Render, Supabase, Upstash Redis, danh sách biến môi trường mới và giá trị mẫu. |
+| **Màn hình UI / User Flow** | `docs/06-design/user-flows.md`<br>`frontend/src/mocks/handlers/` | Mô tả luồng tương tác, route URL, component layout, cập nhật Mock Service Worker (MSW). |
+| **Tracking Hoàn Thành Task** | `docs/04-tasks/person-X-*.md`<br>`docs/TASKS.md` | Chuyển `[ ]` thành `[x]` kèm mã PR, tên người làm và ngày hoàn thành. |
+
+---
+
+## 3. Quy Chuẩn Comment & Docstring Trong Mã Nguồn
+
+### 3.1. Backend Python (FastAPI / LangGraph) — Google Style Docstring
+Tất cả các hàm public, service method, API router, và LangGraph nodes bắt buộc có docstring:
 ```python
-def create_event(self, dto: CreateEventDto, user_id: str) -> Event:
-    """Tạo event mới và tự động thêm người tạo làm Owner.
+async def execute_micro_curation(
+    state: AgentState, 
+    db_session: AsyncSession
+) -> AgentState:
+    """Thực hiện Phase 2 Micro Curation: tra cứu địa điểm và áp dụng geo-clustering.
+
+    Truy vấn Google Places API thông qua PyBreaker circuit breaker (timeout 2.5s),
+    áp dụng thuật toán Haversine gom cụm các điểm dừng trong bán kính <= 2.5km,
+    đồng thời chuẩn bị 2 điểm dừng dự phòng cho cơ chế 1-click swap.
 
     Args:
-        dto: Dữ liệu tạo event đã được Pydantic validate.
-        user_id: ID người dùng đang thực hiện (lấy từ JWT).
+        state: Trạng thái LangGraph hiện tại chứa roadmap vĩ mô đã được Host lock.
+        db_session: Phiên làm việc cơ sở dữ liệu Supabase kết nối qua Supavisor pooler.
 
     Returns:
-        Event vừa tạo kèm thông tin member.
+        AgentState đã được bổ sung danh sách điểm dừng chi tiết (plan_stops).
 
     Raises:
-        ValueError: Nếu ngày kết thúc trước ngày bắt đầu.
+        CircuitBreakerOpenException: Khi external travel APIs bị lỗi liên tiếp.
     """
     ...
 ```
-- **Không comment những gì code đã tự nói rõ** (VD `# tăng i lên 1` cho `i += 1` là thừa).
-- Comment giải thích **"tại sao"** khi logic không hiển nhiên (VD: vì sao dùng transaction, vì sao retry 3 lần).
+- **Quy tắc**: Không comment những gì code đã thể hiện rõ ràng. Chỉ giải thích lý do kỹ thuật ("Tại sao?") đối với các đoạn logic phức tạp hoặc nghiệp vụ đặc thù.
 
-### AI Agent / Prompt
-- Mỗi prompt template có comment mô tả: mục đích, input mong đợi, output schema, model đang dùng, ngày cập nhật lần cuối.
-
-## 4. Architecture Decision Record (ADR)
-Khi có quyết định kỹ thuật quan trọng (đổi DB, đổi thư viện orchestration, đổi cấu trúc Auth...), ghi lại theo template ngắn trong `03-architecture/adr/`:
-```markdown
-# ADR-001: Chọn LangGraph Python thay vì tự viết orchestrator
-
-## Bối cảnh
-## Các phương án đã xét
-## Quyết định
-## Hệ quả (đánh đổi gì)
-## Ngày & người quyết định
+### 3.2. Frontend React / TypeScript — TSDoc
+Với các custom hooks, API clients, và complex UI components:
+```typescript
+/**
+ * Component hiển thị thẻ điểm dừng chi tiết kèm cơ chế bình chọn và 1-click swap.
+ *
+ * @param stop - Thông tin điểm dừng được chuẩn hóa từ database
+ * @param onVote - Hàm callback xử lý vote UP / DOWN (gửi WebSocket payload)
+ * @param onSwap - Hàm callback kích hoạt đổi sang địa điểm dự phòng đã pre-fetch
+ */
+export const StopVotingCard: React.FC<StopVotingCardProps> = ({ stop, onVote, onSwap }) => {
+  ...
+};
 ```
-Giúp người sau (hoặc chính mình 2 tuần sau) hiểu **vì sao** hệ thống được làm như vậy, không chỉ **cái gì**.
 
-## 5. Quy tắc viết Markdown
-- Tiêu đề dùng `#`/`##`/`###` đúng phân cấp, không nhảy cấp (H1 → H3).
-- Code block luôn khai báo ngôn ngữ (` ```ts `, ` ```bash `) để syntax highlight đúng.
-- Bảng dùng cho dữ liệu so sánh/liệt kê có cấu trúc thay vì đoạn văn dài.
-- Link chéo giữa các file docs dùng **relative path** (`../02-standards/...`), không dùng absolute URL nội bộ, để còn hoạt động khi đổi domain repo.
-- Tên file: `kebab-case.md`, tiếng Anh (để đồng bộ với code), nội dung có thể viết tiếng Việt.
+---
 
-## 6. Ngôn ngữ
-- Docs kỹ thuật (naming, workflow) có thể viết tiếng Việt cho dễ hiểu trong team.
-- Comment trong code, tên biến/hàm, commit message: **tiếng Anh** (chuẩn ngành, dễ nếu sau này public repo/portfolio).
+## 4. Architecture Decision Records (ADR)
+
+Khi đưa ra một quyết định kỹ thuật lớn làm thay đổi cấu trúc hệ thống (ví dụ: chuyển từ multi-agent rời rạc sang Unified Agent DeepSeek-V4 với Two-Phase States, dùng Supabase pooler port 6543, dùng Upstash Redis Streams), bắt buộc tạo một file ADR mới trong thư mục `docs/03-architecture/adr/ADR-xxx.md`:
+
+```markdown
+# ADR-00X: [Tiêu đề quyết định]
+
+- **Trạng thái**: Accepted / Superseded / Deprecated
+- **Người đề xuất**: [Tên thành viên]
+- **Ngày quyết định**: [YYYY-MM-DD]
+
+## 1. Bối cảnh & Vấn đề (Context)
+## 2. Các phương án đã xem xét (Options Considered)
+## 3. Quyết định lựa chọn (Decision Outcome)
+## 4. Hệ quả & Đánh đổi (Consequences)
+```
+
+---
+
+## 5. Quy Chuẩn Định Dạng Markdown
+
+- Phân cấp tiêu đề hợp lý (`#` -> `##` -> `###`), không bỏ cấp.
+- Luôn khai báo ngôn ngữ cho code block (ví dụ: ```` ```python ````, ```` ```typescript ````, ```` ```json ````, ```` ```mermaid ````).
+- Mọi đường dẫn file phải dùng link markdown tương đối (relative path) để tránh gãy link khi đổi môi trường.
+- Tên file tài liệu dùng `kebab-case.md` bằng tiếng Anh. Nội dung tài liệu viết bằng Tiếng Việt rõ ràng, mạch lạc, thuật ngữ kỹ thuật giữ nguyên tiếng Anh.

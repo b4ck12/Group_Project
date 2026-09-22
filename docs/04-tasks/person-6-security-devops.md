@@ -1,80 +1,85 @@
 # 👤 Person 6 — Đinh Tiến Luân (Cyber Security & DevOps Engineer)
 
-> **Người phụ trách**: **Đinh Tiến Luân**
-> **Sở hữu**: Hạ tầng CI/CD GitHub Actions, Docker Compose, bảo mật FastAPI, Pydantic Input/Output Validation Audit, Rate Limiting & Pentest OWASP Top 10 xuyên suốt toàn dự án.
+> **Người phụ trách**: **Đinh Tiến Luân**  
+> **Sở hữu**: Hạ tầng Multi-Cloud (Vercel Edge CDN, Render Web Service & Worker, Supabase PostgreSQL 16 + Supavisor pooler port 6543, Upstash Redis), CI/CD GitHub Actions, Cấu hình Keep-Alive ping `/api/healthz`, OpenTelemetry Distributed Tracing, Supabase RLS Audit, Pentest OWASP Top 10, Grounding Benchmark (100 Prompts Test) và Locust Concurrency Stress Test.  
+> **Quy định tracking bắt buộc**: Sau khi hoàn thành code và test mỗi task, đổi `[ ]` thành `[x]` kèm link PR, ngày hoàn thành và cập nhật tài liệu kỹ thuật tương ứng theo [post-task-documentation.md](../01-workflow/post-task-documentation.md).
 
 ---
 
 ## 📊 Progress Tracker
 
-| Sprint | Task Count | Done | Status |
-|---|---|---|---|
+| Sprint | Số Tasks | Đã hoàn thành | Trạng thái |
+|:---:|:---:|:---:|:---:|
 | **Sprint 0** | 3 Tasks | 0/3 | 🔲 To Do |
 | **Sprint 1** | 3 Tasks | 0/3 | 🔲 To Do |
 | **Sprint 2** | 1 Task | 0/1 | 🔲 To Do |
-| **Sprint 3** | 0 Tasks (Support Review Export/Mail) | 0/0 | 🔲 To Do |
+| **Sprint 3** | 0 Tasks (Hỗ trợ Tracing & Chaos Test) | 0/0 | 🔲 To Do |
 | **Sprint 4** | 4 Tasks | 0/4 | 🔲 To Do |
+| **Tổng cộng** | **11 Tasks** | 0/11 | 🔲 Sẵn sàng bắt tay vào làm |
 
 ---
 
 ## 🛠️ Detailed Sprint Backlog
 
-### Sprint 0 — Infrastructure & CI/CD Setup
-- [ ] **`TASK-006`** **Docker Compose & Environment Setup**
-  - **Feature**: N/A
+### Sprint 0 — Local Infrastructure & CI Pipeline
+- [ ] **`TASK-006`** **Docker Compose & Môi Trường Phát Triển Cục Bộ**
+  - **Mục tiêu**: Khởi động PostgreSQL 15, Redis 7 và FastAPI server cục bộ.
   - **Target Files**: `docker-compose.yml`, `backend/Dockerfile`, `.env.example`
-  - **Acceptance Criteria**: `docker compose up -d` starts PostgreSQL 15, Redis 7, FastAPI server without errors.
-- [ ] **`TASK-007`** **GitHub Actions Pipeline Setup**
-  - **Feature**: N/A
+  - **Acceptance Criteria**: `docker compose up -d` khởi chạy thành công toàn bộ service với health check pass.
+  - **Docs & Tracking**: Cập nhật `.env.example` + tick `[x]`.
+- [ ] **`TASK-007`** **GitHub Actions CI Pipeline Setup**
+  - **Mục tiêu**: Tự động hóa kiểm tra code quality khi mở PR.
   - **Target Files**: `.github/workflows/ci.yml`
-  - **Acceptance Criteria**: Automated runs on PR: `ruff check backend`, `mypy backend`, `pytest backend`, `pnpm run lint frontend`, `pnpm run build frontend`.
-- [ ] **`TASK-008`** **Pre-commit Hooks & Linter Setup**
-  - **Feature**: N/A
+  - **Acceptance Criteria**: Pipeline chạy: `ruff check backend`, `pytest backend`, `pnpm run lint frontend`, `pnpm run test frontend`.
+  - **Docs & Tracking**: Cập nhật `docs/01-workflow/git-workflow.md` + tick `[x]`.
+- [ ] **`TASK-008`** **Pre-commit Hooks & Linter Configuration**
+  - **Mục tiêu**: Chặn commit nếu code vi phạm convention.
   - **Target Files**: `.pre-commit-config.yaml`, `backend/pyproject.toml`
-  - **Acceptance Criteria**: Blocks local git commit if Ruff linting fails or Black formatting drifts.
+  - **Acceptance Criteria**: Chặn commit nếu Ruff hoặc Black phát hiện lỗi format.
+  - **Docs & Tracking**: Cập nhật `docs/02-standards/coding-conventions.md` + tick `[x]`.
 
-### Sprint 1 — Security Middlewares, Auth Review & Frontend Deploy
-- [ ] **`TASK-116`** **FastAPI Security Middlewares**
-  - **Feature**: Security Baseline
-  - **Target Files**: `backend/app/main.py`
-  - **Acceptance Criteria**: Configures `CORSMiddleware` (restricted origins), `TrustedHostMiddleware`, security headers via middleware.
-- [ ] **`TASK-117`** **Auth Module Security Review**
+### Sprint 1 — Security Middlewares, Supabase RLS & Vercel Edge Deploy
+- [ ] **`TASK-116`** **FastAPI Security Middlewares & Supabase RLS Audit**
+  - **Feature**: #6
+  - **Target Files**: `backend/app/main.py`, `docs/05-security/security-guidelines.md`
+  - **Acceptance Criteria**: Cấu hình CORS restricted origins, TrustedHost, security headers, audit chính sách RLS trên Supabase.
+  - **Docs & Tracking**: Cập nhật `docs/05-security/security-guidelines.md` + tick `[x]`.
+- [ ] **`TASK-117`** **Auth Security Audit**
   - **Feature**: Security
   - **Target Files**: `backend/app/api/v1/auth.py`
-  - **Acceptance Criteria**: Sign-off on bcrypt cost factor ≥ 10, JWT secret length ≥ 32 chars, httpOnly cookie settings, rate limit configuration.
-- [ ] **`TASK-118`** **Vercel Deploy Pipeline (Preview + Production)**
-  - **Feature**: N/A (Deployment)
+  - **Acceptance Criteria**: Kiểm tra bcrypt cost $\ge 10$, JWT secret length $\ge 32$ chars, rate limit 10 req/min.
+  - **Docs & Tracking**: Cập nhật `docs/05-security/security-guidelines.md` + tick `[x]`.
+- [ ] **`TASK-118`** **Vercel Edge CDN Deploy Pipeline (Preview + Production)**
+  - **Feature**: DevOps
   - **Target Files**: `vercel.json`, `.github/workflows/cd-frontend.yml`, `docs/03-architecture/deployment-guide.md`
-  - **Acceptance Criteria**: Mỗi PR tạo Preview URL riêng; merge `main` tự động deploy Production. Biến môi trường theo env: `VITE_API_BASE_URL`, `VITE_USE_MOCK=false`, `VITE_MAPBOX_ACCESS_TOKEN`. Smoke test URL live sau deploy (build pass + trang tải được + không lỗi runtime).
+  - **Acceptance Criteria**: Deploy tự động khi merge `main`, tự sinh Preview URL cho PR. Smoke test domain Vercel live với zero cold-start.
+  - **Docs & Tracking**: Cập nhật `docs/03-architecture/deployment-guide.md` + tick `[x]`.
 
-### Sprint 2 — Backend Deploy (Render)
-- [ ] **`TASK-216`** **Render Deploy Pipeline (FastAPI + Postgres + Redis)**
-  - **Feature**: N/A (Deployment)
-  - **Target Files**: `render.yaml`, `backend/Dockerfile.prod`, `.github/workflows/cd-backend.yml`, `docs/03-architecture/deployment-guide.md`
-  - **Acceptance Criteria**: Render Blueprint (`render.yaml`) khởi tạo FastAPI web service + PostgreSQL 15 + Redis 7. Deploy tự động khi merge `main`. Chạy `alembic upgrade head` trong quá trình deploy. `/health` green. Secrets (JWT, DB URL, AI keys, email) qua Render env, không hardcode/.env commit. `Dockerfile.prod` non-root user + multi-stage.
+### Sprint 2 — Backend Deploy Pipeline (Render Web Service + Worker)
+- [ ] **`TASK-216`** **Render Deploy Pipeline & Keep-Alive Ping Setup**
+  - **Feature**: DevOps
+  - **Target Files**: `render.yaml`, `backend/Dockerfile.prod`, `backend/app/api/healthz.py`, `.github/workflows/cd-backend.yml`
+  - **Acceptance Criteria**: Render Blueprint (`render.yaml`) khởi tạo FastAPI web service + LangGraph worker. Endpoint `/api/healthz` phản hồi 200 OK. Thiết lập cron ping 10 phút chống sleep.
+  - **Docs & Tracking**: Cập nhật `docs/03-architecture/deployment-guide.md` + tick `[x]`.
 
-### Sprint 4 — Pentest, Pydantic Audits & Production Deploy
-- [ ] **`TASK-411`** **Input Sanitization & Boundary Validation Audit**
+### Sprint 4 — Pentest, Grounding Benchmark & Locust Load Testing
+- [ ] **`TASK-411`** **Input Sanitization & Prompt Injection Defense Audit**
   - **Feature**: Security
   - **Target Files**: `backend/app/ai_agents/`, `backend/app/schemas/`
-  - **Acceptance Criteria**: Verifies all user inputs are sanitized (Pydantic & bleach); checks system/user/assistant message roles framing without raw string concatenation.
-- [ ] **`TASK-412`** **Pydantic Output Validation Audit**
-  - **Feature**: Security
-  - **Target Files**: `backend/app/ai_agents/llm_provider.py`
-  - **Acceptance Criteria**: Ensures unparseable or malicious LLM outputs trigger graceful fallback without server crash or raw output leakage.
-- [ ] **`TASK-413`** **OWASP Top 10 Security Pentest**
-  - **Feature**: Security
-  - **Target Files**: Entire Application
-  - **Acceptance Criteria**: Verifies SQL injection safety (SQLAlchemy parameterized queries), XSS escaping, CORS enforcement, and authorization guards across all endpoints.
-- [ ] **`TASK-414`** **Production Build & Deployment Validation (Vercel + Render)**
-  - **Feature**: DevOps
-  - **Target Files**: `docker-compose.prod.yml`, `vercel.json`, `render.yaml`, GitHub Actions
-  - **Acceptance Criteria**: Production Docker container builds cleanly; **end-to-end smoke test trên URL production thật** — Frontend tại Vercel domain (TASK-118) gọi Backend tại Render domain (TASK-216): đăng nhập → tạo event → tạo plan → xem expense, `/health` green, SSL + CORS đúng domain, environment secrets không lộ. Có checklist verify trước khi demo cuối.
-
----
-
-## 🤝 Handover & Review Guidelines (Person 6)
-
-1. **Buddy / Backup**: Any available team member
-2. **Task Completion**: Verify CI run pass green on GitHub Actions. Push branch `feature/TASK-xxx` and review all PRs within 24h.
-3. **Task Handover**: Follow 4 scenarios in [cross-team-collaboration.md](../01-workflow/cross-team-collaboration.md) Section 3.
+  - **Acceptance Criteria**: Kiểm tra làm sạch dữ liệu đầu vào qua Pydantic v2 và bleach; kiểm thử các câu lệnh jailbreak prompt.
+  - **Docs & Tracking**: Cập nhật `docs/05-security/security-guidelines.md` + tick `[x]`.
+- [ ] **`TASK-412`** **OpenTelemetry Distributed Tracing Setup**
+  - **Feature**: #42
+  - **Target Files**: `backend/app/core/telemetry.py`
+  - **Acceptance Criteria**: Đo lường và trực quan hóa độ trễ qua các chặng Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ DB $\rightarrow$ WebSocket.
+  - **Docs & Tracking**: Cập nhật `docs/03-architecture/system-architecture.md` + tick `[x]`.
+- [ ] **`TASK-413`** **Grounding Benchmark Verification (100 Prompts Test)**
+  - **Feature**: AI Evaluation
+  - **Target Files**: `backend/tests/evaluation/grounding_benchmark.py`
+  - **Acceptance Criteria**: Chạy script 100 prompts tự động qua Google Places API; đạt tỷ lệ xác thực $\ge 98\%$ và **0% địa điểm ảo**.
+  - **Docs & Tracking**: Cập nhật `docs/02-standards/testing-guide.md` + tick `[x]`.
+- [ ] **`TASK-414`** **Locust Load Stress Test & Multi-Cloud Production Release**
+  - **Feature**: Evaluation & DevOps
+  - **Target Files**: `backend/tests/load_test/locustfile.py`, `docs/03-architecture/deployment-guide.md`
+  - **Acceptance Criteria**: Giả lập 50--100 CCU trong 10--20 phòng trên môi trường production thật (Vercel + Render + Supabase + Upstash); duy trì thông lượng 150--250 req/s, tỷ lệ lỗi $< 0.5\%$, bộ nhớ worker $\le 512$\,MB RAM.
+  - **Docs & Tracking**: Cập nhật `docs/03-architecture/deployment-guide.md` + tick `[x]`.

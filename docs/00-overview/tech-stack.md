@@ -1,82 +1,76 @@
-# Tech Stack
+# 🛠️ Technology Stack & Cloud Platform Distribution
 
-Lựa chọn công nghệ ưu tiên: **Python FastAPI cho Backend & AI Agent (đồng bộ 100% sinh thái LangGraph), React cho Frontend, PostgreSQL, Redis, và DeepSeek API**.
+> Tài liệu chuẩn hóa danh mục công nghệ và phân bổ hạ tầng đám mây cho dự án **TripMate AI: Intelligent Group Activity & Travel Planning Platform**, bám sát 100% Bảng 1 trong Technical Proposal.
 
-## 1. Frontend
-| Hạng mục | Lựa chọn | Lý do |
+---
+
+## ☁️ 1. Bảng Phân Bổ Công Nghệ & Nền Tảng Đám Mây (Core Cloud Stack)
+
+| Tầng (Tier) | Công Nghệ Cốt Lõi | Nền Tảng Cloud | Vai Trò Kiến Trúc & Vận Hành |
+|---|---|:---:|---|
+| **Frontend** | **React 18 + Vite + TypeScript** | **Vercel** | Giao diện Single Page Application (SPA), Dòng thời gian tương tác (Interactive Timeline), Thẻ bình chọn điểm dừng (Voting Cards), Canvas bản đồ Mapbox GL phân phối trên mạng lưới Edge CDN (Zero cold-start). |
+| **Backend Gateway** | **FastAPI (Python 3.11+)** | **Render.com** | ASGI Gateway, cung cấp RESTful endpoints, WebSocket Room Server cho cộng tác thời gian thực, cron ping tự động chống sleep (`/api/healthz`), JWT / Role Guards. |
+| **AI Agent Layer** | **LangGraph Python** | **Render.com** | Worker AI chạy ngầm tiêu thụ hàng đợi, thực thi Agent hợp nhất DeepSeek-V4 qua 2 pha trạng thái (Macro & Micro curation), giới hạn bộ nhớ $\le 280$\,MB / $512$\,MB RAM. |
+| **Model Abstraction** | **LangChain Model Abstraction** | **Cloud LLM APIs** | Mô hình suy luận chính: **DeepSeek-V4**; Cơ chế tự động Fallback trong suốt sang **OpenAI (GPT-4o)**, **Anthropic Claude**, hoặc **Google Gemini** để chống vendor lock-in. |
+| **Database & BaaS** | **PostgreSQL 16 + pgvector** | **Supabase** | Lưu trữ quan hệ ACID chuẩn hóa, phân tách 3 schema (`core`, `checkpoints`, `vectors`), kết nối qua **Supavisor Connection Pooler (port 6543, Transaction Mode)** ghép 200+ phiên, bảo mật Row Level Security (RLS). |
+| **Queue & Cache** | **Redis 7 / Redis Streams** | **Upstash Redis** | Serverless Redis quản lý hàng đợi tác vụ bất đồng bộ (**Redis Streams** `XADD`/`XREADGROUP`), phát sóng sự kiện đa máy chủ (**Redis Pub/Sub** `plan:updated`), và bộ nhớ đệm L2 Cache lưu POIs (TTL 24h). |
+| **Resilience & Ops** | **PyBreaker + OpenTelemetry** | **Cloud Observability** | Ngắt mạch tự động (**Circuit Breaker**) bảo vệ các API du lịch bên ngoài (timeout 2.5s), phân tán vết đo lường (Distributed Tracing) và kiểm soát LLM qua **LangSmith**. |
+
+---
+
+## 💻 2. Chi Tiết Từng Tầng Kỹ Thuật
+
+### 2.1. Frontend (React 18 + Vite + TypeScript)
+- **Framework & Runtime**: React 18, Vite (tốc độ HMR cực nhanh), TypeScript 5.x nghiêm ngặt để kiểm soát type an toàn khi 6 người code song song.
+- **State Management**: **Zustand** quản lý client state gọn nhẹ (Room Context, Auth User, Active Stops, Voting Status).
+- **Data Fetching & Caching**: **TanStack Query (React Query v5)** tự động cache, revalidate, quản lý loading/error state khi gọi Gateway.
+- **UI & Styling**: **Tailwind CSS + shadcn/ui** dựng nhanh giao diện hiện đại, responsive hoàn hảo trên Mobile, Tablet và Desktop.
+- **Map Canvas**: **Mapbox GL JS** hiển thị bản đồ tương tác, vẽ tuyến đường di chuyển tối ưu giữa các điểm dừng trong cùng một buổi.
+- **Mocking Strategy**: **Mock Service Worker (MSW)** giả lập API response theo đúng hợp đồng OpenAPI từ Sprint 0.
+
+### 2.2. Backend Gateway (FastAPI Python 3.11+)
+- **Framework**: **FastAPI** (chạy trên Uvicorn ASGI Server), hỗ trợ `async/await` native cho thông lượng cao (150--250 req/s).
+- **Validation**: **Pydantic v2** đảm bảo dữ liệu đầu vào được validate và sanitize chặt chẽ trước khi xử lý.
+- **Authentication**: Supabase Auth + JWT Access/Refresh tokens, cơ chế phân quyền RBAC (Host/Owner vs Member).
+- **WebSocket Server**: WebSocket Router quản lý kết nối thời gian thực của từng phòng (`/ws/rooms/{room_id}`), nhận diện tin nhắn chat, vote điểm dừng, phản hồi tức thì dưới 80ms.
+- **Keep-Alive Cron Ping**: Tự động gửi request tới `/api/healthz` định kỳ mỗi 10 phút để đảm bảo instance trên Render Web Service luôn sẵn sàng phục vụ người dùng.
+
+### 2.3. AI Agent Layer (LangGraph Python & DeepSeek-V4)
+- **Orchestrator**: **LangGraph Python (`langgraph`)** xây dựng máy trạng thái hữu hạn (State Machine) với 2 pha thực thi:
+  - *Phase 1 (Macro Planning State)*: Soạn thảo khung chương trình (số ngày, chủ đề từng ngày, nhịp độ).
+  - *Phase 2 (Micro Curation State)*: Truy vấn địa điểm thực tế, áp dụng thuật toán gom cụm khoảng cách Haversine ($\le 2.5$\,km).
+- **Model Engine**: **DeepSeek-V4** làm mô hình suy luận chính; Model Abstraction Layer bọc ngoài giúp tự động fallback sang GPT-4o, Claude 3.5 Sonnet hoặc Gemini 1.5 Pro khi DeepSeek API quá tải.
+- **Checkpointing**: Sử dụng `AsyncPostgresSaver` lưu vết trạng thái `AgentState` vào schema `checkpoints` của PostgreSQL, cho phép khôi phục phiên hội thoại ngay lập tức nếu container bị khởi động lại.
+
+### 2.4. Database & BaaS (Supabase PostgreSQL 16)
+- **Engine**: PostgreSQL 16 hỗ trợ quan hệ toàn vẹn, chỉ mục tối ưu, và tiện ích mở rộng `pgvector`.
+- **Cấu trúc Schema phân lập**:
+  - `core`: Bảng `users`, `events`, `event_members`, `plans`, `plan_stops`, `plan_votes`, `chat_messages`, `expenses`, `settlements`.
+  - `checkpoints`: Lưu trữ trạng thái đồ thị của LangGraph.
+  - `vectors`: Lưu trữ vector embeddings cho địa điểm.
+- **Supavisor Connection Pooler**: Hoạt động tại **port 6543 ở chế độ Transaction Mode**, ghép tải từ hàng trăm request đồng thời qua 15 kết nối vật lý.
+- **Bảo mật RLS**: Áp dụng Row Level Security (RLS) để chỉ thành viên trong cùng một phòng mới được truy cập dữ liệu của phòng đó.
+
+### 2.5. Queue & Cache (Upstash Redis 7)
+- **Redis Streams (`XADD`/`XREADGROUP`)**: Đóng vai trò Message Broker bất đồng bộ. Khi người dùng yêu cầu AI lên lịch, FastAPI đẩy task vào stream và trả về HTTP ACK tức thì; LangGraph Worker trên Render sẽ kéo task về xử lý.
+- **Redis Pub/Sub (`plan:updated`)**: Khi AI Worker ghi xong điểm dừng vào database, nó bắn sự kiện qua Redis Pub/Sub; các node FastAPI Gateway đang lắng nghe sẽ lập tức broadcast dữ liệu mới tới tất cả các client qua WebSockets.
+- **L2 Cache (TTL 24h)**: Lưu trữ các kết quả tra cứu địa điểm và thời tiết để giảm tải chi phí và chống rate limit API bên thứ 3.
+
+### 2.6. External APIs & Độ Bền PyBreaker
+- **Địa điểm & Khách sạn**: Google Places API (New), OpenStreetMap (OSM), Agoda, Booking.com.
+- **Hoạt động & Vé vui chơi**: Klook, 12Go Asia.
+- **Thời tiết**: OpenWeatherMap API (cache 3 giờ).
+- **PyBreaker Circuit Breaker**: Đặt ngưỡng timeout 2.5 giây. Nếu API bên thứ 3 bị treo hoặc quá tải quá 3 lần liên tiếp, mạch sẽ tự động ngắt (OPEN) trong 60 giây và trả về dữ liệu fallback từ cache hoặc gợi ý đã lưu trong database.
+
+---
+
+## 👥 3. Tóm Tắt Trách Nhiệm Công Nghệ Theo 6 Thành Viên
+
+| Thành viên | Vai trò | Công nghệ cốt lõi nắm giữ |
 |---|---|---|
-| Framework | **React 18 + Vite + TypeScript** | Dựng nhanh, HMR nhanh hơn CRA, TS giúp bắt lỗi sớm khi làm việc nhóm |
-| State management | **Zustand** (nhẹ) hoặc **Redux Toolkit** (nếu state phức tạp) | Zustand đủ cho scope đồ án, ít boilerplate |
-| Data fetching | **TanStack Query (React Query)** | Cache, refetch, loading/error state tự động — khớp với Nhóm 3 (API rate-limited) |
-| UI Kit | **Tailwind CSS + shadcn/ui** | Tốc độ dựng UI nhanh, dễ đồng bộ design giữa nhiều người |
-| Form | **React Hook Form + Zod** | Validate schema UI client trước khi submit |
-| Map | **Mapbox GL JS** hoặc **Google Maps JS SDK** | Theo Nhóm 3 |
-| i18n | **react-i18next** | Cho Nhóm 7 |
-| Realtime chat UI | **WebSockets / SSE (FastAPI EventSourceResponse)** | Tích hợp sẵn trong FastAPI mượt mà |
-
-## 2. Backend (Python FastAPI)
-| Hạng mục | Lựa chọn | Lý do |
-|---|---|---|
-| Runtime | **Python 3.11+** | Cùng hệ sinh thái với AI/LangGraph → không cần tách 2 ngôn ngữ Node/Python |
-| Framework | **FastAPI** | Tốc độ cao (ASGI/uvicorn), tự động sinh OpenAPI/Swagger doc (`/docs`), Pydantic v2 validation native, async native |
-| ORM | **SQLAlchemy 2.0 (Async) / SQLModel** | Type-safe, hỗ trợ async/await với PostgreSQL, tích hợp Pydantic mượt mà |
-| Migration | **Alembic** | Thư viện migration tiêu chuẩn của Python SQLAlchemy |
-| Database | **PostgreSQL (asyncpg driver)** | Hỗ trợ quan hệ rõ ràng, JSONB cho metadata linh hoạt, pgvector cho RAG |
-| Cache | **Redis (redis-py async)** | Cache kết quả API bên thứ 3 (Nhóm 3), lưu session/rate-limit |
-| Queue / Background | **Celery / Arq / FastAPI BackgroundTasks** | Xử lý async cho Agent research, gửi email, export PDF |
-| Auth | **FastAPI Security + PyJWT + Passlib (bcrypt)** | Chuẩn OAuth2 (Google/Facebook SDK) + JWT access/refresh token |
-| Validation | **Pydantic v2** | Chặn input xấu, validate Zod/Pydantic schema trước khi vào AI Agent |
-
-## 3. AI Multi-Agent System (Nhóm 4)
-| Hạng mục | Lựa chọn | Lý do |
-|---|---|---|
-| Orchestration | **LangGraph Python (`langgraph`)** | Thư viện gốc của LangChain cho multi-agent graph, state machine, checkpointing, human-in-the-loop |
-| LLM Provider | **DeepSeek API** (`deepseek-chat` cho hội thoại/action/function calling, `deepseek-reasoner` cho suy luận/phân giải xung đột phức tạp) | Chi phí tối ưu, hiệu năng tiệm cận các mô hình hàng đầu |
-| Integration | **LangChain DeepSeek (`langchain-deepseek`)** / OpenAIChat | Chạy trực tiếp trong Python Backend mà không cần IPC/gRPC cross-language |
-| RAG (nếu cần) | **pgvector-python** | Tích hợp sẵn trong PostgreSQL |
-| Prompt management | File `.py`/`.md` versioned trong repo | Dễ review, dễ test |
-
-## 4. External APIs (Nhóm 3)
-| Nhu cầu | Lựa chọn |
-|---|---|
-| Địa điểm/khách sạn/nhà hàng | Google Places API (httpx async) |
-| Thời tiết | OpenWeatherMap (free tier) |
-| Bản đồ | Mapbox |
-| Tỷ giá | exchangerate-api.com / Frankfurter |
-
-## 5. Notification & Export (Nhóm 5)
-| Nhu cầu | Lựa chọn |
-|---|---|
-| Email | FastAPI-Mail / aiosmtplib (SMTP async) |
-| Cron job | APScheduler / Celery Beat |
-| Export PDF | WeasyPrint / ReportLab / Playwright Python |
-
-## 6. DevOps / Hạ tầng
-| Hạng mục | Lựa chọn | Lý do |
-|---|---|---|
-| Containerization | **Docker + docker-compose** | Uvicorn + PostgreSQL + Redis local |
-| Package Manager | **Poetry / uv** | Quản lý dependency Python sạch sẽ |
-| CI | **GitHub Actions** | Ruff (lint) + pytest + build |
-| CD (Frontend) | **GitHub Actions + Vercel** | Deploy tự động: mỗi PR → Preview URL, merge `main` → Production (TASK-118) |
-| CD (Backend) | **GitHub Actions + Render Blueprint** | `render.yaml` + `Dockerfile.prod`: auto-deploy FastAPI + Postgres 15 + Redis 7 khi merge `main` (TASK-216) |
-| Hosting Frontend | **Vercel** | Free preview + production domain |
-| Hosting Backend | **Render** (fallback: Railway / VPS) | Chạy FastAPI uvicorn server |
-| Quản lý secrets | `.env` + Pydantic BaseSettings | Production: đặt qua env của Vercel/Render, không commit `.env` |
-| Deploy guide | [deployment-guide.md](../03-architecture/deployment-guide.md) | Chi tiết `vercel.json`, `render.yaml`, smoke test |
-
-## 7. Testing
-| Hạng mục | Lựa chọn |
-|---|---|
-| Backend unit/integration test | **Pytest + HTTPX AsyncClient** |
-| Frontend unit test | **Vitest + React Testing Library** |
-| AI Agent test | Pytest với mock LLM response |
-
-## 8. Bảng tóm tắt theo vai trò
-| Vai trò | Công nghệ chính cần nắm |
-|---|---|
-| Backend dev (Auth, Core CRUD) | Python 3.11+, FastAPI, SQLAlchemy/SQLModel, Pydantic, PyJWT, Alembic |
-| AI Engineer | Python 3.11+, LangGraph Python, DeepSeek API, langchain-deepseek |
-| Frontend dev | React 18, TypeScript, TanStack Query, Tailwind CSS, WebSocket |
-| Cyber Security | FastAPI Security, OWASP Top 10, Pydantic sanitization, rate limiting, secrets management |
-| Integration dev (Nhóm 3) | HTTPX async, Google Places API, Redis async (redis-py) |
-| DevOps kiêm nhiệm | Docker, GitHub Actions, Ruff, Poetry/uv |
+| **Tạ Quang Huy** | Backend Core & AI Integration | FastAPI, SQLAlchemy 2.0, Supabase Schemas, Supavisor Pooler, WebSockets, Redis Streams/PubSub. |
+| **Hà Đăng Huy** | Backend Platform & Frontend Core | HTTPX Async, Google Places API, PyBreaker, Upstash Redis Cache, React 18, Mapbox GL JS, Tailwind. |
+| **Phạm Đình Ánh Dương** | Backend Services & Settlement | Supabase Auth, JWT, SMTP Email, WeasyPrint PDF, .ics Calendar, Thuật toán giải quyết nợ tối ưu (Settlement). |
+| **Nguyễn Minh Đức** | Frontend Growth & AI Experience | React 18, Realtime WebSockets, AI Streaming UI, Design System, i18n (VI/EN), Recharts Admin UI. |
+| **Nguyễn Tùng Dương** | AI Agent Lead | LangGraph Python, DeepSeek-V4, Model Abstraction Layer, Four-Tier Grounding, Geo-Clustering. |
+| **Đinh Tiến Luân** | DevOps & Cyber Security | Multi-Cloud (Vercel, Render, Supabase), GitHub Actions CI/CD, OpenTelemetry, LangSmith, OWASP Pentest. |
