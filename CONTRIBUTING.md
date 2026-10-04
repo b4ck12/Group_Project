@@ -36,10 +36,16 @@ pnpm run dev
 Xem chi tiết tại [post-task-documentation.md](docs/01-workflow/post-task-documentation.md):
 
 1. **Nhận Task & Đổi Trạng Thái**: Nhận mã task từ [task-board.md](docs/04-tasks/task-board.md), chuyển sang `🟡 In Progress`. Tạo branch theo mẫu `feature/TASK-xxx-mo-ta-ngan`.
-2. **Code Chuẩn Convention**: Tuân thủ [coding-conventions.md](docs/02-standards/coding-conventions.md) và [naming-conventions.md](docs/02-standards/naming-conventions.md).
-3. **Chạy Test & Lint Sạch Sẽ**: 
-   - Backend: `poetry run ruff check .` & `poetry run pytest`.
-   - Frontend: `pnpm run lint` & `pnpm run test`.
+2. **Code Chuẩn Convention & Clean Code**: 
+   - Tuân thủ [coding-conventions.md](docs/02-standards/coding-conventions.md) và [naming-conventions.md](docs/02-standards/naming-conventions.md).
+   - Áp dụng nguyên lý **SOLID**, **Low Coupling** (giảm phụ thuộc) & **High Cohesion** (tăng gắn kết).
+   - **Frontend**: Phân tách rõ ràng 3 lớp **HTML/JSX** (giao diện), **CSS Modules / Tailwind** (định kiểu, tuyệt đối không inline style), và **Custom Hooks / Services** (logic/API).
+   - **Hàm & Class ngắn gọn**: Hàm < 50 dòng, tham số ≤ 3, class/component < 200 dòng.
+   - **Hạn chế tuyệt đối Hardcode**: Toàn bộ magic numbers, magic strings, URLs, colors phải đưa vào Constants, Enums hoặc `.env`.
+3. **Chạy Test & Lint Sạch Sẽ (Bắt buộc kèm Unit/Integration Test)**: 
+   - Backend: Viết unit/integration test với Pytest (`poetry run pytest`), chạy linter `poetry run ruff check .`.
+   - Frontend: Viết test với Vitest (`pnpm run test`), chạy linter `pnpm run lint`.
+   - Test theo cấu trúc **AAA (Arrange - Act - Assert)**, bao phủ cả Happy Path và Unhappy Path (trường hợp biên, ngoại lệ).
 4. **Viết Docs & Tick Tracking Board**:
    - Cập nhật tài liệu kỹ thuật liên quan: `api-design-guide.md`, `database-schema.md`, `ai-agent-architecture.md`, `.env.example`.
    - Tick `[x]` vào file task cá nhân (`docs/04-tasks/person-X-*.md`) và `docs/TASKS.md` kèm thông tin PR.

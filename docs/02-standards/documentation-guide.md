@@ -1,17 +1,44 @@
 # Hướng Dẫn Viết Tài Liệu Kỹ Thuật & Tracking (Documentation Guide)
+## Chuẩn Mực Tài Liệu Hướng Dẫn & Onboarding — TripMate AI
 
 > **Nguyên tắc bất biến**: **"Docs as Code"** & **"No Docs = Not Done & No Merge"**.  
-> Toàn bộ tài liệu sống trong thư mục `/docs` trong repo, được versioning qua Git và review qua Pull Request giống như source code. Mọi thành viên bắt buộc phải viết docs và cập nhật tracking đồng thời với code.
+> Toàn bộ tài liệu kỹ thuật nằm trong thư mục `/docs` của repository, được versioning qua Git và review qua Pull Request giống như source code. Mọi tính năng, module khi phát triển bắt buộc phải có tài liệu hướng dẫn rõ ràng để người khác có thể đọc hiểu, vận hành, kiểm thử và bảo trì mà không cần tác giả gốc giải thích trực tiếp.
 
 ---
 
-## 1. Mục Đích Của Việc Viết Docs & Tracking Cho Dự Án
+## 📖 1. Yêu Cầu Tài Liệu Hướng Dẫn Cho Từng Module (Module README)
 
-Trong dự án TripMate AI với 6 thành viên và kiến trúc tích hợp phức tạp:
-1. **Theo dõi tiến độ thời gian thực (Progress Tracking)**: Trưởng nhóm và các thành viên luôn nắm được tiến độ chính xác của từng task thông qua `docs/TASKS.md` và `docs/04-tasks/person-X-*.md`.
-2. **Loại bỏ việc hỏi đi hỏi lại**: Khi Frontend cần gọi API, họ chỉ cần mở `docs/02-standards/api-design-guide.md`; khi AI Engineer cần lưu state, họ mở `docs/03-architecture/database-schema.md`.
-3. **Bảo vệ quyền lợi cá nhân**: Đóng góp của từng thành viên được minh chứng rõ ràng thông qua lịch sử commit docs và task board.
-4. **Đáp ứng yêu cầu đồ án tốt nghiệp / hội đồng đánh giá**: Có bộ tài liệu kỹ thuật hoàn chỉnh, chuẩn mực, bám sát proposal.
+Để hệ thống đạt chuẩn phần mềm chuyên nghiệp, mỗi module hoặc feature lớn trong dự án bắt buộc phải có file `README.md` nội bộ:
+
+### 1.1. Vị trí các file Module README bắt buộc
+- **Backend submodules**:
+  - `backend/app/api/v1/README.md`: Hướng dẫn danh mục API v1, authentication headers, error convention.
+  - `backend/app/services/README.md`: Tổng quan các business service và cách inject dependencies.
+  - `backend/app/ai_agents/README.md`: Cấu trúc đồ thị LangGraph, input/output state, cách thêm 1 agent mới.
+- **Frontend feature modules**:
+  - `frontend/src/features/event-planning/README.md`: Giải thích luồng dữ liệu lập kế hoạch, danh sách components, hooks và các state chính.
+  - `frontend/src/features/ai-chat/README.md`: Cơ chế streaming WebSocket/SSE, component hiển thị tin nhắn gợi ý.
+  - `frontend/src/components/ui/README.md`: Design system catalogue, hướng dẫn sử dụng Button, Modal, Badge kèm props mẫu.
+
+### 1.2. Mẫu khung nội dung tiêu chuẩn cho Module README
+```markdown
+# [Tên Feature / Module]
+
+## 1. Mục Đích & Trách Nhiệm (Responsibility)
+Mô tả 2-3 câu về chức năng cốt lõi của module này (tuân theo nguyên lý Single Responsibility).
+
+## 2. Cấu Trúc Thư Mục (Directory Structure)
+- `components/`: Mô tả các sub-components giao diện.
+- `hooks/`: Các custom hook xử lý state và side-effects.
+- `services/`: Client giao tiếp API backend.
+- `types/`: Data contracts và interfaces.
+
+## 3. Hướng Dẫn Tích Hợp & Sử Dụng (Usage Example)
+Ví dụ code ngắn gọn (10-15 dòng) về cách một module khác import và sử dụng module này.
+
+## 4. Ràng Buộc & Lưu Ý Kỹ Thuật (Gotchas / Edge Cases)
+Các điểm cần lưu ý khi chỉnh sửa (ví dụ: cần giữ nguyên invariant gì, xử lý concurrency, rate limit).
+```
 
 ---
 
@@ -66,10 +93,16 @@ Với các custom hooks, API clients, và complex UI components:
  * Component hiển thị thẻ điểm dừng chi tiết kèm cơ chế bình chọn và 1-click swap.
  *
  * @param stop - Thông tin điểm dừng được chuẩn hóa từ database
- * @param onVote - Hàm callback xử lý vote UP / DOWN (gửi WebSocket payload)
- * @param onSwap - Hàm callback kích hoạt đổi sang địa điểm dự phòng đã pre-fetch
+ * @param isVoted - Trạng thái người dùng hiện tại đã thích điểm dừng này chưa
+ * @param onVoteToggle - Hàm callback xử lý vote UP / DOWN (gửi WebSocket payload)
+ * @param onSwapClick - Hàm callback kích hoạt đổi sang địa điểm dự phòng đã pre-fetch
  */
-export const StopVotingCard: React.FC<StopVotingCardProps> = ({ stop, onVote, onSwap }) => {
+export const PlanStopCard: React.FC<PlanStopCardProps> = ({ 
+  stop, 
+  isVoted, 
+  onVoteToggle, 
+  onSwapClick 
+}) => {
   ...
 };
 ```
