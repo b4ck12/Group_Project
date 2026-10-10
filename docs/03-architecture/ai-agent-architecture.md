@@ -19,8 +19,8 @@ flowchart TD
 
     subgraph Row2 ["Pha 2: Tuyển Chọn Chi Tiết & Tích Hợp (Micro Curation)"]
         STATE["PostgreSQL Checkpoints<br/>• Typed AgentState qua DAL<br/>• AsyncPostgresSaver"]
-        MICRO["Phase 2: Micro Curation State<br/>• Gọi Places/Agoda qua PyBreaker<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Nạp sẵn 2 backup stops cho 1-Click Swap"]
-        TOOLS["Resilient APIs & Database<br/>• Google Places, OSM, Agoda, Klook<br/>• PyBreaker Circuit Breaker (2.5s)<br/>• Ghi plan_stops qua DAL"]
+        MICRO["Phase 2: Micro Curation State<br/>• Tra cứu Maps, Search & Khách sạn đa nguồn<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Nạp sẵn 2 backup stops cho 1-Click Swap"]
+        TOOLS["Resilient Travel APIs & DB (PyBreaker 2.5s)<br/>• Google Maps, Google Search, Google Hotels<br/>• TripAdvisor, Airbnb, Trip.com, Hotels.com<br/>• Trivago, Expedia, Klook, 12Go Asia"]
     end
 
     IN -->|"Kích hoạt (Trigger)"| MACRO
@@ -40,12 +40,12 @@ flowchart TD
 
 ### 1.1. Phase 1 — Macro Planning State (Trạng Thái Lập Kế Hoạch Vĩ Mô)
 - **Mục tiêu**: Đề xuất ngày đi, nhịp độ và chủ đề cho từng buổi sáng/chiều/tối dựa trên mong muốn của nhóm.
-- **Tiết kiệm Token & Chi phí**: Ở pha này, Agent **tuyệt đối không gọi các API du lịch bên ngoài** (Google Places, Agoda, Klook), bảo tồn token và giảm tối đa chi phí cho đến khi nhóm đạt được thỏa thuận vĩ mô.
+- **Tiết kiệm Token & Chi phí**: Ở pha này, Agent **tuyệt đối không gọi các API du lịch bên ngoài** (Google Maps, khách sạn, Klook), bảo tồn token và giảm tối đa chi phí cho đến khi nhóm đạt được thỏa thuận vĩ mô.
 - **Độ trễ**: Thời gian phản hồi nhanh ($6$--$12$\,giây).
 
 ### 1.2. Phase 2 — Micro Curation State (Trạng Thái Tuyển Chọn Địa Điểm Chi Tiết)
 - **Kích hoạt**: Chỉ được kích hoạt **sau khi Host bấm nút Khóa Lộ Trình Vĩ Mô (Macro Consensus)**.
-- **Nghiệp vụ**: Thực thi các lệnh gọi công cụ ngoài qua PyBreaker, áp dụng thuật toán gom cụm khoảng cách Haversine ($\le 2.5$\,km, thời gian di chuyển $\le 20$\,phút), và chuẩn bị sẵn 2 địa điểm dự phòng cho mỗi điểm dừng chính phục vụ cơ chế 1-Click Swap.
+- **Nghiệp vụ**: Thực thi các lệnh gọi công cụ ngoài qua PyBreaker kết nối bộ Adapter đa nguồn (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**), áp dụng thuật toán gom cụm khoảng cách Haversine ($\le 2.5$\,km, thời gian di chuyển $\le 20$\,phút), và chuẩn bị sẵn 2 địa điểm dự phòng cho mỗi điểm dừng chính phục vụ cơ chế 1-Click Swap.
 - **Độ trễ**: $10$--$20$\,giây (truy vấn song song các địa điểm thực tế).
 
 ---
@@ -56,7 +56,7 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    T1["Tier 1: Strict Schema<br/>• Pydantic Schema cố định<br/>• Loại bỏ text tự do lan man"] --> T2["Tier 2: Live Map Check<br/>• Google Places & OSM<br/>• Xác thực Place ID & Giờ mở cửa"]
+    T1["Tier 1: Strict Schema<br/>• Pydantic Schema cố định<br/>• Loại bỏ text tự do lan man"] --> T2["Tier 2: Live Map & Hotel Check<br/>• Maps, Search, Hotels & Stays<br/>• Xác thực Place ID, giá & giờ mở cửa"]
     T2 --> T3["Tier 3: Distance Guard<br/>• Gom cụm Haversine + Mapbox<br/>• Bán kính <= 2.5km, di chuyển <= 20p"]
     T3 --> T4["Tier 4: Member Votes<br/>• Vote UP / DOWN<br/>• 1-Click Swap backup đã pre-fetch"]
 
@@ -68,7 +68,10 @@ flowchart LR
 
 ### Chi tiết 4 tầng bảo vệ:
 1. **Tier 1 (Strict Schema)**: Ép đầu ra của LLM vào cấu trúc Pydantic nghiêm ngặt (`PlaceCandidate`), gồm các trường bắt buộc: `name`, `category`, `estimated_stay_minutes`, `budget_tier`, `lat_hint`, `lng_hint`. Bất kỳ đầu ra nào không khớp schema sẽ bị Pydantic v2 chặn lại và yêu cầu LLM format lại ngay lập tức.
-2. **Tier 2 (Live Map Check)**: Xác thực chéo từng địa điểm với Google Places API (New) và OpenStreetMap. Bắt buộc phải tìm được `place_id` có thật, kiểm tra cờ `open_now` và đối chiếu giờ đóng/mở cửa với khung giờ dự kiến ghé thăm.
+2. **Tier 2 (Live Map & Hotel Check)**: Xác thực chéo từng địa điểm và khách sạn qua hệ sinh thái API đối tác:
+   - **Bản đồ & Điểm tham quan**: Google Maps (Google Places API New), Google Search, TripAdvisor, OpenStreetMap.
+   - **Khách sạn & Nơi lưu trú**: Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia.
+   - Bắt buộc kiểm tra tọa độ GPS có thật, cờ `open_now`, giá phòng theo thời gian thực và đối chiếu giờ đóng/mở cửa với khung giờ dự kiến ghé thăm.
 3. **Tier 3 (Distance Guard — Gom Cụm Thông Minh)**:
    - Sử dụng công thức khoảng cách Haversine:
      $$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta \phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right)}\right)$$
@@ -132,3 +135,55 @@ class AgentState(TypedDict):
 ### Cơ chế khôi phục phiên tự động (Fault Recovery):
 - Mỗi khi người dùng chat hoặc vote, `AsyncPostgresSaver` ghi nhận checkpoint mới nhất gắn liền với `event_id`.
 - Nếu container AI Worker trên Render bị restart hoặc đứt kết nối mạng giữa chừng, tiến trình worker mới chỉ cần đọc checkpoint từ PostgreSQL qua Data Access Layer (DAL) là có thể tiếp tục xử lý chính xác tác vụ mà không làm mất bất kỳ dữ liệu nào của phòng.
+
+---
+
+## 🏨 5. Tầng Bộ Chuyển Đổi Dịch Vụ Du Lịch & Khách Sạn (Travel Provider Adapter Pattern)
+
+Để dễ dàng mở rộng và tích hợp đồng thời nhiều nhà cung cấp khách sạn và địa điểm (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**), hệ thống áp dụng **Adapter & Strategy Pattern** với lớp cơ sở trừu tượng:
+
+```python
+from abc import ABC, abstractmethod
+from typing import List, Optional
+from pydantic import BaseModel
+
+class AccommodationItem(BaseModel):
+    provider_name: str         # "google_hotels" | "airbnb" | "trip_com" | "hotels_com" | "trivago" | "expedia"
+    name: str
+    price_per_night: float
+    currency: str = "VND"
+    rating: float
+    review_count: int
+    lat: float
+    lng: float
+    booking_url: str
+    amenities: List[str]
+
+class BaseTravelProvider(ABC):
+    """Interface cơ sở cho mọi Travel & Lodging Adapter."""
+    
+    @abstractmethod
+    async def search_accommodations(
+        self, destination: str, checkin: str, checkout: str, guests: int, budget_tier: str
+    ) -> List[AccommodationItem]:
+        """Tìm kiếm nơi lưu trú theo các tiêu chí chuẩn hóa."""
+        pass
+
+    @abstractmethod
+    async def search_pois(
+        self, lat: float, lng: float, radius_km: float, category: str
+    ) -> List[dict]:
+        """Tìm kiếm điểm tham quan, ăn uống theo vị trí địa lý."""
+        pass
+```
+
+### Các lớp chuyển đổi cụ thể (Concrete Adapters):
+1. **GoogleMapsProvider & GoogleHotelsProvider**: Xác thực Place ID, tọa độ chính xác và giá phòng niêm yết trên Google Travel.
+2. **TripAdvisorProvider**: Lấy thông tin xếp hạng uy tín và đánh giá xác thực từ cộng đồng du lịch.
+3. **AirbnbProvider**: Tìm kiếm căn hộ, homestay và villa theo nhóm đông người.
+4. **TripComProvider, HotelsDotComProvider, TrivagoProvider, ExpediaProvider**: So sánh giá phòng theo thời gian thực và lấy link đặt phòng đối tác tốt nhất.
+
+### Lợi ích thiết kế (Design Benefits):
+- **Dễ Maintain**: Mỗi provider được cô lập trong 1 file riêng (`app/adapters/providers/<provider_name>.py`). Lỗi từ 1 API không làm sụp đổ các provider khác.
+- **Dễ Dev (High DX)**: Developer mới chỉ cần kế thừa `BaseTravelProvider` và hiện thực 2 hàm trừu tượng để cắm thêm bất kỳ dịch vụ du lịch mới nào.
+- **Dễ Hiểu**: Cấu trúc rõ ràng, interface chuẩn mực, kết hợp PyBreaker và Redis Caching trong suốt.

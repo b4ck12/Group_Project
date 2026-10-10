@@ -12,12 +12,12 @@ Hệ thống TripMate AI áp dụng mô hình kiến trúc phi tập trung, bấ
 ```mermaid
 flowchart TD
     subgraph L1 ["1. Web Frontend (React 18 SPA on Vercel Global Edge CDN)"]
-        FE["• Live Room Chat<br/>• Interactive Timeline & Granular Stop Voting<br/>• Mapbox GL Route Canvas<br/>• Zero Cold-Start Edge CDN"]
+        FE["• Live Room Chat & Collaborative Voting<br/>• Flexbox & Responsive UI (Mobile / Tablet / Desktop)<br/>• Modular Feature Architecture & Mapbox GL Canvas<br/>• Zero Cold-Start Edge CDN"]
     end
 
     subgraph Mid ["Tầng Xử Lý Trung Gian (Render & Upstash)"]
         subgraph L2 ["2. Backend Gateway (FastAPI on Render Web Service)"]
-            BE["• WebSocket Room Server (Live Sync)<br/>• REST Endpoints & Supabase Auth Guards<br/>• Keep-Alive Anti-Sleep Ping (/api/healthz)"]
+            BE["• WebSocket Room Server (Live Sync)<br/>• REST Endpoints & Supabase Auth Guards<br/>• Keep-Alive Anti-Sleep Ping (/api/healthz)<br/>• Layered Clean Architecture"]
         end
 
         subgraph L3 ["3. Queue & Cache (Upstash Redis 7 Serverless)"]
@@ -34,8 +34,8 @@ flowchart TD
             DB["• PostgreSQL 16 + pgvector (core, checkpoints, vectors)<br/>• Supavisor Connection Pooler (port 6543, Transaction Mode)<br/>• Row Level Security (RLS) Multi-tenant Privacy"]
         end
 
-        subgraph L6 ["6. External Travel APIs & Resilience (PyBreaker)"]
-            EXT["• PyBreaker Circuit Breaker (Timeout 2.5s & Fast Fallback)<br/>• Google Places API (New) & OpenStreetMap<br/>• Agoda, Booking.com, Klook, 12Go Asia, OpenWeather"]
+        subgraph L6 ["6. External Travel & Lodging APIs (Multi-Provider Adapters)"]
+            EXT["• PyBreaker Circuit Breaker (Timeout 2.5s & Fast Fallback)<br/>• Maps & Search: Google Maps/Places, Google Search, TripAdvisor<br/>• Stays: Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia<br/>• Tours & Transit: Klook, 12Go Asia, OpenWeatherMap"]
         end
     end
 
@@ -66,7 +66,7 @@ flowchart TD
 | **(1)** | **Frontend $\leftrightarrow$ Backend Gateway** | **WebSockets (`WSS`) / HTTPS REST** | Truyền tin nhắn phòng chat, gửi phiếu bình chọn điểm dừng (Vote UP/DOWN), gửi lệnh 1-Click Swap, và nhận luồng đồng bộ tức thì (<80ms ACK). |
 | **(2)** | **Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker** | **Redis Streams (`XADD` / `XREADGROUP`)** | Hàng đợi tác vụ bất đồng bộ. Gateway đẩy task vào Redis Streams không chặn người dùng; LangGraph AI Worker kéo task về thực thi. |
 | **(3)** | **Gateway $\rightarrow$ Supabase Database** | **SQLAlchemy Async / PostgreSQL (core schema)** | Lưu vết tức thì lịch sử tin nhắn phòng chat, thông tin người dùng, quyền hạn thành viên và số lượt bình chọn. |
-| **(4)** | **AI Worker $\leftrightarrow$ External Travel APIs** | **HTTPX Async qua PyBreaker Circuit Breaker** | Truy vấn địa điểm thực tế từ Google Places API, khách sạn, hoạt động Klook với cơ chế ngắt mạch tự động (timeout 2.5s). |
+| **(4)** | **AI Worker $\leftrightarrow$ External Travel & Lodging APIs** | **HTTPX Async qua PyBreaker Circuit Breaker & Adapter Pattern** | Truy vấn địa điểm và khách sạn thực tế từ Google Maps/Places, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook với cơ chế ngắt mạch tự động (timeout 2.5s). |
 | **(5)** | **AI Worker $\leftrightarrow$ Supabase Database** | **Data Access Layer (DAL) / AsyncPostgresSaver** | Nạp và lưu vết trạng thái `AgentState` vào schema `checkpoints`; ghi các điểm dừng đã chuẩn hóa vào bảng `plan_stops`. |
 | **(6)** | **AI Worker $\rightarrow$ Redis $\rightarrow$ Gateway** | **Redis Pub/Sub (`plan:updated`)** | Phát sóng sự kiện cập nhật lịch trình từ AI Worker tới mọi instance Gateway để chuyển tiếp xuống Frontend qua WebSockets. |
 
@@ -128,7 +128,7 @@ sequenceDiagram
 | **3** | **(2)** Redis (Streams) $\rightarrow$ AI Agent | Async | Bước 2b | LangGraph Worker kéo tác vụ về xử lý qua Consumer Group (`XREADGROUP`). |
 | **4** | **(5)** AI Agent $\leftarrow$ Database | Async | Bước 3 | Tải checkpoint phiên làm việc và ngữ cảnh phòng từ schema `checkpoints` qua DAL. |
 | **4b** | LangGraph State Transition | Internal | Bước 4 | Đánh giá điều kiện đồng thuận và chuyển đổi giữa Macro State và Micro State. |
-| **5** | **(4)** AI Agent $\leftrightarrow$ Travel APIs | Parallel | Bước 4b | Gọi Google Places/Agoda qua PyBreaker; tự động lấy từ L2 Cache nếu API ngoài lỗi. |
+| **5** | **(4)** AI Agent $\leftrightarrow$ Travel APIs | Parallel | Bước 4b | Gọi hệ thống API đối tác (Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia) qua PyBreaker; tự động lấy từ L2 Cache nếu API ngoài lỗi. |
 | **6** | **(5)** AI Agent $\rightarrow$ Database | Async | Bước 5 | Ghi các điểm dừng đã kiểm chứng và chuẩn hóa vào bảng `plan_stops` qua DAL. |
 | **7** | **(6)** AI Agent $\rightarrow$ Redis $\rightarrow$ Gateway | Async | Bước 6 | Bắn sự kiện `PUBLISH plan:updated` qua Redis Pub/Sub để đồng bộ các node Gateway. |
 | **8** | **(1)** Gateway $\rightarrow$ Frontend | Push | Bước 7 | Phát sóng lộ trình mới nhất qua WebSockets tới tất cả thành viên trong phòng. |
@@ -153,4 +153,32 @@ sequenceDiagram
 - **Vercel Edge CDN**: Phân phối tài nguyên tĩnh và giao diện React 18 trên hơn 300 điểm PoP toàn cầu, thời gian nạp trang $< 100$\,ms, zero cold-start.
 - **Render Stateless Workers**: Cả FastAPI Gateway và LangGraph Worker đều là tiến trình phi trạng thái (stateless), có thể scale ngang (horizontal scaling) thêm instance bất cứ lúc nào.
 - **Supavisor Connection Pooling**: Cụm pooler hoạt động ở port 6543 (Transaction Mode) giúp xử lý an toàn hơn 200 phiên client đồng thời chỉ với 15 kết nối vật lý tới PostgreSQL, ngăn ngừa lỗi `connection limit exceeded`.
-- **PyBreaker Resilience**: Đảm bảo lỗi từ phía Google Places hay Agoda không bao giờ làm treo hay crash hệ thống backend của dự án.
+- **PyBreaker Resilience**: Đảm bảo lỗi từ phía các API du lịch bên ngoài không bao giờ làm treo hay crash hệ thống backend của dự án.
+
+---
+
+## 🏛️ 6. Chuẩn Mực Thiết Kế Ứng Dụng: Architecture Patterns, Modular Design & Tiêu Chí Kỹ Thuật
+
+TripMate AI được kiến tạo nhằm đáp ứng tối đa các tiêu chuẩn kỹ thuật chuyên nghiệp, đảm bảo ba giá trị cốt lõi: **Dễ Maintain, Dễ Dev, Dễ Hiểu**.
+
+### 6.1. Architecture Pattern Phân Tầng Chuẩn Mực (Layered Clean Architecture)
+Hệ thống tuân thủ chặt chẽ nguyên lý phân tầng và đảo ngược phụ thuộc (Dependency Inversion):
+1. **Presentation / Transport Layer (FastAPI Routers)**: Tiếp nhận HTTP/WebSocket request, xác thực JWT, validate input bằng Pydantic Schema, chuyển tiếp tới Domain Service. Tuyệt đối không chứa logic nghiệp vụ hay truy vấn SQL trực tiếp.
+2. **Domain / Business Service Layer**: Chứa toàn bộ nghiệp vụ cốt lõi: Two-Stage Consensus Engine, Geo-clustering logic, Itinerary validation, Split expense calculations. Không phụ thuộc vào thư viện bên ngoài hay cơ sở dữ liệu cụ thể.
+3. **Data Access Layer (DAL / Repository)**: Thực thi truy vấn dữ liệu bất đồng bộ qua SQLAlchemy 2.0 Async, trừu tượng hóa các bảng Supabase PostgreSQL.
+4. **External Provider Adapter Layer (Strategy Pattern)**: Toàn bộ tương tác với các bên thứ 3 (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**) đều đi qua interface trừu tượng `BaseTravelProvider`. Tầng nghiệp vụ chỉ tương tác với interface này.
+
+### 6.2. Thiết Kế Mô-Đun Hóa (Modular Design)
+- **Feature-Driven Packaging**: Cả Frontend (`features/event-planning`, `features/ai-chat`) và Backend (`app/features/`, `app/adapters/`) đều được cấu trúc theo miền nghiệp vụ, cô lập hoàn toàn phạm vi thay đổi.
+- **High Cohesion & Low Coupling**: Mỗi module đảm nhiệm một chức năng trọn vẹn. Các module giao tiếp với nhau bằng Contract tường minh (Pydantic DTOs & TypeScript Interfaces), nghiêm cấm Circular Dependencies.
+
+### 6.3. Chuẩn Giao Diện: Flexbox & Fully Responsive UI
+- **Flexbox & Grid Layouts**: 100% bố cục trang tuân theo `display: flex` và CSS Grid, loại bỏ hoàn toàn hardcoded pixel positions.
+- **Đa Màn Hình & Multi-Breakpoint**: Hỗ trợ mượt mà từ điện thoại (375px+), máy tính bảng (768px+) đến màn hình lớn (1024px+ / 1440px+).
+- **Responsive Split-Pane**: Desktop hiển thị song song 3 cột (Chat, Timeline, Mapbox) tối ưu trải nghiệm nhóm; mobile chuyển sang drawer và swipeable cards tiện lợi.
+- **Khả Năng Tiếp Cận (WCAG AA)**: Độ tương phản cao, hỗ trợ điều hướng bàn phím và kích thước vùng bấm thân thiện với ngón tay.
+
+### 6.4. Bộ Ba Tiêu Chí Kỹ Thuật Hàng Đầu:
+- 🛠️ **Dễ Maintain (Maintainability)**: Tuân thủ SOLID, hàm ngắn gọn ($\le 30$ dòng), xử lý ngoại lệ tập trung, ngắt mạch tự phục hồi qua PyBreaker.
+- 💻 **Dễ Dev (Developer Experience - DX)**: Hợp đồng Contract-First OpenAPI, giả lập Mock Service Worker (MSW) cho phép FE và BE dev độc lập từ Day 1, Hot Reloading cực nhanh qua Vite, Type Safety 100%.
+- 📖 **Dễ Hiểu (Readability & Comprehensibility)**: Tên hàm/biến rõ nghĩa (Clean Naming), code tự tài liệu hóa, hệ thống tài liệu Docs-as-Code bám sát thiết kế hệ thống.

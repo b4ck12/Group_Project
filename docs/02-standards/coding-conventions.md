@@ -47,6 +47,25 @@ Dự án áp dụng triệt để 5 nguyên tắc SOLID cho cả Backend (Python
 
 ---
 
+### 1.3. Architecture Pattern & Modular Design: Dễ Maintain, Dễ Dev, Dễ Hiểu
+
+Toàn bộ hệ thống tuân theo các nguyên lý kiến trúc và thiết kế mô-đun chuẩn mực:
+- **Clean / Layered Architecture**:
+  - *FastAPI Backend*: API Router $\rightarrow$ Business Domain Service $\rightarrow$ Data Access Layer (DAL / SQLAlchemy 2.0 Async) $\rightarrow$ External Provider Adapters.
+  - *React Frontend*: Pure Presentation Components $\rightarrow$ Custom Hooks / Container Logic $\rightarrow$ Global Stores (Zustand) $\rightarrow$ Service Clients (TanStack Query / MSW).
+- **Pluggable Travel Provider Adapter Pattern**:
+  - Tích hợp hệ sinh thái tìm kiếm khách sạn & địa điểm đa nguồn: **Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia** thông qua interface trừu tượng `BaseTravelProvider`.
+  - Mọi dữ liệu phòng nghỉ và POIs được chuẩn hóa về schema chung (`AccommodationItem`, `POIItem`) trước khi chuyển tới AI Agent hoặc Frontend.
+- **Chuẩn Giao Diện: Flexbox & Fully Responsive UI**:
+  - 100% bố cục trang dùng `display: flex` hoặc CSS Grid, tuyệt đối không dùng absolute positioning hay pixel cố định.
+  - Đáp ứng trơn tru các breakpoint: Mobile (375px+), Tablet (768px+), Desktop Split-Pane (1024px+ / 1440px+).
+- **Bộ Ba Tiêu Chí Công Kỹ Nghệ**:
+  - 🛠️ **Dễ Maintain**: Tuân thủ triệt để SOLID, hàm ngắn ($\le 30$ dòng), class $\le 200$ dòng, tách biệt module, circuit breaker tự bảo vệ hệ thống.
+  - 💻 **Dễ Dev (High DX)**: Contract-First workflow, tự động sinh OpenAPI docs, MSW giả lập API cho frontend, TypeScript strict + Pydantic v2 đảm bảo type safety 100%.
+  - 📖 **Dễ Hiểu**: Đặt tên có nghĩa, code tự dẫn giải, tài liệu Docs-as-Code bám sát 100% Technical Proposal.
+
+---
+
 ## 🎨 2. Chuẩn Mực Frontend (React + TypeScript): Phân Tách Rõ Ràng
 
 Frontend TripMate AI bắt buộc tuân theo nguyên tắc **Separation of Concerns (SoC)**. Một tính năng không bao giờ được viết dồn trong một file duy nhất.

@@ -13,7 +13,7 @@ Lên kế hoạch đi chơi hoặc du lịch cùng nhóm bạn bè luôn gặp p
 
 | Nỗi đau | Biểu hiện thực tế | Hậu quả kỹ thuật & tâm lý |
 |---|---|---|
-| 📱 **Phân mảnh công cụ (Tool Fragmentation)** | Người dùng phải nhảy qua lại giữa 5+ ứng dụng rời rạc: Google Maps, review foody/TikTok, Agoda, Booking.com, chat Messenger/Zalo. | Mất tập trung, dữ liệu rời rạc, không có một nguồn sự thật duy nhất (Single Source of Truth). |
+| 📱 **Phân mảnh công cụ (Tool Fragmentation)** | Người dùng phải nhảy qua lại giữa 5+ ứng dụng rời rạc: Google Maps, Google Search, TripAdvisor, Airbnb, Trip.com, Hotels.com, Expedia, chat Messenger/Zalo. | Mất tập trung, dữ liệu rời rạc, không có một nguồn sự thật duy nhất (Single Source of Truth). |
 | ⚡ **Bế tắc sở thích & Xung đột ngầm (Preference Deadlocks)** | Mâu thuẫn về ngân sách (người muốn tiết kiệm, người thích sang chảnh), khẩu vị ẩm thực, giờ giấc sinh hoạt. | Thảo luận kéo dài 2--3 ngày không đi đến hồi kết, dễ dẫn đến "hủy kèo". |
 | 🎒 **Kiệt sức Trưởng nhóm & Trôi ngữ cảnh (Organizer Burnout & Buried Context)** | Các bình chọn, link quán ăn và ý kiến bị trôi mất dưới hàng trăm tin nhắn chat. Một người phải ôm đồm việc tổng hợp và sửa lịch trình. | Trưởng nhóm quá tải và mệt mỏi; nhóm thiếu sự đồng thuận thực sự. |
 
@@ -34,7 +34,7 @@ TripMate AI hợp nhất toàn bộ trải nghiệm nhóm vào một phòng cộ
 flowchart LR
     S1["1. Group Chat<br/>• Mong muốn & Ngân sách<br/>• Lưu vào Supabase DB"] --> S2["2. Macro Plan<br/>• Phân bổ số ngày & Chủ đề<br/>• Pha 1: Macro State"]
     S2 --> S3{"3. Macro Lock<br/>🔒 Khóa Roadmap<br/>(Consensus 1)"}
-    S3 --> S4["4. Micro Spots<br/>• POIs, Quán ăn, Chỗ chơi<br/>• Gom cụm 2-3km<br/>• Pha 2: Micro State"]
+    S3 --> S4["4. Micro Spots<br/>• POIs, Quán ăn, Khách sạn<br/>• Gom cụm 2-3km<br/>• Pha 2: Micro State"]
     S4 --> S5["5. Stop Voting<br/>• Vote UP / DOWN<br/>• 1-Click Swap dự phòng"]
     S5 --> S6{"6. Final Lock<br/>🔒 Chốt Kế Hoạch<br/>(Consensus 2)"}
     S6 --> S7["7. Living Itinerary<br/>• Xuất PDF & Calendar .ics<br/>• Mapbox điều hướng<br/>• Đổi điểm khi trời mưa"]
@@ -51,7 +51,7 @@ flowchart LR
 ### Chi tiết các bước thực hiện:
 1. **Thu thập mong muốn (Desires Capture)**: Thành viên chat tự do về ngày đi, khung ngân sách, phong cách chuyến đi; tin nhắn được lưu trực tiếp vào Supabase (`core` schema).
 2. **Đồng thuận Vĩ mô (Macro Consensus - Consensus 1)**: AI Agent (Phase 1 Macro State) phác thảo số ngày và chủ đề từng ngày mà **chưa gọi các API địa điểm tốn kém**. Cả nhóm thảo luận và Host bấm khóa khung chương trình.
-3. **Tuyển chọn Chi tiết & Bình chọn Điểm dừng (Micro Curation & Stop Voting)**: AI Agent (Phase 2 Micro State) truy vấn live APIs (Google Places, Agoda, Klook), gom cụm địa lý trong bán kính $2.0$--$2.5$\,km ($\le 20$\,phút di chuyển). Thành viên vote UP/DOWN cho từng điểm dừng, hỗ trợ đổi địa điểm dự phòng trong 1 click (**1-Click Swap**).
+3. **Tuyển chọn Chi tiết & Bình chọn Điểm dừng (Micro Curation & Stop Voting)**: AI Agent (Phase 2 Micro State) truy vấn hệ thống API tổng hợp (Google Maps/Places, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook), gom cụm địa lý trong bán kính $2.0$--$2.5$\,km ($\le 20$\,phút di chuyển). Thành viên vote UP/DOWN cho từng điểm dừng, hỗ trợ đổi địa điểm dự phòng trong 1 click (**1-Click Swap**).
 4. **Chốt Kế Hoạch Chính Thức (Final Confirmation - Consensus 2)**: Host xác nhận kế hoạch hoàn chỉnh, lưu các bản ghi đã chuẩn hóa vào bảng `plan_stops` trong PostgreSQL, sinh file PDF và lịch (.ics), kích hoạt bản đồ lộ trình Mapbox GL.
 5. **Lịch trình Sống Động (Living Itinerary & Dynamic Adaptation)**: Kế hoạch không bị đóng băng cứng nhắc. Khi có biến động thực tế (ví dụ trời mưa bất chợt), thành viên chat yêu cầu đổi quán cafe trong nhà gần đó, AI chỉ cập nhật duy nhất 1 dòng trong bảng `plan_stops` mà không làm xáo trộn toàn bộ lịch trình.
 
@@ -70,6 +70,12 @@ flowchart LR
 ### 4.3. Động Cơ Đồng Thuận 2 Tầng (Two-Tier Consensus Engine)
 - **Tầng 1 (Macro Approval)**: Khóa khung chương trình trước khi gọi các API tốn kém token và chi phí.
 - **Tầng 2 (Micro Stop Voting)**: Bình chọn từng điểm dừng. Điểm dừng bị vote DOWN lập tức hiển thị 2 phương án thay thế đã được nạp sẵn (pre-fetched) để swap chỉ trong 1 click.
+
+### 4.4. Chuẩn Giao Diện: Flexbox & Fully Responsive UI (Mobile-First)
+- **Bố cục Flexbox & Grid Hiện Đại**: Áp dụng triệt để `display: flex` và CSS Grid cho toàn bộ layout (Timeline, Chat, Voting Cards, Navbar, Modal).
+- **Đáp ứng mọi kích thước (Multi-Screen Breakpoints)**: Tối ưu liền mạch từ Mobile (375px+), Tablet (768px+) đến Desktop/Màn hình lớn (1024px+ / 1440px+).
+- **Adaptive Split-Pane & Drawer Layout**: Trên mobile hiển thị bottom-sheet / drawer vuốt mượt mà; trên desktop chuyển thành giao diện chia 3 cột (Chat - Interactive Timeline - Mapbox GL) không gây giật lag và zero layout shift (CLS < 0.1).
+- **Chuẩn Công Thái Học & Tiếp Cận (WCAG AA)**: Kích thước vùng bấm chạm tối thiểu $44 \times 44$\,px trên mobile, độ tương phản văn bản chuẩn $\ge 4.5:1$.
 
 ---
 
@@ -97,7 +103,7 @@ flowchart LR
 ```
 
 1. **Tier 1 (Strict Schema)**: Ràng buộc đầu ra của AI theo Pydantic schema nghiêm ngặt (tên địa điểm, danh mục, thời lượng dừng, phân khúc giá), ngăn chặn việc sinh text lan man hoặc thiếu trường dữ liệu.
-2. **Tier 2 (Live Map Check)**: Xác thực từng địa điểm qua Google Places API và OpenStreetMap để đảm bảo địa điểm có thật 100%, đang mở cửa và đúng giờ hoạt động.
+2. **Tier 2 (Live Map Check)**: Xác thực từng địa điểm qua các API đối tác và tìm kiếm: **Google Places (Google Maps), Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia** để đảm bảo địa điểm có thật 100%, có giá phòng thực tế, đang mở cửa và đúng giờ hoạt động.
 3. **Tier 3 (Distance Guard)**: Áp dụng công thức khoảng cách Haversine và Mapbox định tuyến, đảm bảo các điểm dừng trong cùng một buổi sáng/chiều nằm trong bán kính $\le 2.5$\,km và thời gian di chuyển $\le 20$\,phút.
 4. **Tier 4 (Member Votes & 1-Click Swap)**: Thành viên nhóm trực tiếp vote UP/DOWN; các điểm dừng bị phản đối lập tức được thay thế bằng phương án dự phòng đã được xác thực sẵn.
 
@@ -120,7 +126,7 @@ Hệ thống được thiết kế theo kiến trúc phi tập trung, phân bổ
   - **Redis Streams (`XADD`)**: Đẩy tác vụ sinh kế hoạch bất đồng bộ từ Gateway sang AI Worker mà không block người dùng.
   - **Redis Pub/Sub (`plan:updated`)**: Đồng bộ sự kiện cập nhật kế hoạch tới tất cả các instance FastAPI Gateway để broadcast qua WebSockets.
   - **L2 Cache (TTL 24h)**: Lưu trữ kết quả truy vấn địa điểm từ Google Places API để giảm chi phí và chống rate limit.
-- **Độ Bền & Khả Năng Kháng Lỗi (PyBreaker Resilience)**: Mọi lệnh gọi API bên thứ 3 (Google Places, Agoda, Booking.com, Klook, 12Go Asia) đều được bọc qua **PyBreaker Circuit Breaker** với timeout 2.5 giây; khi có sự cố mạng hoặc lỗi API, hệ thống tự động ngắt mạch và chuyển sang dữ liệu cache/DB fallback.
+- **Độ Bền & Khả Năng Kháng Lỗi (PyBreaker Resilience)**: Mọi lệnh gọi API du lịch & khách sạn bên thứ 3 (**Google Maps/Places, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook, 12Go Asia**) đều được quản lý qua Adapter Pattern và bọc bởi **PyBreaker Circuit Breaker** với timeout 2.5 giây; khi có sự cố mạng hoặc lỗi API, hệ thống tự động ngắt mạch và chuyển sang dữ liệu cache/DB fallback.
 - **Giám Sát & Truy Vết (Observability)**: Tích hợp **OpenTelemetry** truy vết phân tán xuyên suốt luồng Client $\rightarrow$ Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ Supabase $\rightarrow$ WebSocket, và **LangSmith** theo dõi chất lượng prompt của LLM.
 
 ---
@@ -143,6 +149,18 @@ Hệ thống được thiết kế theo kiến trúc phi tập trung, phân bổ
 - **Độ chính xác AI (AI Grounding Accuracy)**: $\ge 98\%$ địa điểm được xác thực trên Google Places với Place ID hợp lệ ($0\%$ địa điểm ảo); $\ge 95\%$ tuân thủ ràng buộc khoảng cách ($\le 2.5$\,km) và ngân sách.
 - **Tốc độ đạt đồng thuận (Consensus Speed)**: Rút ngắn thời gian chốt kế hoạch nhóm từ $2$--$3$\,ngày tranh cãi xuống **dưới 15 phút**; $\ge 85\%$ điểm dừng được chấp thuận ngay từ lượt đề xuất đầu tiên.
 - **Độ sẵn sàng hệ thống (System Health)**: Uptime $\ge 99.5\%$; độ trễ đồng bộ WebSocket giữa nhiều người dùng trong cùng một phòng $< 100$\,ms.
+
+### 7.4. Chuẩn Kỹ Thuật: Architecture Pattern, Modular Design & Tiêu Chí Kỹ Thuật (Dễ Maintain, Dễ Dev, Dễ Hiểu)
+- **Architecture Pattern (Kiến Trúc Phân Tầng Chuẩn Mực)**:
+  - **Backend (Layered Clean Architecture / Modular Monolith)**: Phân tách tuyệt đối 4 tầng: API Routers (FastAPI) $\rightarrow$ Business Domain Services $\rightarrow$ Data Access Layer (DAL/Repository SQLAlchemy 2.0 Async) $\rightarrow$ External Provider Adapters (Adapter & Strategy Pattern).
+  - **Frontend (Component-Driven Architecture - CDA)**: Áp dụng Feature-Sliced Design (`features/`), phân tách rành mạch: Pure Presentation Components $\rightarrow$ Container/Custom Hooks $\rightarrow$ Global Stores (Zustand) $\rightarrow$ Service Clients (TanStack Query + MSW).
+- **Modular Design (Thiết Kế Mô-Đun Hóa)**:
+  - **High Cohesion & Low Coupling**: Mỗi module nghiệp vụ độc lập, giao tiếp thông qua hợp đồng chuẩn (Typed Pydantic Schemas & TypeScript Interfaces), triệt tiêu circular dependencies.
+  - **Pluggable Travel Provider Architecture**: Đóng gói toàn bộ các API khách sạn & địa điểm (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**) qua interface trừu tượng `BaseTravelProvider`. Thêm/bớt nhà cung cấp mà không sửa core business.
+- **Bộ Ba Tiêu Chí Công Kỹ Nghệ Hàng Đầu**:
+  - 🛠️ **Dễ Maintain**: Tuân thủ triệt để nguyên lý SOLID, DRY, hàm ngắn gọn ($\le 30$ dòng), cấu trúc file tường minh, tự động ngắt mạch kháng lỗi qua PyBreaker.
+  - 💻 **Dễ Dev (Developer Experience - DX)**: Quy trình Contract-First, tự động sinh OpenAPI spec, Mock Service Worker (MSW) cho phép FE & BE lập trình song song từ Sprint 0, Hot Module Replacement (Vite), 100% Type-Safety.
+  - 📖 **Dễ Hiểu**: Mã nguồn tự dẫn giải (Self-documenting code), chuẩn đặt tên rõ nghĩa, kiến trúc tài liệu Docs-as-Code bám sát 100% Technical Proposal.
 
 ---
 

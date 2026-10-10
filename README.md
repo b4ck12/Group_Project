@@ -36,15 +36,19 @@
 2. **AI Agent Hợp Nhất & Đáng Tin Cậy (Unified DeepSeek-V4 Agent & Four-Tier Grounding)**:
    - Một agent duy nhất trong **LangGraph Python** hoạt động với 2 pha trạng thái tách biệt (**Phase 1: Macro Planning State** và **Phase 2: Micro Curation State**).
    - **Lớp trừu tượng hóa mô hình (Model Abstraction Layer)**: DeepSeek-V4 làm bộ não suy luận chính, tự động fallback sang GPT-4o, Claude, hoặc Gemini để chống vendor lock-in.
-   - **Four-Tier Grounding Pipeline**: Loại bỏ hoàn toàn ảo giác AI thông qua (1) Strict Pydantic Schema, (2) Live Map Check (Google Places & OpenStreetMap), (3) Distance Guard ($\le 2.5$\,km, di chuyển $\le 20$\,phút), (4) Granular Member Voting & Pre-fetched Backups.
+   - **Four-Tier Grounding Pipeline**: Loại bỏ hoàn toàn ảo giác AI thông qua (1) Strict Pydantic Schema, (2) Live Map & Hotel Check qua hệ sinh thái đối tác (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**), (3) Distance Guard ($\le 2.5$\,km, di chuyển $\le 20$\,phút), (4) Granular Member Voting & Pre-fetched Backups.
    - **Typed State Checkpointing**: Lưu vết trạng thái hội thoại vào PostgreSQL qua `AsyncPostgresSaver` kết nối Data Access Layer (DAL).
 3. **Hạ Tầng Điện Toán Đám Mây Sẵn Sàng Vận Hành (Cloud Deployment Architecture)**:
-   - **Frontend**: React 18 SPA trên **Vercel Global Edge CDN** (Zero cold-start latency).
+   - **Frontend**: React 18 SPA trên **Vercel Global Edge CDN** với thiết kế **Flexbox & Fully Responsive UI** (Mobile-first, Tablet, Desktop 3-pane split-view, zero cold-start latency).
    - **Backend Gateway**: FastAPI (Python 3.11+) trên **Render.com Web Service** (REST + WebSocket room server, anti-sleep keep-alive ping tới `/api/healthz`).
    - **AI Agent Worker**: LangGraph Worker trên **Render.com** (tiêu thụ RAM $\le 512$\,MB, lắng nghe hàng đợi tác vụ qua Redis Streams).
    - **Cơ Sở Dữ Liệu & BaaS**: **Supabase PostgreSQL 16 + pgvector** với **Supavisor Connection Pooler (port 6543, Transaction Mode)** ghép 200+ phiên người dùng qua 15 kết nối vật lý, bảo mật Row Level Security (RLS).
    - **Hàng Đợi & Bộ Nhớ Đệm**: **Upstash Redis 7** xử lý hàng đợi bất đồng bộ (Redis Streams `XADD`/`XREADGROUP`), phát sóng sự kiện đa máy chủ (Redis Pub/Sub `plan:updated`), và L2 Cache lưu trữ địa điểm 24h.
    - **Độ Bền & Giám Sát**: **PyBreaker Circuit Breaker** (timeout 2.5s, tự động chuyển về cache/DB khi API ngoài lỗi), **OpenTelemetry** truy vết phân tán, và **LangSmith** theo dõi LLM.
+4. **Chuẩn Mực Thiết Kế Ứng Dụng: Architecture Pattern & Modular Design (Dễ Maintain, Dễ Dev, Dễ Hiểu)**:
+   - **Clean Layered Architecture & Modular Monolith**: Phân tách rành mạch Router $\rightarrow$ Service $\rightarrow$ DAL $\rightarrow$ External Provider Adapters (`BaseTravelProvider`).
+   - **Component-Driven Modular Frontend**: Phân vùng theo Feature slices, 100% Flexbox & CSS Grid, tách bạch Presentation và Container Hooks.
+   - **Chất Lượng Kỹ Thuật Vượt Trội**: Dễ maintain (SOLID, DRY), Dễ dev (Contract-First OpenAPI, MSW mock, Type-Safety 100%), Dễ hiểu (Docs-as-Code bám sát 100% Proposal).
 
 ---
 

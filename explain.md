@@ -36,7 +36,7 @@ flowchart TD
 
     subgraph Part2 ["TripMate Platform (FastAPI + LangGraph + APIs)"]
         B1["2. Phase 1: Macro Planning State<br/>(Soạn thảo số ngày, chủ đề, nhịp độ<br/>KHÔNG gọi API ngoài tốn phí)"]
-        B2["4. Phase 2: Micro Curation State<br/>(Gọi Google Places/Agoda/Klook qua PyBreaker,<br/>Gom cụm địa lý 2-3km)"]
+        B2["4. Phase 2: Micro Curation State<br/>(Tra cứu Maps, Search & Khách sạn đa nguồn qua PyBreaker,<br/>Gom cụm địa lý 2-3km)"]
         B3["1-Click Swap: Đổi địa điểm dự phòng đã pre-fetch"]
         B4["6. Final Confirmation & Exports<br/>(Ghi plan_stops vào DB, sinh PDF & .ics)"]
         B5["On-Trip Edit: Cập nhật duy nhất 1 dòng khi trời mưa"]
@@ -78,7 +78,7 @@ flowchart TD
 
 ### Bước 4: Pha 2 — Tuyển chọn Địa Điểm Chi Tiết (Phase 2: Micro Curation)
 - Được kích hoạt ngay sau khi Macro Lock.
-- AI Agent gọi các công cụ kết nối APIs ngoài (Google Places API, Agoda, Klook) thông qua lớp ngắt mạch **PyBreaker Circuit Breaker** (timeout 2.5s).
+- AI Agent gọi các công cụ kết nối API ngoài (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook**) thông qua bộ chuyển đổi Adapter Pattern và lớp ngắt mạch **PyBreaker Circuit Breaker** (timeout 2.5s).
 - **Thuật toán Gom Cụm Địa Lý (Smart Geo-Clustering)**: Sử dụng công thức khoảng cách Haversine và Mapbox Matrix để gom các địa điểm trong cùng một buổi sáng/chiều vào bán kính hẹp $2.0$--$2.5$\,km ($\le 20$\,phút di chuyển), ngăn chặn tuyệt đối tình trạng di chuyển hình ziczac qua lại giữa hai đầu thành phố.
 - AI nạp sẵn 2 địa điểm dự phòng cho mỗi điểm dừng chính để chuẩn bị cho cơ chế 1-click swap.
 
@@ -214,3 +214,37 @@ TripMate AI hỗ trợ 2 kịch bản sử dụng thực tế:
 3. **Bình Chọn Bất Khả Xâm Phạm (Atomic Voting)**: Sử dụng các câu lệnh cập nhật SQL nguyên tử (`UPDATE ... WHERE ...`) và Redis transaction để triệt tiêu hoàn toàn tình trạng race condition khi nhiều thành viên cùng bấm vote tại một phần nghìn giây.
 4. **Phòng Chống Prompt Injection**: Toàn bộ nội dung chat từ người dùng được làm sạch (sanitization) qua Pydantic v2 và thư viện bảo mật trước khi đưa vào template prompt của LLM. Tách biệt hoàn toàn giữa vai trò `system` và `user`.
 5. **Khôi Phục Phiên Tự Động (Session Recovery)**: Trạng thái của LangGraph được checkpoint liên tục vào Supabase. Nếu container AI Worker trên Render bị restart đột ngột, tác vụ sẽ tự động khôi phục chính xác từ checkpoint gần nhất mà không làm mất dữ liệu của người dùng.
+
+---
+
+## 🏛️ 7. Chuẩn Mực Thiết Kế Ứng Dụng: Architecture Patterns, Modular Design & Bộ Ba Tiêu Chí Kỹ Thuật
+
+TripMate AI được xây dựng theo chuẩn mực kỹ thuật cao cấp của một ứng dụng quy mô lớn, thỏa mãn trọn vẹn: **Dễ Maintain, Dễ Dev, Dễ Hiểu**:
+
+### 7.1. Kiến Trúc Ứng Dụng Phân Tầng (Clean / Layered Architecture)
+- **FastAPI Backend**:
+  - `api/`: Transport Layer, nhận HTTP/WS request, validate JWT, bắt lỗi ngoại lệ chuẩn hóa.
+  - `services/`: Domain Logic Layer, giải quyết bài toán nghiệp vụ, điều phối Two-Stage Consensus, thuật toán Min-Cash-Flow.
+  - `dal/` (Data Access Layer): Repository Layer thao tác cơ sở dữ liệu qua SQLAlchemy 2.0 Async.
+  - `adapters/`: Travel Provider Layer, cô lập toàn bộ các kết nối API du lịch và khách sạn bên ngoài.
+- **React Frontend**:
+  - `features/`: Chia nhỏ theo miền nghiệp vụ (`event-planning`, `ai-chat`, `finance`).
+  - `components/ui/`: Atomic Presentation components xây dựng trên shadcn/ui.
+  - `hooks/`: Custom Hooks đóng gói toàn bộ stateful logic và side effects.
+  - `stores/`: Quản lý client state toàn cục qua Zustand.
+
+### 7.2. Tầng Chuyển Đổi Dịch Vụ Du Lịch (Pluggable Adapter & Strategy Pattern)
+- Tích hợp mạng lưới đối tác rộng lớn: **Google Maps (Places API), Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**.
+- Mọi provider đều kế thừa `BaseTravelProvider`, đảm bảo khi thay đổi API key hoặc thêm nhà cung cấp mới, toàn bộ luồng AI Agent và hiển thị UI không cần thay đổi dù chỉ một dòng code.
+
+### 7.3. Giao Diện Flexbox & Đáp Ứng Đa Thiết Bị (Flexbox & Fully Responsive UI)
+- **Flexbox-First**: 100% bố cục dùng `display: flex` và CSS Grid.
+- **Responsive Layout**:
+  - Mobile (375px+): Giao diện 1 cột, ngăn kéo (drawer/bottom-sheet) kéo thả mượt mà, touch target chuẩn $\ge 44 \times 44$\,px.
+  - Tablet (768px+): Bố cục 2 cột tối ưu.
+  - Desktop (1024px+ / 1440px+): Split-pane 3 cột song song (Chat - Timeline/Voting - Mapbox GL Canvas) đồng bộ thời gian thực, không giật lag.
+
+### 7.4. Ba Trụ Cột Kỹ Thuật: Dễ Maintain, Dễ Dev, Dễ Hiểu
+- 🛠️ **Dễ Maintain (Maintainable)**: Tuân thủ SOLID, DRY, KISS, hàm ngắn ($\le 30$ dòng), circuit breaker PyBreaker tự phục hồi.
+- 💻 **Dễ Dev (High DX)**: Contract-First từ Sprint 0, OpenAPI spec chuẩn chỉnh, MSW mocking độc lập, TypeScript strict + Pydantic v2 type safety 100%.
+- 📖 **Dễ Hiểu (Readable)**: Naming convention rõ ràng, code tự thuyết minh (self-documenting), hệ thống tài liệu Docs-as-Code bám sát 100% Technical Proposal.

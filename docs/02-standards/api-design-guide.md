@@ -72,9 +72,11 @@
   POST   /events/{id}/final-lock                     # [Consensus 2] Host Chốt Kế Hoạch Chính Thức
   PATCH  /events/{id}/stops/{stopId}                 # Living Itinerary: Cập nhật duy nhất 1 điểm dừng khi trời mưa
 
-/api/v1/places & Travel APIs
-  GET    /places/search?category=&keyword=&lat=&lng= # Tra cứu địa điểm qua Google Places + Redis Cache
+/api/v1/places & Travel APIs (Adapter Pattern)
+  GET    /places/search?category=&keyword=&lat=&lng= # Tra cứu địa điểm qua Google Maps, Google Search, TripAdvisor + Redis Cache
   GET    /places/{placeId}/details                   # Chi tiết địa điểm, giờ mở cửa, hình ảnh
+  GET    /accommodations/search                      # Tra cứu & so sánh khách sạn đa nguồn (Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia)
+  GET    /accommodations/{id}                        # Chi tiết phòng, xếp hạng, tiện ích và liên kết đặt phòng
   GET    /weather?lat=&lng=                          # Dự báo thời tiết 3 ngày (OpenWeatherMap)
   GET    /exchange-rate?from=USD&to=VND              # Tỷ giá ngoại tệ
 

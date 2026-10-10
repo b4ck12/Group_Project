@@ -58,22 +58,22 @@
 | 17 | `TASK-109` | **LangGraph State Machine (Two-Phase)** | Máy trạng thái LangGraph Python chạy tuần tự qua 2 pha: Phase 1 (Macro State) và Phase 2 (Micro State). | Nguyễn Tùng Dương |
 | 18 | `TASK-110` | **Model Abstraction Layer** | Bọc mô hình chính **DeepSeek-V4**, tự động fallback sang GPT-4o, Claude 3.5, hoặc Gemini 1.5 Pro. | Nguyễn Tùng Dương |
 | 19 | `TASK-209` | **Tier 1: Ràng buộc Pydantic Schema** | Chuẩn hóa đầu ra LLM bằng Pydantic v2 (tên, phân khúc, thời lượng, category), loại bỏ text lan man. | Nguyễn Tùng Dương |
-| 20 | `TASK-210` | **Tier 2: Kiểm tra Bản đồ Thực tế (Live Map Check)** | Đối chiếu dữ liệu với Google Places API và OpenStreetMap, xác thực Place ID và giờ mở cửa thật 100%. | Nguyễn Tùng Dương |
+| 20 | `TASK-210` | **Tier 2: Kiểm tra Bản đồ & Khách sạn Thực tế (Live Map & Hotel Check)** | Đối chiếu dữ liệu đa nguồn: Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia để xác thực Place ID, giá phòng và giờ mở cửa. | Nguyễn Tùng Dương |
 | 21 | `TASK-211` | **Tier 3: Thuật toán Gom cụm Địa lý (Distance Guard)** | Áp dụng công thức Haversine gom cụm các điểm dừng trong bán kính $\le 2.5$\,km ($\le 20$\,phút di chuyển). | Nguyễn Tùng Dương |
 | 22 | `TASK-308` | **Nạp sẵn Phương án Dự phòng (Pre-fetched Backups)** | Tự động truy vấn và chuẩn bị sẵn 2 phương án thay thế cho mỗi điểm dừng chính phục vụ 1-Click Swap. | Nguyễn Tùng Dương |
 | 23 | `TASK-401` | **Lưu vết Checkpoint (AsyncPostgresSaver)** | Ghi nhận trạng thái hội thoại vào schema `checkpoints` qua Data Access Layer (DAL) có xác thực. | Nguyễn Tùng Dương |
 
 ---
 
-## 🌐 Nhóm 5 — Tích Hợp API Du Lịch Bên Ngoài & Độ Bền PyBreaker
+## 🌐 Nhóm 5 — Tích Hợp API Du Lịch Bên Ngoài & Độ Bền PyBreaker (Travel Provider Adapters)
 
 | # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
 |:---:|:---:|---|---|:---:|
-| 24 | `TASK-108` | **Tra cứu Google Places API** | Tìm kiếm địa điểm, nhà hàng, khách sạn, điểm check-in bằng `httpx` async kèm phân loại `StopCategory`. | Hà Đăng Huy |
-| 25 | `TASK-205` | **Tích hợp Dịch vụ Khách sạn & Tour** | Kết nối dữ liệu chỗ ở (Agoda, Booking.com) và hoạt động trải nghiệm (Klook, 12Go Asia). | Hà Đăng Huy |
+| 24 | `TASK-108` | **Multi-Provider POI Search Adapter** | Tra cứu địa điểm, nhà hàng qua Google Maps (Places API New), Google Search, TripAdvisor bằng `httpx` async bọc qua `BaseTravelProvider`. | Hà Đăng Huy |
+| 25 | `TASK-205` | **Multi-Provider Lodging & Hotel Adapter** | Kết nối dữ liệu lưu trú đa nguồn: Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook, 12Go Asia qua Strategy Pattern. | Hà Đăng Huy |
 | 26 | `TASK-207` | **Dự báo Thời tiết (OpenWeatherMap)** | Tra cứu thời tiết theo tọa độ điểm đến, lưu cache 3 giờ để cảnh báo mưa gió cho nhóm. | Hà Đăng Huy |
 | 27 | `TASK-107` | **Lớp Ngắt Mạch PyBreaker Circuit Breaker** | Ngắt mạch tự động (timeout 2.5s) khi API ngoài quá tải, chuyển luồng về L2 Cache/DB fallback. | Hà Đăng Huy |
-| 28 | `TASK-208` | **Upstash Redis L2 Caching Service** | Lưu trữ kết quả tra cứu địa điểm trong 24 giờ trên Upstash Redis, giảm 80% chi phí API calls. | Hà Đăng Huy |
+| 28 | `TASK-208` | **Upstash Redis L2 Caching Service** | Lưu trữ kết quả tra cứu địa điểm và khách sạn trong 24 giờ trên Upstash Redis, giảm 80% chi phí API calls. | Hà Đăng Huy |
 
 ---
 
@@ -81,7 +81,7 @@
 
 | # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
 |:---:|:---:|---|---|:---:|
-| 29 | `TASK-111` | **Hệ thống Design Tokens & Theme** | Xây dựng theme chuẩn (Dark/Light mode) với Tailwind CSS và thư viện component shadcn/ui. | Nguyễn Minh Đức |
+| 29 | `TASK-111` | **Design System: Flexbox & Responsive Layout** | Xây dựng 100% layout bằng Flexbox & CSS Grid, đáp ứng mượt mà Mobile (375px+), Tablet, Desktop Split-Pane (1024px+ / 1440px+), chuẩn WCAG AA. | Nguyễn Minh Đức |
 | 30 | `TASK-114` | **Trang Landing Page & Giới thiệu** | Trang chủ hiện đại giới thiệu tính năng, mô phỏng luồng 2-Stage Consensus, nút Call-to-Action. | Nguyễn Minh Đức |
 | 31 | `TASK-115` | **Hỗ trợ Đa ngôn ngữ (i18n)** | Chuyển đổi ngôn ngữ Tiếng Việt / Tiếng Anh mượt mà bằng thư viện `react-i18next`. | Nguyễn Minh Đức |
 | 32 | `TASK-215` | **Canvas Bản đồ Tương tác Mapbox GL** | Hiển thị các điểm dừng trên bản đồ số, vẽ tuyến đường di chuyển trực quan giữa các điểm. | Hà Đăng Huy |

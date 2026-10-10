@@ -46,10 +46,32 @@ docs/06-design/
 
 ---
 
-## 📐 Nguyên Tắc Thiết Kế Bắt Buộc
+## 📐 Nguyên Tắc Thiết Kế Bắt Buộc & Tiêu Chuẩn Giao Diện (App Design Standards)
 
-- **Design Tokens là nguồn sự thật**: Tuyệt đối không hardcode mã màu hex hoặc kích thước lẻ tẻ trong component; luôn dùng token class của Tailwind.
+### 1. Bố Cục Flexbox & Grid Hiện Đại (Flexbox-First Standard)
+- **100% Flexbox & CSS Grid**: Mọi layout từ Header, Sidebar, Room Chat, Timeline Cards đến Map Toolbar đều xây dựng bằng `display: flex` hoặc CSS Grid. Tuyệt đối không dùng hardcoded pixel layout hoặc absolute positioning cho cấu trúc chính.
+- **Fluid & Adaptive Growth**: Tận dụng các thuộc tính `flex: 1`, `flex-wrap: wrap`, `gap-4`, `justify-between` để các khối giao diện tự co giãn tự nhiên theo tỷ lệ khung hình.
+
+### 2. Tiêu Chuẩn Đáp Ứng Đa Thiết Bị (Fully Responsive Multi-Screen Specs)
+- **Mobile-First (375px — 767px)**:
+  - Bố cục 1 cột tối ưu cho ngón tay cái.
+  - Room Chat và Stop Voting được bố trí dạng bottom-sheet vuốt trượt hoặc tab chuyển đổi nhanh.
+  - Kích thước touch target $\ge 44 \times 44$\,px.
+- **Tablet (768px — 1023px)**:
+  - Bố cục 2 cột linh hoạt: Chatbox thu gọn bên cạnh Timeline và Voting Cards.
+- **Desktop & Ultra-wide (1024px — 1440px+)**:
+  - Giao diện Split-Pane 3 cột đồng thời: Cột 1 (Room Chat & Thành viên) — Cột 2 (Dòng thời gian & Thẻ bình chọn) — Cột 3 (Canvas bản đồ Mapbox GL toàn cảnh).
+  - Không reload trang, cập nhật realtime không layout shift (CLS < 0.1).
+
+### 3. Modular Component Design (Thiết Kế Thành Phần Mô-Đun Hóa)
+- **Độc lập và Tái sử dụng**: Mỗi UI component (ví dụ: `StopCard`, `HotelBookingBadge`, `VotingActionGroup`) là một mô-đun độc lập, nhận props rõ ràng.
+- **Thẻ hiển thị đối tác du lịch**: Hỗ trợ badge hiển thị nguồn giá và phòng từ các đối tác tích hợp (**Google Maps, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**).
 - **Đầy đủ 6 trạng thái Component**: Default, Hover, Active, Disabled, Loading (Skeleton), Empty, Error.
-- **Responsive Mobile-First**: Tối ưu trải nghiệm cho điện thoại thông minh (375px+), tablet và desktop màn hình rộng.
-- **Tiêu chuẩn Tiếp cận (WCAG AA)**: Tỷ lệ tương phản văn bản $\ge 4.5:1$, hỗ trợ điều hướng bàn phím (Keyboard accessibility).
-- **Hỗ trợ Đa ngôn ngữ (i18n)**: Toàn bộ text nhúng qua `react-i18next` (Tiếng Việt và English), mockup hiển thị rõ vị trí chuỗi text động.
+- **Design Tokens là nguồn sự thật**: Tuyệt đối không hardcode mã màu hex; luôn dùng token class của Tailwind (`bg-primary-blue`, `text-accent-teal`).
+- **Tiêu chuẩn Tiếp cận (WCAG AA)**: Tỷ lệ tương phản văn bản $\ge 4.5:1$, hỗ trợ điều hướng bàn phím (Keyboard navigation).
+- **Hỗ trợ Đa ngôn ngữ (i18n)**: Toàn bộ text nhúng qua `react-i18next` (Tiếng Việt và English).
+
+### 4. Triết Lý Công Kỹ Nghệ: Dễ Maintain, Dễ Dev, Dễ Hiểu
+- 🛠️ **Dễ Maintain**: Component nhỏ gọn ($\le 120$ dòng JSX), tách biệt styling và logic hooks.
+- 💻 **Dễ Dev**: Mock Service Worker (MSW) cho phép render thử mọi trạng thái component mà không cần kết nối backend thật.
+- 📖 **Dễ Hiểu**: Đặt tên component theo chức năng nghiệp vụ tự nhiên, tuân thủ Storybook/Figma design specs.

@@ -90,7 +90,7 @@
 \subsection{The Problem: Pain Points in Group Trip Planning}
 Coordinating leisure outings or vacations with friends is notoriously friction-heavy:
 \begin{itemize}
-\item \textbf{Tool Fragmentation:} Planning requires juggling 5+ disconnected applications (Google Maps, review blogs, Agoda, Booking.com, chat apps).
+\item \textbf{Tool Fragmentation:} Planning requires juggling 5+ disconnected applications (Google Maps, Google Search, TripAdvisor, Airbnb, Trip.com, Hotels.com, chat apps).
 \item \textbf{Preference Deadlocks:} Conflicting budgets, dietary restrictions, and activity styles stall decision-making.
 \item \textbf{Organizer Burnout \& Buried Context:} Chat polls and venue links quickly get buried under hundreds of messages, leaving a single person overwhelmed with building and adjusting schedules.
 \end{itemize}
@@ -107,7 +107,7 @@ TripMate AI unifies group planning through a collaborative room powered by a \te
 \begin{enumerate}
 \item \textbf{Desires Capture:} Members share dates, budgets, and vibes in persistent room chat, saved directly into PostgreSQL.
 \item \textbf{Macro Consensus:} The AI drafts high-level dates and daily themes; the group discusses and votes to lock the roadmap.
-\item \textbf{Micro Curation \& Stop Voting:} The AI queries live APIs (Google Places, Agoda, Klook) to populate venues clustered within a 2--3\,km radius per half-day block. Members vote thumbs UP/DOWN, with 1-click alternative swaps.
+\item \textbf{Micro Curation \& Stop Voting:} The AI queries multi-provider travel and accommodation APIs (Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook) to populate venues clustered within a 2--3\,km radius per half-day block. Members vote thumbs UP/DOWN, with 1-click alternative swaps.
 \item \textbf{Final Confirmation:} The Host confirms the finalized plan, generating PDF and calendar (.ics) exports with synchronized Mapbox routes.
 \end{enumerate}
 
@@ -151,6 +151,7 @@ TripMate AI unifies group planning through a collaborative room powered by a \te
 \begin{itemize}
 \item \textbf{Invite via Link \& Role Access:} Instant room entry with \textit{Host} (plan locking, settings) and \textit{Member} (chat, stop voting, swaps) permissions.
 \item \textbf{Interactive Timeline \& Mapbox GL:} Draggable stop cards displaying photos, opening hours, estimated stay duration, and live Mapbox route navigation.
+\item \textbf{Fluid Flexbox \& Responsive UI:} Interface designed with strict Flexbox (\texttt{display: flex}) and CSS Grid layouts, fully responsive across mobile (375px+), tablet, and desktop multi-pane views with zero layout shift.
 \end{itemize}
 
 \subsection{Two-Tier Consensus Engine}
@@ -334,7 +335,7 @@ To eliminate AI hallucinations (inventing fake places, closed venues, or unreali
 
 \begin{itemize}[leftmargin=1.2em]
 \item \textbf{Tier 1 (Strict Schema):} Restricts AI output to a fixed Pydantic format (name, category, duration, budget tier), preventing rambling or missing fields.
-\item \textbf{Tier 2 (Live Map Check):} Validates each venue via Google Places API and OpenStreetMap to ensure it actually exists, is open, and has correct hours.
+\item \textbf{Tier 2 (Live Map Check):} Validates each venue via Google Places (Google Maps), Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, and Expedia to ensure physical existence, operational hours, and live availability.
 \item \textbf{Tier 3 (Distance Guard):} Uses Haversine distance and Mapbox to cluster half-day stops within $2.0$--$2.5$\,km ($\le 20$\,min transit), avoiding zigzag travel.
 \item \textbf{Tier 4 (Voting \& Backup Swap):} Members vote thumbs UP/DOWN on each stop; downvoted venues are instantly replaced with pre-verified backups in 1 click.
 \end{itemize}
@@ -361,7 +362,8 @@ TripMate AI uses an asynchronous, decoupled architecture connecting the React SP
 \textbf{Live Room Chat} \quad$\vert$\quad
 \textbf{Interactive Timeline \& Granular Stop Voting} \quad$\vert$\quad
 \textbf{Mapbox GL Route Canvas} \quad$\vert$\quad
-\textbf{Zero Cold-Start Edge CDN}
+\textbf{Flexbox \& Responsive UI} \quad$\vert$\quad
+\textbf{Modular Component Design}
 }
 };
 
@@ -407,10 +409,11 @@ $\bullet$ \textbf{Security \& BaaS:} Row Level Security (RLS), Supabase Auth \& 
 };
 
 \node[widebox] (ext) at (5.0, -2.1) {
-\textbf{\footnotesize 6. External Travel APIs \& Resilience}\\[0.02cm]
+\textbf{\footnotesize 6. External Travel \& Lodging APIs}\\[0.02cm]
 \parbox{7.6cm}{\raggedright \tiny
 $\bullet$ \textbf{PyBreaker Resilience:} Circuit breaker, 2.5s timeout \& fast DB fallback\\
-$\bullet$ \textbf{Lodging \& Dining:} Google Places API, Agoda, Booking.com\\
+$\bullet$ \textbf{Places \& Search:} Google Maps (Places API), Google Search, TripAdvisor\\
+$\bullet$ \textbf{Hotels \& Stays:} Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia\\
 $\bullet$ \textbf{Tours \& Transit:} Klook, 12Go Asia, OpenWeather API
 }
 };
@@ -441,7 +444,7 @@ $\bullet$ \textbf{Tours \& Transit:} Klook, 12Go Asia, OpenWeather API
 \toprule
 \textbf{Tier} & \textbf{Core Technology} & \textbf{Cloud Platform} & \textbf{Architectural Role} \\
 \midrule
-\textbf{Frontend} & React 18 + TypeScript & \textbf{Vercel} & Interactive timeline, collaborative voting cards, Mapbox GL canvas on Edge CDN. \\
+\textbf{Frontend} & React 18 + TypeScript & \textbf{Vercel} & Responsive Flexbox UI, Modular Feature Design, timeline, voting cards, Mapbox GL. \\
 \midrule
 \textbf{Backend Gateway} & FastAPI (Python 3.11+) & \textbf{Render.com} & REST endpoints, WebSocket room server, anti-sleep keep-alive pings. \\
 \midrule
@@ -451,6 +454,8 @@ $\bullet$ \textbf{Tours \& Transit:} Klook, 12Go Asia, OpenWeather API
 \textbf{Database \& Auth} & PostgreSQL 16 + \texttt{pgvector} & \textbf{Supabase} & Relational persistence, Supavisor connection pooler (port 6543), RLS security. \\
 \midrule
 \textbf{Queue \& Cache} & Redis 7 / Redis Streams & \textbf{Upstash Redis} & Asynchronous task broker, WebSocket Pub/Sub broadcast, 24h TTL POI cache. \\
+\midrule
+\textbf{Travel \& Lodging APIs} & Multi-Provider Adapters & Multi-Provider & Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia. \\
 \midrule
 \textbf{Resilience \& Ops} & PyBreaker / OpenTelemetry & Cloud Observability & External API circuit breakers (2.5s timeout), distributed tracing, LangSmith. \\
 \bottomrule
@@ -682,6 +687,16 @@ To empirically verify performance, TripMate AI evaluates both the AI Agent and t
 \item \textbf{Atomic Voting:} Atomic SQL updates and Redis counters prevent race conditions when multiple members vote simultaneously.
 \item \textbf{Input Sanitization:} Chat inputs are sanitized before LLM processing to prevent prompt injection attempts.
 \item \textbf{Session Recovery:} LangGraph execution checkpoints are saved in PostgreSQL, enabling instant recovery if a container restarts.
+\end{itemize}
+
+\subsection{Architecture Patterns, Modular Design \& Engineering Foundations}
+\label{sec:architecture_patterns}
+To ensure the system is maintainable, developer-friendly, and easy to understand, TripMate AI adheres to rigorous software design principles:
+\begin{itemize}[leftmargin=1.2em]
+\item \textbf{Layered Clean Architecture:} Strict separation of API Transport (FastAPI Routers), Business Domain Services, Data Access Layer (DAL via SQLAlchemy 2.0 Async), and Provider Adapters.
+\item \textbf{Component-Driven Frontend \& Flexbox UI:} React 18 SPA is structured into modular feature slices (\texttt{features/}), isolating UI Presentation, custom hooks, Zustand stores, and TanStack Query. Layouts strictly employ Flexbox (\texttt{display: flex}) and CSS Grid for fluid responsiveness across mobile (375px+), tablet, and desktop views.
+\item \textbf{Multi-Provider Travel Adapter Pattern:} Accommodations and venues (Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia) implement a pluggable \texttt{BaseTravelProvider} Strategy Pattern, enabling zero-friction provider addition.
+\item \textbf{Developer Experience (DX) \& Maintainability:} 100\% type safety (TypeScript 5 + Pydantic v2), Contract-First API design with Mock Service Worker (MSW), short single-responsibility functions ($\le 30$ lines), automated linting (Ruff/ESLint), and comprehensive Docs-as-Code.
 \end{itemize}
 
 \section{Expected Impact \& Conclusion}
