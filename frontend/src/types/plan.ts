@@ -4,6 +4,8 @@
  * Endpoints: api-design-guide.md Section 3 — /api/v1/events/{eventId}/plans, votes
  */
 
+import type { BackupOption } from './consensus.ts';
+
 // --- Enums ---
 export type PlanStatus = 'DRAFT' | 'VOTING' | 'CONFIRMED' | 'ARCHIVED';
 
@@ -46,6 +48,7 @@ export interface PlanStopResponse {
   start_time: string | null;
   duration_minutes: number | null;
   metadata: Record<string, unknown> | null;
+  backup_options?: BackupOption[] | null;
 }
 
 // --- Plan Response ---
@@ -59,6 +62,8 @@ export interface PlanResponse {
   created_by_id: string | null;
   created_at: string;
   stops: PlanStopResponse[];
+  macro_locked?: boolean;
+  final_locked?: boolean;
 }
 
 // --- Vote Response ---
