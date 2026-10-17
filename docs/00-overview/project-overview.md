@@ -107,6 +107,36 @@ flowchart LR
 3. **Tier 3 (Distance Guard)**: Áp dụng công thức khoảng cách Haversine và Mapbox định tuyến, đảm bảo các điểm dừng trong cùng một buổi sáng/chiều nằm trong bán kính $\le 2.5$\,km và thời gian di chuyển $\le 20$\,phút.
 4. **Tier 4 (Member Votes & 1-Click Swap)**: Thành viên nhóm trực tiếp vote UP/DOWN; các điểm dừng bị phản đối lập tức được thay thế bằng phương án dự phòng đã được xác thực sẵn.
 
+### 5.3. Cơ Chế Quản Lý Ngân Sách & Cân Đối Chi Tiêu Thông Minh (Intelligent Budget & Price Balancing Engine)
+Để giải quyết bài toán mâu thuẫn tài chính trong nhóm, AI Agent đóng vai trò như một **Cố vấn Quản trị Tài chính Du lịch tự động**, cân đối mọi điểm dừng theo trần chi tiêu:
+- **Tổng Ngân Sách & Phân Khúc (Total Budget Modeling)**: AI tiếp nhận tổng ngân sách chuyến đi (`total_budget`) hoặc ngân sách bình quân đầu người (`budget_per_person`), phân tầng rõ ràng thành 3 cấp độ:
+  - `BUDGET` (Tiết kiệm): $\approx 300.000$ -- $600.000$\,VNĐ/người/ngày (du lịch balo, quán ăn bản địa, homestay).
+  - `MODERATE` (Tiêu chuẩn / Phổ biến nhất): $\approx 700.000$ -- $1.500.000$\,VNĐ/người/ngày (khách sạn 3 sao, ẩm thực đặc sản phong phú).
+  - `LUXURY` (Nghỉ dưỡng / Cao cấp): $> 2.000.000$\,VNĐ/người/ngày (resort 4-5 sao, nhà hàng hải sản cao cấp, fine dining).
+- **Phân Hệ Di Chuyển 2 Tầng — Máy Bay & Đi Lại Nội Thành (Two-Tier Transit Framework)**:
+  - **Tầng 1: Vé máy bay / Tàu xe chặng dài liên tỉnh (Intercity & Flight Transit)**:
+    - Đối với các kỳ nghỉ xa (Hà Nội $\leftrightarrow$ Đà Nẵng / Phú Quốc / Thái Lan), vé máy bay chiếm tới **$25$--$35\%$ tổng ngân sách**.
+    - AI Agent hỗ trợ cờ `is_transit_prebooked`:
+      - *Nếu chưa mua vé*: Agent dự toán vé máy bay khứ hồi qua đối tác (12Go Asia, Skyscanner/Google Flights cache) và tự động tính **Ngân sách trên bộ thực tế ($\text{Land Budget} = \text{Total Budget} - \text{Flight Budget}$)** để không bị bội chi.
+      - *Nếu đã tự mua trước*: Agent loại khoản này khỏi trần chi tiêu cần tối ưu, dồn $100\%$ ngân sách người dùng nhập vào dịch vụ tại điểm đến.
+  - **Tầng 2: Di chuyển nội thành & Đưa đón sân bay (Local Transit & Airport Transfers)**:
+    - Chi phí xe đưa đón sân bay 2 chiều và thuê xe máy ($120.000$--$180.000$\,đ/xe/ngày) hoặc taxi/Grabcar theo đoàn.
+    - AI tự động tính cước di chuyển dự kiến dựa trên khoảng cách km giữa các cụm điểm dừng bằng công thức Haversine + Mapbox Matrix API (chiếm $\approx 8$--$12\%$ ngân sách trên bộ).
+- **Kế Hoạch Phân Bổ Chi Tiêu Khoa Học (Spending Plan Allocation Matrix)**:
+  - *Chuyến đi nhiều ngày (Vacations - tính trên Land Budget)*: Lưu trú ($30$--$35\%$), Ẩm thực & Cafe ($30$--$35\%$), Vé tham quan & Hoạt động ($15$--$20\%$), Di chuyển nội thành ($8$--$12\%$), Quỹ dự phòng phát sinh trượt giá ($5$--$10\%$).
+  - *Đi chơi trong ngày (Day Hangouts)*: Ăn uống bữa chính ($45$--$50\%$), Cafe & Giải trí ($35$--$40\%$), Di chuyển & Dự phòng ($10$--$15\%$).
+- **Cơ Chế Cân Đối Động (Dynamic Budget Balancing & Trade-off Heuristics)**:
+  - Agent liên tục giám sát tổng chi phí cộng dồn (`running_cost <= total_budget`).
+  - **Bù trừ đối nghịch thông minh**: Nếu vé máy bay mùa cao điểm bị tăng giá hoặc nhóm chọn bữa tối Fine Dining vượt hạn mức, Agent tự động cân đối bằng cách ưu tiên các điểm tham quan miễn phí vé (cầu Rồng, phố đi bộ, bãi biển) hoặc khách sạn tối ưu chi phí; ngược lại, nếu săn được vé máy bay giá rẻ hoặc ở homestay tiết kiệm, Agent sẽ dồn thêm hạn mức cho ẩm thực đặc sản và vé vui chơi Klook.
+- **Tuyển Chọn Quán Ăn Theo Mức Giá (Venue Selection by Price Level)**: Ánh xạ mã giá từ Google Places API (`price_level` từ 1 đến 4) kết hợp trích xuất menu thực tế từ TripAdvisor:
+  - **Level 1 ($)**: $< 80.000$\,VNĐ/người/bữa (quán ăn đường phố, đặc sản bình dân, cafe cóc).
+  - **Level 2 ($$)**: $90.000$ -- $250.000$\,VNĐ/người/bữa (quán ăn gia đình, buffet lẩu/nướng, cafe thương hiệu).
+  - **Level 3 ($$$)**: $260.000$ -- $600.000$\,VNĐ/người/bữa (hải sản tươi sống, ẩm thực quốc tế, rooftop lounge).
+  - **Level 4 ($$$$)**: $> 600.000$\,VNĐ/người/bữa (Fine Dining, ẩm thực cao cấp chuẩn Michelin Guide).
+  - Mọi điểm dừng đều hiển thị chi phí ước tính (`estimated_cost`) và cung cấp 2 điểm dừng dự phòng cùng tầm giá cho tính năng **1-Click Swap**, không lo vỡ ngân sách.
+
+
+
 ---
 
 ## ☁️ 6. Kiến Trúc Điện Toán Đám Mây & Hạ Tầng Triển Khai (Cloud Deployment)

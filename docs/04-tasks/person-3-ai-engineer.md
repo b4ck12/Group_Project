@@ -27,7 +27,7 @@
 - [ ] **`TASK-003`** `[AI - Nguyễn Tùng Dương & Tạ Quang Huy]` **LangGraph State Schema & Fixture Data Definition**
   - **Feature**: #17
   - **Target Files**: `backend/app/ai_agents/state.py`, `backend/app/ai_agents/fixtures/` (`mock_places.json`, `mock_roadmaps.json`)
-  - **Acceptance Criteria**: Định nghĩa Pydantic `AgentState` chứa `phase`, `macro_locked`, `final_locked`, `daily_themes`, `plan_stops`, `backup_options`. Dữ liệu mock fixtures validate pass 100% với DB models.
+  - **Acceptance Criteria**: Định nghĩa Pydantic `AgentState` chứa `phase`, `macro_locked`, `final_locked`, `budget_tier`, `transit_info` (vé máy bay/tàu liên tỉnh khứ hồi), `budget_breakdown` (bóc tách vé máy bay và Land Budget 5 nhóm phí), `running_cost`, `daily_themes`, `plan_stops` (gồm `price_level`, `estimated_cost`, `cost_per_person`), `backup_options`. Dữ liệu mock fixtures validate pass 100% với DB models.
   - **Docs & Tracking**: Cập nhật `docs/03-architecture/ai-agent-architecture.md` + tick `[x]`.
 
 ### Sprint 1 — Two-Phase State Machine & Model Abstraction Layer
@@ -46,7 +46,7 @@
 - [ ] **`TASK-209`** `[AI - Nguyễn Tùng Dương]` **Tier 1: Pydantic Schema Enforcement for Macro Drafting**
   - **Feature**: #19
   - **Target Files**: `backend/app/ai_agents/schemas.py`, `backend/app/ai_agents/nodes/macro_planner.py`
-  - **Acceptance Criteria**: Soạn thảo số ngày và chủ đề từng ngày mà KHÔNG gọi API ngoài. Ép đầu ra LLM vào schema Pydantic nghiêm ngặt, loại bỏ text tự do lan man.
+  - **Acceptance Criteria**: Soạn thảo số ngày, chủ đề từng ngày và ma trận phân bổ ngân sách vĩ mô (bóc tách vé máy bay 25-35% và Land Budget: Lưu trú 30-35%, Ẩm thực 30-35%, Hoạt động 15-20%, Di chuyển nội địa & Sân bay 8-12%, Dự phòng 5-10%) mà KHÔNG gọi API ngoài. Ép đầu ra LLM vào schema Pydantic nghiêm ngặt, loại bỏ text tự do lan man.
   - **Docs & Tracking**: Cập nhật `ai-agent-architecture.md` + tick `[x]`.
 - [ ] **`TASK-210`** `[AI - Nguyễn Tùng Dương]` **Tier 2: Live Map Check Verification Service**
   - **Feature**: #20
@@ -63,7 +63,7 @@
 - [ ] **`TASK-308`** `[AI - Nguyễn Tùng Dương]` **Phase 2: Micro Curation State & Backup Stops Pre-fetching**
   - **Feature**: #22
   - **Target Files**: `backend/app/ai_agents/nodes/micro_curator.py`
-  - **Acceptance Criteria**: Sau khi có Macro Lock, AI truy vấn Google Places/Agoda qua PyBreaker, áp dụng gom cụm 2--3 km và chuẩn bị sẵn 2 backup options cho mỗi điểm dừng chính phục vụ 1-Click Swap.
+  - **Acceptance Criteria**: Sau khi có Macro Lock, AI truy vấn Google Places/12Go Asia/Travel APIs qua PyBreaker, tự động tính cước đưa đón sân bay và cước Grab/xe máy theo Haversine, lọc quán theo phân khúc giá (`price_level`), áp dụng gom cụm 2--3 km, cơ chế cân đối bù trừ chi phí động (`running_cost <= total_budget`) và chuẩn bị sẵn 2 backup options cùng mức giá cho mỗi điểm dừng chính phục vụ 1-Click Swap.
   - **Docs & Tracking**: Cập nhật `ai-agent-architecture.md` + tick `[x]`.
 - [ ] **`TASK-309`** `[AI - Tạ Quang Huy]` **Typed State Persistence with `AsyncPostgresSaver` via DAL**
   - **Feature**: #23
