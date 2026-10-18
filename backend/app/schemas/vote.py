@@ -8,12 +8,13 @@ class PlanVoteBase(BaseModel):
     comment: Optional[str] = None
 
 class PlanVoteCreate(PlanVoteBase):
-    pass
+    stop_id: str
 
 class PlanVoteResponse(PlanVoteBase):
     id: str
-    plan_id: str
+    stop_id: str
     user_id: str
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+    

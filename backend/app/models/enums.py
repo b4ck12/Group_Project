@@ -13,8 +13,23 @@ class EventType(str, enum.Enum):
     SIGHTSEEING = "SIGHTSEEING"
     CUSTOM = "CUSTOM"
 
+class EventScope(str, enum.Enum):
+    DAY_HANGOUT = "DAY_HANGOUT"
+    VACATION = "VACATION"
+
+class BudgetTier(str, enum.Enum):
+    BUDGET = "BUDGET"
+    MODERATE = "MODERATE"
+    LUXURY = "LUXURY"
+
+class TimeSlot(str, enum.Enum):
+    MORNING = "MORNING"
+    AFTERNOON = "AFTERNOON"
+    EVENING = "EVENING"
+
 class EventRole(str, enum.Enum):
-    OWNER = "OWNER"
+    HOST = "HOST"
+    OWNER = "HOST"
     MEMBER = "MEMBER"
     VIEWER = "VIEWER"
 
@@ -65,5 +80,6 @@ class InvitationStatus(str, enum.Enum):
 
 class ChatRole(str, enum.Enum):
     USER = "USER"
-    ASSISTANT = "ASSISTANT"
+    AI = "AI"
     SYSTEM = "SYSTEM"
+    ASSISTANT = "AI"

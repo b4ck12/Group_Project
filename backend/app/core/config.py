@@ -5,8 +5,11 @@ Dùng pydantic-settings để: (1) tự validate kiểu dữ liệu (VD PORT ph�
 """
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 
@@ -19,7 +22,8 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:5173"
 
     # --- Database ---
-    DATABASE_URL: str=""
+    DATABASE_URL: str = ""
+    DIRECT_URL: str = ""
 
     # --- Redis ---
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -61,8 +65,12 @@ class Settings(BaseSettings):
     RATE_LIMIT_AI_PER_MINUTE: int = 20
     RATE_LIMIT_AUTH_PER_MINUTE: int = 10
 
-    # Đọc từ file .env ở thư mục backend/, bỏ qua các biến VITE_* của frontend
-    model_config = SettingsConfigDict(env_file="../.env", env_file_encoding="utf-8", extra="ignore")
+    # Đọc từ file .env ở thư mục backend hoặc repo root, bỏ qua các biến VITE_* của frontend
+    model_config = SettingsConfigDict(
+        env_file=[str(BASE_DIR / ".env"), str(BASE_DIR.parent / ".env")],
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
 @lru_cache
