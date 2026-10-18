@@ -13,6 +13,8 @@ export type EventType =
   | 'SIGHTSEEING'
   | 'CUSTOM';
 
+export type EventScope = 'DAY_HANGOUT' | 'VACATION';
+
 export type EventRole = 'OWNER' | 'MEMBER' | 'VIEWER';
 
 export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
@@ -22,6 +24,7 @@ export interface EventCreateRequest {
   name: string;
   description?: string | null;
   type?: EventType;
+  scope?: EventScope;
   location?: string | null;
   start_date: string; // ISO 8601
   end_date: string;
@@ -33,9 +36,12 @@ export interface EventResponse {
   name: string;
   description: string | null;
   type: EventType;
+  scope: EventScope;
   location: string | null;
   start_date: string;
   end_date: string;
+  macro_locked: boolean;
+  final_locked: boolean;
   created_at: string;
 }
 

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Optional
 from datetime import datetime
 from app.models.enums import ExpenseType, SplitType, StopCategory
@@ -18,8 +18,6 @@ class ExpenseCreate(ExpenseBase):
     paid_by_id: str
     splits: list["ExpenseSplitCreate"] = []
 
-    from pydantic import model_validator
-    
     @model_validator(mode='after')
     def validate_splits_total(self) -> "ExpenseCreate":
         if self.splits:

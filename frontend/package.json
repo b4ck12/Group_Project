@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:types": "node --experimental-strip-types --test src/types/__tests__/types-contract.test.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
