@@ -49,6 +49,7 @@
 - [ ] **TASK-003** `[AI]` **LangGraph State Schema & Fixture Data Definition**
   - **Mục tiêu**: Định nghĩa `AgentState` cho 2 pha thực thi và tạo dữ liệu giả lập để test đồ thị.
   - **Target Files**: `backend/app/ai_agents/state.py`, `backend/app/ai_agents/fixtures/` (`mock_places.json`, `mock_roadmaps.json`)
+feature/TASK-004-msw-core-mocks
   - **Acceptance Criteria**: Khai báo Pydantic `AgentState` chứa `phase`, `macro_locked`, `daily_themes`, `plan_stops`, `backup_options`. Dữ liệu mock validate pass 100% với DB models.
 - [x] **TASK-004** `[FE-A]` **MSW Mock Handlers Setup Cho Core APIs**
   - **Mục tiêu**: Dựng Mock Service Worker chặn các request API core để code UI song song.
@@ -217,7 +218,7 @@
 - [ ] **TASK-209** `[AI]` **Tier 1: Pydantic Schema Enforcement for Macro Drafting**
   - **Feature**: #19
   - **Target Files**: `backend/app/ai_agents/schemas.py`, `backend/app/ai_agents/nodes/macro_planner.py`
-  - **Acceptance Criteria**: Ép đầu ra của LLM vào cấu trúc Pydantic nghiêm ngặt, soạn thảo số ngày và chủ đề mà KHÔNG gọi API ngoài.
+  - **Acceptance Criteria**: Ép đầu ra của LLM vào cấu trúc Pydantic nghiêm ngặt, soạn thảo số ngày, chủ đề và ma trận phân bổ ngân sách vĩ mô (bóc tách vé máy bay 25-35% và Land Budget: Lưu trú, Ẩm thực, Hoạt động, Đi lại & Sân bay) mà KHÔNG gọi API ngoài.
 - [ ] **TASK-210** `[AI]` **Tier 2: Live Map Check Verification Service**
   - **Feature**: #20
   - **Target Files**: `backend/app/ai_agents/grounding/map_verifier.py`
@@ -289,7 +290,7 @@
 - [ ] **TASK-308** `[AI]` **Phase 2: Micro Curation State & Backup Stops Pre-fetching**
   - **Feature**: #22
   - **Target Files**: `backend/app/ai_agents/nodes/micro_curator.py`
-  - **Acceptance Criteria**: Sau khi có Macro Lock, AI truy vấn Google Places/Agoda qua PyBreaker, áp dụng gom cụm 2--3 km và chuẩn bị sẵn 2 backup options.
+  - **Acceptance Criteria**: Sau khi có Macro Lock, AI truy vấn Google Places/12Go Asia/Travel APIs qua PyBreaker, tự động tính cước đưa đón sân bay và Grab/xe máy theo Haversine, lọc quán theo phân khúc giá (`price_level`), áp dụng gom cụm 2--3 km, cơ chế cân đối bù trừ chi phí động (`running_cost <= total_budget`) và chuẩn bị sẵn 2 backup options cùng mức giá cho mỗi điểm dừng.
 - [ ] **TASK-309** `[AI]` **Typed State Persistence with `AsyncPostgresSaver` via DAL**
   - **Feature**: #23
   - **Target Files**: `backend/app/ai_agents/dal.py`
