@@ -10,22 +10,22 @@
 
 | Sprint | Số Tasks | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|
-| **Sprint 0** | 1 Task | 0/1 | 🔲 To Do |
+| **Sprint 0** | 1 Task | 1/1 | ✅ Hoàn thành |
 | **Sprint 1** | 3 Tasks | 0/3 | 🔲 To Do |
 | **Sprint 2** | 4 Tasks | 0/4 | 🔲 To Do |
 | **Sprint 3** | 2 Tasks | 0/2 | 🔲 To Do |
 | **Sprint 4** | 0 Tasks (Testing, Mapbox Polish & Mobile) | 0/0 | 🔲 To Do |
-| **Tổng cộng** | **10 Tasks** | 0/10 | 🔲 Sẵn sàng bắt tay vào làm |
+| **Tổng cộng** | **10 Tasks** | 1/10 | 🚀 Đang triển khai |
 
 ---
 
 ## 🛠️ Detailed Sprint Backlog
 
 ### Sprint 0 — MSW Mock Setup Cho Core APIs
-- [ ] **`TASK-004`** **MSW Mock Handlers Setup Cho Core APIs**
+- [x] **`TASK-004`** **MSW Mock Handlers Setup Cho Core APIs**
   - **Mục tiêu**: Dựng Mock Service Worker chặn các request API core để code UI song song.
-  - **Target Files**: `frontend/src/mocks/handlers/` (`auth.ts`, `events.ts`, `plans.ts`)
-  - **Acceptance Criteria**: MSW intercepts `/api/v1/auth/*` và `/api/v1/events/*`, trả về mock JSON chuẩn theo OpenAPI contract.
+  - **Target Files**: `frontend/src/mocks/handlers/` (`auth.ts`, `events.ts`, `plans.ts`, `consensus.ts`, `chat.ts`)
+  - **Acceptance Criteria**: MSW intercepts `/api/v1/auth/*`, `/api/v1/events/*`, và Two-Stage Consensus endpoints, trả về mock JSON chuẩn theo OpenAPI contract.
   - **Docs & Tracking**: Cập nhật `frontend/src/mocks/` + tick `[x]`.
 
 ### Sprint 1 — Design System & Auth Screens

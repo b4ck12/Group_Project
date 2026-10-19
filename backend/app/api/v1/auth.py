@@ -26,16 +26,4 @@ async def forgot_password(email: str):
     """
     API endpoint skeleton.
     """
-    raise HTTPException(status_code=501, detail="Not Implemented")
-@router.get("/users/me", response_model=UserResponse)
-async def get_profile():
-    """
-    API endpoint skeleton.
-    """
-    raise HTTPException(status_code=501, detail="Not Implemented")
-@router.patch("/users/me", response_model=UserResponse)
-async def update_profile():
-    """
-    API endpoint skeleton.
-    """
-    raise HTTPException(status_code=501, detail="Not Implemented")
+    raise HTTPException(status_code=501, detail="Not Implemented")

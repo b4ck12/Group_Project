@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1 import auth, events, invitations, places, plans, votes, ai
+from app.api.v1 import auth, events, invitations, places, plans, votes, ai, users
 
 app = FastAPI(
     title="TripMateAI",
@@ -17,12 +17,13 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/v1")
-app.include_router(events.router,prefix="/api/v1")
-app.include_router(invitations.router,prefix="/api/v1")
-app.include_router(places.router,prefix="/api/v1")
-app.include_router(plans.router,prefix="/api/v1")
-app.include_router(votes.router,prefix="/api/v1")
-app.include_router(ai.router,prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1")
+app.include_router(events.router, prefix="/api/v1")
+app.include_router(invitations.router, prefix="/api/v1")
+app.include_router(places.router, prefix="/api/v1")
+app.include_router(plans.router, prefix="/api/v1")
+app.include_router(votes.router, prefix="/api/v1")
+app.include_router(ai.router, prefix="/api/v1")
 
 @app.get("/")
 def root():

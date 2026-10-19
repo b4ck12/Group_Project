@@ -1,7 +1,7 @@
 /**
  * TypeScript interfaces for Auth & User APIs.
  * Mirrors backend Pydantic schemas: schemas/user.py
- * Endpoints: api-design-guide.md Section 3 — /api/v1/auth, /api/v1/users
+ * Endpoints: api-design-guide.md Section 2 & 3 — /api/v1/auth, /api/v1/users
  */
 
 // --- Enums ---
@@ -20,6 +20,14 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface GoogleLoginRequest {
+  id_token: string;
+}
+
+export interface FacebookLoginRequest {
+  access_token: string;
+}
+
 export interface ForgotPasswordRequest {
   email: string;
 }
@@ -29,10 +37,16 @@ export interface ResetPasswordRequest {
   new_password: string;
 }
 
+export interface UserUpdateRequest {
+  full_name?: string | null;
+  avatar_url?: string | null;
+}
+
 // --- Responses ---
 export interface TokenResponse {
   access_token: string;
   token_type: 'bearer';
+  refresh_token?: string | null;
 }
 
 export interface UserResponse {
@@ -43,4 +57,5 @@ export interface UserResponse {
   provider: AuthProvider;
   role: SystemRole;
   created_at: string; // ISO 8601
+  updated_at?: string; // ISO 8601
 }
