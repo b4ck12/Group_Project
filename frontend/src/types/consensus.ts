@@ -12,6 +12,10 @@ export interface RoadmapTheme {
   theme: string;
 }
 
+export interface MacroLockRequest {
+  macro_locked?: boolean;
+}
+
 export interface MacroLockResponse {
   event_id: string;
   macro_locked: boolean;
@@ -51,6 +55,10 @@ export interface StopSwapResponse {
   lat: number;
   lng: number;
   updated_at: string;
+}
+
+export interface FinalLockRequest {
+  final_locked?: boolean;
 }
 
 export interface FinalLockResponse {
