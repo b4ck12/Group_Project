@@ -13,7 +13,7 @@ Xem quy trình chi tiết tại [contract-first-workflow.md](../01-workflow/cont
 - [ ] `TASK-001` `[BE-Core - Tạ Quang Huy]`: Thiết kế Schemas DB Supabase PostgreSQL 16 (`core`, `checkpoints`, `vectors`) & Supavisor Pooler port 6543
 - [X] `TASK-002` `[BE-Services - Phạm Đình Ánh Dương]`: FastAPI APIRouter Skeleton & Swagger Docs
 - [ ] `TASK-003` `[AI Lead - Nguyễn Tùng Dương & Tạ Quang Huy]`: Định nghĩa `AgentState` Two-Phase & Dữ liệu Fixtures JSON
-- [ ] `TASK-004` `[FE-Core - Hà Đăng Huy]`: MSW Mock Handlers Core APIs
+- [x] `TASK-004` `[FE-Core - Hà Đăng Huy]`: MSW Mock Handlers Core APIs
 - [ ] `TASK-005` `[FE-Growth - Nguyễn Minh Đức]`: MSW Mock Handlers Realtime AI Streaming Token & WS Events
 - [ ] `TASK-006` `[DevOps/Sec - Đinh Tiến Luân]`: Docker Compose & Môi trường phát triển cục bộ
 - [ ] `TASK-007` `[DevOps/Sec - Đinh Tiến Luân]`: Pipeline CI GitHub Actions tự động kiểm thử

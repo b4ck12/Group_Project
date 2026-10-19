@@ -37,7 +37,7 @@
 ## 🛠️ Sprint 0 — Contract Session & Infrastructure Setup
 
 ### 0.1 Architecture & Contract Definition
-- [ ] **TASK-001** `[BE-A]` **Thiết kế SQLAlchemy & Pydantic DB Schemas cho Supabase**
+- [x] **TASK-001** `[BE-A]` **Thiết kế SQLAlchemy & Pydantic DB Schemas cho Supabase**
   - **Mục tiêu**: Chuẩn hóa mô hình dữ liệu cho Supabase PostgreSQL 16 phân tách 3 schema (`core`, `checkpoints`, `vectors`).
   - **Target Files**: `backend/app/models/` (`user.py`, `event.py`, `plan.py`, `stop.py`, `vote.py`, `chat.py`, `expense.py`, `settlement.py`), `backend/app/schemas/`
   - **Acceptance Criteria**: Hỗ trợ đầy đủ `scope` (DAY_HANGOUT | VACATION), `macro_locked`, `final_locked`, `plan_stops` với `place_ref_id` và `backup_options` JSONB, 3 bảng tài chính (`expenses`, `expense_splits`, `settlements`). Cấu hình Supavisor Pooler port 6543. Migration Alembic sạch.
@@ -50,7 +50,7 @@
   - **Mục tiêu**: Định nghĩa `AgentState` cho 2 pha thực thi và tạo dữ liệu giả lập để test đồ thị.
   - **Target Files**: `backend/app/ai_agents/state.py`, `backend/app/ai_agents/fixtures/` (`mock_places.json`, `mock_roadmaps.json`)
   - **Acceptance Criteria**: Khai báo Pydantic `AgentState` chứa `phase`, `macro_locked`, `daily_themes`, `plan_stops`, `backup_options`. Dữ liệu mock validate pass 100% với DB models.
-- [ ] **TASK-004** `[FE-A]` **MSW Mock Handlers Setup Cho Core APIs**
+- [x] **TASK-004** `[FE-A]` **MSW Mock Handlers Setup Cho Core APIs**
   - **Mục tiêu**: Dựng Mock Service Worker chặn các request API core để code UI song song.
   - **Target Files**: `frontend/src/mocks/handlers/` (`auth.ts`, `events.ts`, `plans.ts`)
   - **Acceptance Criteria**: Giả lập API auth, tạo phòng và lấy danh sách điểm dừng khớp với OpenAPI contract.

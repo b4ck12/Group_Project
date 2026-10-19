@@ -11,19 +11,19 @@
 
 | Sprint | Số Tasks | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|
-| **Sprint 0** | 1 Task | 0/1 | 🔲 To Do |
+| **Sprint 0** | 1 Task | 1/1 | ✅ Done (TASK-001) |
 | **Sprint 1** | 1 Task | 0/1 | 🔲 To Do |
 | **Sprint 2** | 3 Tasks | 0/3 | 🔲 To Do |
 | **Sprint 3** | 7 Tasks | 0/7 | 🔲 To Do |
 | **Sprint 4** | 3 Tasks | 0/3 | 🔲 To Do |
-| **Tổng cộng** | **15 Tasks** | 0/15 | 🔲 Sẵn sàng bắt tay vào làm |
+| **Tổng cộng** | **15 Tasks** | 1/15 | 🟡 Đang thực hiện |
 
 ---
 
 ## 🛠️ Detailed Sprint Backlog
 
 ### Sprint 0 — Contract Session & Database Architecture Design
-- [ ] **`TASK-001`** **Thiết kế Schemas DB Supabase PostgreSQL 16 & Supavisor Pooler**
+- [x] **`TASK-001`** **Thiết kế Schemas DB Supabase PostgreSQL 16 & Supavisor Pooler**
   - **Mục tiêu**: Chuẩn hóa mô hình dữ liệu cho Supabase PostgreSQL 16 phân tách 3 schema (`core`, `checkpoints`, `vectors`).
   - **Target Files**: `backend/app/models/` (`user.py`, `event.py`, `plan.py`, `stop.py`, `vote.py`, `chat.py`, `expense.py`, `settlement.py`), `backend/app/schemas/`
   - **Acceptance Criteria**: Hỗ trợ đầy đủ `scope` (DAY_HANGOUT | VACATION), `macro_locked`, `final_locked`, `plan_stops` với `place_ref_id` và `backup_options` JSONB, 3 bảng tài chính (`expenses`, `expense_splits`, `settlements`). Cấu hình Supavisor Pooler port 6543. Migration Alembic sạch.
