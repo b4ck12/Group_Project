@@ -1,4 +1,4 @@
-"""Initial migration
+"""add_check_constraints
 
 Revision ID: e1ed950842d0
 Revises: f68311ebd9d7
