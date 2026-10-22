@@ -1,9 +1,12 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Enum, ForeignKey, Boolean, Numeric, Float, JSON, DateTime, Integer
-from typing import List, Optional, Any, Dict
+from typing import TYPE_CHECKING, List, Optional, Any, Dict
 from datetime import datetime
 from .base import Base
 from .enums import StopCategory, PlanStatus, TimeSlot
+
+if TYPE_CHECKING:
+    from .vote import PlanVote
 
 
 class Plan(Base):

@@ -1,9 +1,12 @@
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy import String, Enum, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 from .enums import SystemRole, AuthProvider
+
+if TYPE_CHECKING:
+    from .event import EventMember
 
 class User(Base):
     __tablename__ = "users"
