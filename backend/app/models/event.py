@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Enum, ForeignKey, UniqueConstraint, DateTime, Boolean
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime, timezone
-# from backend.app.models.user import User
 from .base import Base
 from .enums import EventType, EventRole, EventScope, BudgetTier
+
+if TYPE_CHECKING:
+    from .user import User
 
 class Event(Base):
     __tablename__ = "events"
