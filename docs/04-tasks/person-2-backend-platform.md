@@ -13,11 +13,11 @@
 | Sprint | Số Tasks | Phụ trách | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|:---:|
 | **Sprint 0** | 1 Task | Phạm Đình Ánh Dương | 1/1 | ✅ Done (TASK-002) |
-| **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 0/7 | 🔲 To Do |
+| **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 1/7 | 🟡 Đang thực hiện |
 | **Sprint 2** | 5 Tasks | Hà Đăng Huy (4) + Phạm Đình Ánh Dương (1) | 0/5 | 🔲 To Do |
 | **Sprint 3** | 3 Tasks | Phạm Đình Ánh Dương | 0/3 | 🔲 To Do |
 | **Sprint 4** | 2 Tasks | Phạm Đình Ánh Dương | 0/2 | 🔲 To Do |
-| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 1/18 | 🟡 Đang thực hiện |
+| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 2/18 | 🟡 Đang thực hiện |
 
 ---
 
@@ -30,7 +30,7 @@
   - **Acceptance Criteria**: Routes trả về `501 Not Implemented` khớp Pydantic DTOs, Swagger xem được tại `http://localhost:8000/docs`.
 
 ### Sprint 1 — Auth APIs, Upstash Redis Cache & PyBreaker Base
-- [ ] **`TASK-107`** `[BE-Platform - Hà Đăng Huy]` **HTTPX Async Client & Upstash Redis L2 Caching Service**
+- [x] **`TASK-107`** `[BE-Platform - Hà Đăng Huy]` **HTTPX Async Client & Upstash Redis L2 Caching Service** *(Branch: `feature/TASK-107-108-redis-cache-places-api`)*
   - **Feature**: #27, #28
   - **Target Files**: `backend/app/core/redis.py`, `backend/app/services/cache_service.py`
   - **Acceptance Criteria**: Decorator `@cache_response(ttl=86400)` lưu và đọc kết quả POIs từ Upstash Redis qua kết nối TLS (`rediss://`).

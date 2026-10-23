@@ -44,7 +44,7 @@ Xem quy trình chi tiết tại [contract-first-workflow.md](../01-workflow/cont
 | Thành viên | Phân công vai trò kỹ thuật | File task chi tiết | Danh mục mã Micro-Tasks | Trạng thái | Blocker |
 |---|---|---|---|:---:|:---:|
 | **Tạ Quang Huy** | Backend Core & AI DAL Bridge | [person-1-backend-core.md](person-1-backend-core.md) | TASK-001, TASK-101, TASK-201, 202, 204, TASK-301..307, TASK-401..403 | 🔲 To Do | — |
-| **Hà Đăng Huy** | Backend Platform & Frontend Core | [person-2-backend-platform.md](person-2-backend-platform.md) / [person-4-frontend-core.md](person-4-frontend-core.md) | TASK-107, 108, TASK-205..208, TASK-004, TASK-111..113, TASK-212..215, TASK-314, 316 | 🔲 To Do | — |
+| **Hà Đăng Huy** | Backend Platform & Frontend Core | [person-2-backend-platform.md](person-2-backend-platform.md) / [person-4-frontend-core.md](person-4-frontend-core.md) | TASK-107, 108, TASK-205..208, TASK-004, TASK-111..113, TASK-212..215, TASK-314, 316 | 🟡 In Progress (TASK-004, 107 Done) | — |
 | **Phạm Đình Ánh Dương** | Backend Services & Settlement | [person-2-backend-platform.md](person-2-backend-platform.md) | TASK-002, TASK-102..106, TASK-203, TASK-311..313, TASK-404, 415 | 🟡 In Progress (TASK-002 Done) | — |
 | **Nguyễn Minh Đức** | Frontend Growth & AI Experience | [person-5-frontend-growth.md](person-5-frontend-growth.md) | TASK-005, TASK-009..011, TASK-114, 115, TASK-315, 317, TASK-406..410 | 🔲 To Do | — |
 | **Nguyễn Tùng Dương** | AI Agent Lead (DeepSeek-V4) | [person-3-ai-engineer.md](person-3-ai-engineer.md) | TASK-003, TASK-109, 110, TASK-209..211, TASK-308..310 | 🔲 To Do | — |
