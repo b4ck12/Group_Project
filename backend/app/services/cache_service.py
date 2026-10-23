@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 import asyncio
 from datetime import datetime
+import functools
 import json
 import logging
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 import uuid
 
 from app.core.config import settings
@@ -209,3 +210,46 @@ def get_default_cache() -> BaseCache:
     if _default_cache_instance is None:
         _default_cache_instance = RedisCache()
     return _default_cache_instance
+
+
+def cache_response(
+    ttl: int = 86400,
+    prefix: Optional[str] = None,
+    cache_instance: Optional[BaseCache] = None,
+):
+    """
+    Decorator bọc ngoài các hàm async để cache kết quả vào Redis/Cache service.
+    - ttl: Thời gian sống (giây), mặc định 86400s (24 giờ).
+    - prefix: Tiền tố nhóm cache key (mặc định lấy func.__name__).
+    - cache_instance: Cho phép inject BaseCache tùy chỉnh (e.g. InMemoryCache cho testing).
+    """
+    def decorator(func: Callable):
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            cache = cache_instance or get_default_cache()
+            p = prefix or func.__name__
+            cache_key = build_cache_key(p, *args, **kwargs)
+
+            # 1. Thử đọc từ Cache (Cache Hit)
+            try:
+                cached_data = await cache.get(cache_key)
+                if cached_data is not None:
+                    logger.debug(f"⚡ [Cache HIT] {cache_key}")
+                    return cached_data
+            except Exception as exc:
+                logger.warning(f"⚠️ [Cache Error] Lỗi đọc cache '{cache_key}': {exc}")
+
+            # 2. Cache Miss -> Thực thi hàm gốc
+            result = await func(*args, **kwargs)
+
+            # 3. Ghi kết quả vào Cache
+            if result is not None:
+                try:
+                    await cache.set(cache_key, result, ttl=ttl)
+                    logger.debug(f"💾 [Cache SET] {cache_key} (TTL={ttl}s)")
+                except Exception as exc:
+                    logger.warning(f"⚠️ [Cache Error] Lỗi ghi cache '{cache_key}': {exc}")
+
+            return result
+        return wrapper
+    return decorator
