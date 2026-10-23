@@ -25,8 +25,10 @@ class Settings(BaseSettings):
     DATABASE_URL: str = ""
     DIRECT_URL: str = ""
 
-    # --- Redis ---
+    # --- Redis & Cache ---
     REDIS_URL: str = "redis://localhost:6379/0"
+    HTTP_CLIENT_TIMEOUT: float = 10.0
+    CACHE_DEFAULT_TTL: int = 86400  # 24 giờ cho POIs L2 Cache
 
     # --- Auth (JWT & OAuth2) ---
     SECRET_KEY: str=""

@@ -11,4 +11,5 @@ python-dotenv
 email-validator
 python-multipart
 httpx
+redis>=5.0.0
 
