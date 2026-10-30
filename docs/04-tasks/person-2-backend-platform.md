@@ -40,7 +40,7 @@
   - **Target Files**: `backend/app/services/places_service.py`
   - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s, tự động ngắt mạch khi lỗi).
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-102`** `[BE-Services - Phạm Đình Ánh Dương]` **User Registration & Password Hashing**
+- [X] **`TASK-102`** `[BE-Services - Phạm Đình Ánh Dương]` **User Registration & Password Hashing**
   - **Feature**: #2
   - **Target Files**: `backend/app/api/v1/auth.py`, `backend/app/services/auth_service.py`
   - **Acceptance Criteria**: `POST /auth/register` hash mật khẩu bằng `bcrypt` (cost $\ge 10$), lưu user vào Supabase, trả về JWT tokens.
