@@ -13,7 +13,7 @@
 |:---:|:---:|:---:|:---:|
 | **Sprint 0** | 1 Task | 1/1 | ✅ Done (TASK-001) |
 | **Sprint 1** | 1 Task | 0/1 | 🔲 To Do |
-| **Sprint 2** | 3 Tasks | 0/3 | 🔲 To Do |
+| **Sprint 2** | 3 Tasks | 2/3 | 🟡 In Progress |
 | **Sprint 3** | 7 Tasks | 0/7 | 🔲 To Do |
 | **Sprint 4** | 3 Tasks | 0/3 | 🔲 To Do |
 | **Tổng cộng** | **15 Tasks** | 1/15 | 🟡 Đang thực hiện |
