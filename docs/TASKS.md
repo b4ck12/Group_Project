@@ -93,7 +93,7 @@ feature/TASK-004-msw-core-mocks
 ## 🔐 Sprint 1 — Auth, Infrastructure Baseline & Vercel Edge Deploy
 
 ### 1.1 Auth & Supabase Identity
-- [ ] **TASK-101** `[BE-A]` **Supabase Core Database Models & Alembic Migration**
+- [x] **TASK-101** `[BE-A]` **Supabase Core Database Models & Alembic Migration**
   - **Feature**: #1, #2
   - **Target Files**: `backend/app/models/user.py`, `backend/alembic/versions/`
   - **Acceptance Criteria**: Tạo bảng `core.users` và `core.event_members`, kết nối qua Supavisor pooler port 6543.
@@ -179,11 +179,11 @@ feature/TASK-004-msw-core-mocks
 ## 📅 Sprint 2 — Room Management, External APIs, Phase 1 Macro State & Render Deploy
 
 ### 2.1 Room & Member Management (Backend Core & Services)
-- [ ] **TASK-201** `[BE-A]` **Event & Room Database Models (Day Hangouts & Vacations)**
+- [x] **TASK-201** `[BE-A]` **Event & Room Database Models (Day Hangouts & Vacations)**
   - **Feature**: #7
   - **Target Files**: `backend/app/models/event.py`, `backend/alembic/versions/`
   - **Acceptance Criteria**: Bảng `core.events` hỗ trợ `scope` (`DAY_HANGOUT` | `VACATION`), `macro_locked`, `final_locked`.
-- [ ] **TASK-202** `[BE-A]` **Room CRUD APIs**
+- [x] **TASK-202** `[BE-A]` **Room CRUD APIs**
   - **Feature**: #7
   - **Target Files**: `backend/app/api/v1/events.py`, `backend/app/services/event_service.py`
   - **Acceptance Criteria**: `POST /events` tạo phòng và gán người tạo làm `HOST`. `GET /events` lấy danh sách phòng.
