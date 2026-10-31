@@ -34,7 +34,7 @@ class PlanStop(Base):
     lat: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     lng: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     note: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    estimated_cost: Mapped[Optional[float]] = mapped_column(Numeric, nullable=True)
+    estimated_cost: Mapped[Optional[float]] = mapped_column(Numeric(10, 2), nullable=True)
     category: Mapped[Optional[StopCategory]] = mapped_column(Enum(StopCategory), nullable=True)
     start_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     duration_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)

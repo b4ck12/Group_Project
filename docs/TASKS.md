@@ -119,7 +119,7 @@ feature/TASK-004-msw-core-mocks
   - **Acceptance Criteria**: `GET /users/me` và `PATCH /users/me` cập nhật họ tên, avatar URL.
 
 ### 1.2 Platform & Upstash Redis Cache Baseline
-- [ ] **TASK-107** `[BE-B]` **HTTPX Async Client & Upstash Redis L2 Caching Service**
+- [x] **TASK-107** `[BE-B]` **HTTPX Async Client & Upstash Redis L2 Caching Service** *(Branch: `feature/TASK-107-108-redis-cache-places-api`)*
   - **Feature**: #27, #28
   - **Target Files**: `backend/app/core/redis.py`, `backend/app/services/cache_service.py`
   - **Acceptance Criteria**: Decorator `@cache_response(ttl=86400)` lưu và đọc kết quả POIs từ Upstash Redis qua giao thức TLS.
