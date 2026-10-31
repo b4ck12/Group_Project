@@ -13,11 +13,11 @@
 | Sprint | Số Tasks | Phụ trách | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|:---:|
 | **Sprint 0** | 1 Task | Phạm Đình Ánh Dương | 1/1 | ✅ Done (TASK-002) |
-| **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 1/7 | 🟡 Đang thực hiện |
+| **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 2/7 | 🟡 Đang thực hiện |
 | **Sprint 2** | 5 Tasks | Hà Đăng Huy (4) + Phạm Đình Ánh Dương (1) | 0/5 | 🔲 To Do |
 | **Sprint 3** | 3 Tasks | Phạm Đình Ánh Dương | 0/3 | 🔲 To Do |
 | **Sprint 4** | 2 Tasks | Phạm Đình Ánh Dương | 0/2 | 🔲 To Do |
-| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 2/18 | 🟡 Đang thực hiện |
+| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 3/18 | 🟡 Đang thực hiện |
 
 ---
 
@@ -40,7 +40,7 @@
   - **Target Files**: `backend/app/services/places_service.py`
   - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s, tự động ngắt mạch khi lỗi).
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-102`** `[BE-Services - Phạm Đình Ánh Dương]` **User Registration & Password Hashing**
+- [X] **`TASK-102`** `[BE-Services - Phạm Đình Ánh Dương]` **User Registration & Password Hashing**
   - **Feature**: #2
   - **Target Files**: `backend/app/api/v1/auth.py`, `backend/app/services/auth_service.py`
   - **Acceptance Criteria**: `POST /auth/register` hash mật khẩu bằng `bcrypt` (cost $\ge 10$), lưu user vào Supabase, trả về JWT tokens.

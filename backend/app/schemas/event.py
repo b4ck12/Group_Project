@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from app.models.enums import EventType, EventRole, EventScope, BudgetTier
 
@@ -47,5 +47,10 @@ class EventMemberResponse(BaseModel):
     event_id: str
     user_id: str
     role: EventRole
+
+    model_config = ConfigDict(from_attributes=True)
+
+class EventDetailResponse(EventResponse):
+    members: List[EventMemberResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
