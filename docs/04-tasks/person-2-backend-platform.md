@@ -50,7 +50,7 @@
   - **Target Files**: `backend/app/api/v1/auth.py`, `backend/app/core/oauth.py`
   - **Acceptance Criteria**: `POST /auth/login/google` đổi auth code lấy token, lưu user vào database Supabase.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-104`** `[BE-Services - Phạm Đình Ánh Dương]` **JWT Access & Refresh Token Rotation**
+- [X] **`TASK-104`** `[BE-Services - Phạm Đình Ánh Dương]` **JWT Access & Refresh Token Rotation**
   - **Feature**: #4
   - **Target Files**: `backend/app/core/security.py`, `backend/app/api/v1/auth.py`
   - **Acceptance Criteria**: Access token 15 phút, Refresh token 7 ngày trong httpOnly cookie.
