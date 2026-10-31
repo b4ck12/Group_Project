@@ -65,6 +65,11 @@ from .settlement import (
     SettlementCreate,
     SettlementResponse,
 )
+from .place import (
+    POIItem,
+    PlaceSearchResponse,
+    PlaceDetailResponse,
+)
 
 __all__ = [
     # Event
@@ -124,4 +129,8 @@ __all__ = [
     "SettlementBase",
     "SettlementCreate",
     "SettlementResponse",
+    # Place (TASK-108)
+    "POIItem",
+    "PlaceSearchResponse",
+    "PlaceDetailResponse",
 ]
