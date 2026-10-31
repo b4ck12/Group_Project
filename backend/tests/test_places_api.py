@@ -71,3 +71,4 @@ async def test_get_place_details_endpoint_200():
 
     assert resp.status_code == 200
     assert resp.json()["place"]["name"] == "Hanoi Opera House"
+
