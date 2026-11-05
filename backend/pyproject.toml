@@ -1,0 +1,32 @@
+# Cấu hình công cụ cho backend. Dependency vẫn quản lý ở requirements.txt và requirements-dev.txt.
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501"]  # Black lo độ dài dòng
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/env.py" = ["E402", "F401"]
+"app/models/__init__.py" = ["F401"]
+# Baseline nợ lint có sẵn trước TASK-008: chủ module gỡ dần khi sửa file, không thêm file mới vào đây.
+"alembic/versions/*.py" = ["F401"]
+"app/api/v1/auth.py" = ["F401"]
+"app/api/v1/events.py" = ["F401"]
+"app/core/database.py" = ["F401"]
+"app/models/chat_message.py" = ["F401"]
+"app/models/expense.py" = ["F401", "F811"]
+"app/services/auth_service.py" = ["F401"]
+"app/services/places_service.py" = ["F401", "F821", "F841"]
+"tests/*.py" = ["F401", "F841"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_default_fixture_loop_scope = "function"
