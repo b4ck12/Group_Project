@@ -10,7 +10,7 @@
 
 | Sprint | Số Tasks | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|
-| **Sprint 0** | 3 Tasks | 1/3 | 🔲 To Do |
+| **Sprint 0** | 3 Tasks | 2/3 | 🔲 To Do |
 | **Sprint 1** | 3 Tasks | 0/3 | 🔲 To Do |
 | **Sprint 2** | 1 Task | 0/1 | 🔲 To Do |
 | **Sprint 3** | 0 Tasks (Hỗ trợ Tracing & Chaos Test) | 0/0 | 🔲 To Do |
