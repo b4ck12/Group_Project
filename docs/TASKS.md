@@ -59,7 +59,7 @@ feature/TASK-004-msw-core-mocks
   - **Mục tiêu**: Giả lập streaming token và sự kiện cập nhật điểm dừng qua WebSocket/SSE.
   - **Target Files**: `frontend/src/mocks/handlers/ai.ts`
   - **Acceptance Criteria**: Giả lập gửi từng chunk token (TTFT $< 800$\,ms) và broadcast sự kiện `plan:updated`.
-- [ ] **TASK-006** `[SEC/DEVOPS]` **Docker Compose & Môi Trường Local**
+- [x] **TASK-006** `[SEC/DEVOPS]` **Docker Compose & Môi Trường Local**
   - **Mục tiêu**: Khởi động PostgreSQL 15, Redis 7 và FastAPI server cục bộ.
   - **Target Files**: `docker-compose.yml`, `backend/Dockerfile`, `.env.example`
   - **Acceptance Criteria**: `docker compose up -d` khởi chạy thành công toàn bộ service với health check pass.
