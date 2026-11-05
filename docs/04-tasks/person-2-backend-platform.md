@@ -35,7 +35,7 @@
   - **Target Files**: `backend/app/core/redis.py`, `backend/app/services/cache_service.py`
   - **Acceptance Criteria**: Decorator `@cache_response(ttl=86400)` lưu và đọc kết quả POIs từ Upstash Redis qua kết nối TLS (`rediss://`).
   - **Docs & Tracking**: Cập nhật `tech-stack.md` + tick `[x]`.
-- [ ] **`TASK-108`** `[BE-Platform - Hà Đăng Huy]` **Google Places API Base Service & PyBreaker Wrapper**
+- [x] **`TASK-108`** `[BE-Platform - Hà Đăng Huy]` **Google Places API Base Service & PyBreaker Wrapper** *(Branch: `feature/TASK-107-108-redis-cache-places-api`)*
   - **Feature**: #24, #27
   - **Target Files**: `backend/app/services/places_service.py`
   - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s, tự động ngắt mạch khi lỗi).

@@ -10,12 +10,12 @@
 
 Xem quy trình chi tiết tại [contract-first-workflow.md](../01-workflow/contract-first-workflow.md) và micro-tasks tại [TASKS.md](../TASKS.md) (TASK-001 đến TASK-011).
 
-- [ ] `TASK-001` `[BE-Core - Tạ Quang Huy]`: Thiết kế Schemas DB Supabase PostgreSQL 16 (`core`, `checkpoints`, `vectors`) & Supavisor Pooler port 6543
+- [x] `TASK-001` `[BE-Core - Tạ Quang Huy]`: Thiết kế Schemas DB Supabase PostgreSQL 16 (`core`, `checkpoints`, `vectors`) & Supavisor Pooler port 6543
 - [X] `TASK-002` `[BE-Services - Phạm Đình Ánh Dương]`: FastAPI APIRouter Skeleton & Swagger Docs
 - [ ] `TASK-003` `[AI Lead - Nguyễn Tùng Dương & Tạ Quang Huy]`: Định nghĩa `AgentState` Two-Phase & Dữ liệu Fixtures JSON
 - [x] `TASK-004` `[FE-Core - Hà Đăng Huy]`: MSW Mock Handlers Core APIs
 - [ ] `TASK-005` `[FE-Growth - Nguyễn Minh Đức]`: MSW Mock Handlers Realtime AI Streaming Token & WS Events
-- [ ] `TASK-006` `[DevOps/Sec - Đinh Tiến Luân]`: Docker Compose & Môi trường phát triển cục bộ
+- [x] `TASK-006` `[DevOps/Sec - Đinh Tiến Luân]`: Docker Compose & Môi trường phát triển cục bộ
 - [ ] `TASK-007` `[DevOps/Sec - Đinh Tiến Luân]`: Pipeline CI GitHub Actions tự động kiểm thử
 - [ ] `TASK-008` `[DevOps/Sec - Đinh Tiến Luân]`: Cấu hình Pre-commit Hooks & Linter Ruff/Black
 - [ ] `TASK-009` `[FE-Growth - Nguyễn Minh Đức]`: Design Tokens & Design System Spec (Tailwind & shadcn)
@@ -44,8 +44,8 @@ Xem quy trình chi tiết tại [contract-first-workflow.md](../01-workflow/cont
 | Thành viên | Phân công vai trò kỹ thuật | File task chi tiết | Danh mục mã Micro-Tasks | Trạng thái | Blocker |
 |---|---|---|---|:---:|:---:|
 | **Tạ Quang Huy** | Backend Core & AI DAL Bridge | [person-1-backend-core.md](person-1-backend-core.md) | TASK-001, TASK-101, TASK-201, 202, 204, TASK-301..307, TASK-401..403 | 🟡 In Progress (4/15 Done) | — |
-| **Hà Đăng Huy** | Backend Platform & Frontend Core | [person-2-backend-platform.md](person-2-backend-platform.md) / [person-4-frontend-core.md](person-4-frontend-core.md) | TASK-107, 108, TASK-205..208, TASK-004, TASK-111..113, TASK-212..215, TASK-314, 316 | 🟡 In Progress (TASK-004, 107 Done) | — |
-| **Phạm Đình Ánh Dương** | Backend Services & Settlement | [person-2-backend-platform.md](person-2-backend-platform.md) | TASK-002, TASK-102..106, TASK-203, TASK-311..313, TASK-404, 415 | 🟡 In Progress (TASK-002 Done, TASK-102, TASK-104 ) | — |
+| **Hà Đăng Huy** | Backend Platform & Frontend Core | [person-2-backend-platform.md](person-2-backend-platform.md) / [person-4-frontend-core.md](person-4-frontend-core.md) | TASK-107, 108, TASK-205..208, TASK-004, TASK-111..113, TASK-212..215, TASK-314, 316 | 🟡 In Progress (TASK-004, 107, 108 Done) | — |
+| **Phạm Đình Ánh Dương** | Backend Services & Settlement | [person-2-backend-platform.md](person-2-backend-platform.md) | TASK-002, TASK-102..106, TASK-203, TASK-311..313, TASK-404, 415 | 🟡 In Progress (TASK-002, TASK-102, TASK-104 Done) | — |
 | **Nguyễn Minh Đức** | Frontend Growth & AI Experience | [person-5-frontend-growth.md](person-5-frontend-growth.md) | TASK-005, TASK-009..011, TASK-114, 115, TASK-315, 317, TASK-406..410 | 🔲 To Do | — |
 | **Nguyễn Tùng Dương** | AI Agent Lead (DeepSeek-V4) | [person-3-ai-engineer.md](person-3-ai-engineer.md) | TASK-003, TASK-109, 110, TASK-209..211, TASK-308..310 | 🔲 To Do | — |
 | **Đinh Tiến Luân** | Cyber Security & DevOps Engineer | [person-6-security-devops.md](person-6-security-devops.md) | TASK-006..008, TASK-116..118, TASK-216, TASK-411..414 | 🔲 To Do | — |

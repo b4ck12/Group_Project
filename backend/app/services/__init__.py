@@ -6,6 +6,11 @@ from app.services.cache_service import (
     cache_response,
 )
 from app.services.event_service import EventService
+from app.services.places_service import (
+    BaseTravelProvider,
+    GooglePlacesService,
+    places_circuit_breaker,
+)
 
 __all__ = [
     "AuthService",
@@ -14,4 +19,7 @@ __all__ = [
     "RedisCache",
     "InMemoryCache",
     "cache_response",
+    "BaseTravelProvider",
+    "GooglePlacesService",
+    "places_circuit_breaker",
 ]

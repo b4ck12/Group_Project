@@ -84,13 +84,13 @@
   GET    /events/{id}/export/pdf                     # Xuất file PDF lịch trình chi tiết (WeasyPrint)
   GET    /events/{id}/export/calendar                # Xuất file lịch .ics đồng bộ Google / Apple Calendar
 
-/api/v1/events/{id}/finance (Quản lý chi phí & Settlement)
-  POST   /events/{id}/fund-contributions             # Thu quỹ trước chuyến đi (Expense ADVANCE)
-  GET    /events/{id}/expenses                       # Danh sách các khoản chi tiêu thực tế
-  POST   /events/{id}/expenses                       # Thêm khoản chi tiêu mới kèm phân bổ split
-  GET    /events/{id}/balances                       # Số dư ròng (Net Balance) của từng thành viên
-  GET    /events/{id}/settlements                    # Gợi ý chuyển khoản bù trừ nợ tối ưu (Min-Cash-Flow)
-  PATCH  /events/{id}/settlements/{settlementId}     # Đánh dấu đã chuyển khoản thành công
+/api/v1/events/{id}/finance (Quản lý chi phí & Settlement) [DEPRECATED / CUT THEO YÊU CẦU GVHD]
+  POST   /events/{id}/fund-contributions             # [DEPRECATED] Thu quỹ trước chuyến đi
+  GET    /events/{id}/expenses                       # [DEPRECATED] Danh sách các khoản chi tiêu thực tế
+  POST   /events/{id}/expenses                       # [DEPRECATED] Thêm khoản chi tiêu mới kèm phân bổ split
+  GET    /events/{id}/balances                       # [DEPRECATED] Số dư ròng (Net Balance) của từng thành viên
+  GET    /events/{id}/settlements                    # [DEPRECATED] Gợi ý chuyển khoản bù trừ nợ tối ưu (Min-Cash-Flow)
+  PATCH  /events/{id}/settlements/{settlementId}     # [DEPRECATED] Đánh dấu đã chuyển khoản thành công
 
 /api/v1/admin
   GET    /admin/dashboard/stats                      # Thống kê CCU, số phòng hoạt động, uptime
@@ -199,6 +199,66 @@
   }
   ```
 - **Response `200 OK`**: Cập nhật thành công và phát sóng tức thì tới toàn phòng qua WebSockets.
+
+---
+
+### 3.5. `GET /api/v1/places/search` & `GET /api/v1/places/{placeId}/details` (Places Service & PyBreaker - TASK-108)
+- **Mô tả**: Tra cứu địa điểm và lấy thông tin chi tiết POI qua Google Places API (New) được bảo vệ bởi Circuit Breaker `PyBreaker` (`fail_max=3`, `reset_timeout=60s`, `timeout=2.5s`) và Redis L2 Cache 24 giờ.
+- **Query Params (`/places/search`)**: `keyword` (string), `category` (string), `lat` (float), `lng` (float), `radius` (int, default 5000m).
+- **Response `200 OK` (`PlaceSearchResponse`)**:
+  ```json
+  {
+    "results": [
+      {
+        "place_id": "ChIJN1t_tDeuEmsRUsoyG83frY4",
+        "name": "Pho Thin Bo Ho",
+        "address": "61 Dinh Tien Hoang, Hoan Kiem, Ha Noi",
+        "lat": 21.0285,
+        "lng": 105.8542,
+        "category": "restaurant",
+        "rating": 4.5,
+        "user_ratings_total": 1200,
+        "price_level": 2,
+        "open_now": true,
+        "photo_url": "places/ChIJN1t_tDeuEmsRUsoyG83frY4/photos/photo1",
+        "website_uri": "https://example.com",
+        "phone_number": "+84 24 3825 1234",
+        "metadata": { "raw_primary_type": "vietnamese_restaurant" }
+      }
+    ],
+    "total": 1,
+    "provider": "google_places"
+  }
+  ```
+- **Response `200 OK` (`PlaceDetailResponse`)**:
+  ```json
+  {
+    "place": {
+      "place_id": "ChIJ_detail_1",
+      "name": "Hanoi Opera House",
+      "address": "1 Trang Tien, Hoan Kiem, Ha Noi",
+      "lat": 21.0245,
+      "lng": 105.8576,
+      "category": "tourist_attraction",
+      "rating": 4.6,
+      "user_ratings_total": 5400,
+      "price_level": null,
+      "open_now": null,
+      "photo_url": null,
+      "website_uri": "http://nhahatlonhanoi.org.vn",
+      "phone_number": "+84 24 3933 0113",
+      "metadata": { "raw_primary_type": "opera_house" }
+    },
+    "provider": "google_places"
+  }
+  ```
+- **Lỗi `503 Service Unavailable` (Circuit Breaker Tripped)**:
+  - Trả về khi PyBreaker phát hiện 3 lần lỗi liên tiếp hoặc thời gian phản hồi upstream vượt quá 2.5s:
+  ```json
+  {
+    "detail": "External Places provider temporarily unavailable: Circuit breaker is open"
+  }
+  ```
 
 ---
 

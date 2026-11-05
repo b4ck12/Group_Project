@@ -12,7 +12,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-
 class Settings(BaseSettings):
     # --- Server ---
     PROJECT_NAME: str = "Web Len Ke Hoach Nhom AI"
@@ -31,7 +30,7 @@ class Settings(BaseSettings):
     CACHE_DEFAULT_TTL: int = 86400  # 24 giờ cho POIs L2 Cache
 
     # --- Auth (JWT & OAuth2) ---
-    SECRET_KEY: str=""
+    SECRET_KEY: str = ""
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -49,8 +48,12 @@ class Settings(BaseSettings):
     AI_MAX_TOKENS_PER_REQUEST: int = 4096
     AI_MAX_STEPS_PER_SESSION: int = 15
 
-    # --- External APIs ---
+    # --- External APIs & Circuit Breaker ---
     GOOGLE_PLACES_API_KEY: str = ""
+    GOOGLE_PLACES_BASE_URL: str = "https://places.googleapis.com/v1"
+    PLACES_API_TIMEOUT: float = 2.5
+    CIRCUIT_BREAKER_FAIL_MAX: int = 3
+    CIRCUIT_BREAKER_RESET_TIMEOUT: int = 60
     MAPBOX_ACCESS_TOKEN: str = ""
     OPENWEATHER_API_KEY: str = ""
     EXCHANGE_RATE_API_KEY: str = ""

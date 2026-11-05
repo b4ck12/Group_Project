@@ -59,7 +59,7 @@ feature/TASK-004-msw-core-mocks
   - **Mục tiêu**: Giả lập streaming token và sự kiện cập nhật điểm dừng qua WebSocket/SSE.
   - **Target Files**: `frontend/src/mocks/handlers/ai.ts`
   - **Acceptance Criteria**: Giả lập gửi từng chunk token (TTFT $< 800$\,ms) và broadcast sự kiện `plan:updated`.
-- [ ] **TASK-006** `[SEC/DEVOPS]` **Docker Compose & Môi Trường Local**
+- [x] **TASK-006** `[SEC/DEVOPS]` **Docker Compose & Môi Trường Local**
   - **Mục tiêu**: Khởi động PostgreSQL 15, Redis 7 và FastAPI server cục bộ.
   - **Target Files**: `docker-compose.yml`, `backend/Dockerfile`, `.env.example`
   - **Acceptance Criteria**: `docker compose up -d` khởi chạy thành công toàn bộ service với health check pass.
@@ -123,7 +123,7 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #27, #28
   - **Target Files**: `backend/app/core/redis.py`, `backend/app/services/cache_service.py`
   - **Acceptance Criteria**: Decorator `@cache_response(ttl=86400)` lưu và đọc kết quả POIs từ Upstash Redis qua giao thức TLS.
-- [ ] **TASK-108** `[BE-B]` **Google Places API Base Service & PyBreaker Wrapper**
+- [x] **TASK-108** `[BE-B]` **Google Places API Base Service & PyBreaker Wrapper** *(Branch: `feature/TASK-107-108-redis-cache-places-api`)*
   - **Feature**: #24, #27
   - **Target Files**: `backend/app/services/places_service.py`
   - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s).

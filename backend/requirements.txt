@@ -12,4 +12,4 @@ email-validator
 python-multipart
 httpx
 redis>=5.0.0
-
+pybreaker>=1.2.0

@@ -212,6 +212,9 @@ def get_default_cache() -> BaseCache:
     return _default_cache_instance
 
 
+_get_active_cache = get_default_cache
+
+
 def cache_response(
     ttl: int = 86400,
     prefix: Optional[str] = None,
@@ -226,7 +229,7 @@ def cache_response(
     def decorator(func: Callable):
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            cache = cache_instance or get_default_cache()
+            cache = cache_instance or _get_active_cache()
             p = prefix or func.__name__
             cache_key = build_cache_key(p, *args, **kwargs)
 
