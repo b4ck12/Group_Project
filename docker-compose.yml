@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: travel_ai
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,7 +22,7 @@ services:
     container_name: travel_ai_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -37,8 +37,13 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    # Trong Docker, backend gọi Postgres/Redis qua tên service, không qua localhost hay cloud.
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/travel_ai
+      DIRECT_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/travel_ai
+      REDIS_URL: redis://redis:6379/0
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -46,6 +51,16 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import json,urllib.request as u;r=u.urlopen('http://localhost:8000/api/healthz',timeout=3);raise SystemExit(json.load(r)['status']!='healthy')"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
 volumes:
   postgres_data:
