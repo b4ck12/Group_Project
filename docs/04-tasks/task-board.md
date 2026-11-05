@@ -15,7 +15,7 @@ Xem quy trình chi tiết tại [contract-first-workflow.md](../01-workflow/cont
 - [ ] `TASK-003` `[AI Lead - Nguyễn Tùng Dương & Tạ Quang Huy]`: Định nghĩa `AgentState` Two-Phase & Dữ liệu Fixtures JSON
 - [x] `TASK-004` `[FE-Core - Hà Đăng Huy]`: MSW Mock Handlers Core APIs
 - [ ] `TASK-005` `[FE-Growth - Nguyễn Minh Đức]`: MSW Mock Handlers Realtime AI Streaming Token & WS Events
-- [ ] `TASK-006` `[DevOps/Sec - Đinh Tiến Luân]`: Docker Compose & Môi trường phát triển cục bộ
+- [x] `TASK-006` `[DevOps/Sec - Đinh Tiến Luân]`: Docker Compose & Môi trường phát triển cục bộ
 - [ ] `TASK-007` `[DevOps/Sec - Đinh Tiến Luân]`: Pipeline CI GitHub Actions tự động kiểm thử
 - [ ] `TASK-008` `[DevOps/Sec - Đinh Tiến Luân]`: Cấu hình Pre-commit Hooks & Linter Ruff/Black
 - [ ] `TASK-009` `[FE-Growth - Nguyễn Minh Đức]`: Design Tokens & Design System Spec (Tailwind & shadcn)
