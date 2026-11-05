@@ -22,7 +22,7 @@
 ## 🛠️ Detailed Sprint Backlog
 
 ### Sprint 0 — Local Infrastructure & CI Pipeline
-- [ ] **`TASK-006`** **Docker Compose & Môi Trường Phát Triển Cục Bộ**
+- [X] **`TASK-006`** **Docker Compose & Môi Trường Phát Triển Cục Bộ**
   - **Mục tiêu**: Khởi động PostgreSQL 15, Redis 7 và FastAPI server cục bộ.
   - **Target Files**: `docker-compose.yml`, `backend/Dockerfile`, `.env.example`
   - **Acceptance Criteria**: `docker compose up -d` khởi chạy thành công toàn bộ service với health check pass.
