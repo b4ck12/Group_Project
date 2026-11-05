@@ -1,0 +1,14 @@
+# Cài một lần: pre-commit install
+# Chạy thủ công trên file đang stage: pre-commit run
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+    hooks:
+      - id: ruff-check
+        files: ^backend/
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.10.1
+    hooks:
+      - id: black
+        files: ^backend/
+        args: [--config=backend/pyproject.toml]
