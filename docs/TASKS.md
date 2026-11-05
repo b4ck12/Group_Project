@@ -97,7 +97,7 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #1, #2
   - **Target Files**: `backend/app/models/user.py`, `backend/alembic/versions/`
   - **Acceptance Criteria**: Tạo bảng `core.users` và `core.event_members`, kết nối qua Supavisor pooler port 6543.
-- [ ] **TASK-102** `[BE-Services]` **User Registration & Password Hashing**
+- [X] **TASK-102** `[BE-Services]` **User Registration & Password Hashing**
   - **Feature**: #2
   - **Target Files**: `backend/app/api/v1/auth.py`, `backend/app/services/auth_service.py`
   - **Acceptance Criteria**: `POST /auth/register` hash mật khẩu bằng `bcrypt` (cost $\ge 10$), trả về JWT tokens.

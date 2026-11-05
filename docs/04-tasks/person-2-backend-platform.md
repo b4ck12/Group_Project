@@ -13,11 +13,11 @@
 | Sprint | Số Tasks | Phụ trách | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|:---:|
 | **Sprint 0** | 1 Task | Phạm Đình Ánh Dương | 1/1 | ✅ Done (TASK-002) |
-| **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 2/7 | 🟡 Đang thực hiện |
+| **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 3/7 | 🟡 Đang thực hiện |
 | **Sprint 2** | 5 Tasks | Hà Đăng Huy (4) + Phạm Đình Ánh Dương (1) | 0/5 | 🔲 To Do |
 | **Sprint 3** | 3 Tasks | Phạm Đình Ánh Dương | 0/3 | 🔲 To Do |
 | **Sprint 4** | 2 Tasks | Phạm Đình Ánh Dương | 0/2 | 🔲 To Do |
-| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 3/18 | 🟡 Đang thực hiện |
+| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 4/18 | 🟡 Đang thực hiện |
 
 ---
 
