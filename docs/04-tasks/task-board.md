@@ -10,7 +10,7 @@
 
 Xem quy trình chi tiết tại [contract-first-workflow.md](../01-workflow/contract-first-workflow.md) và micro-tasks tại [TASKS.md](../TASKS.md) (TASK-001 đến TASK-011).
 
-- [ ] `TASK-001` `[BE-Core - Tạ Quang Huy]`: Thiết kế Schemas DB Supabase PostgreSQL 16 (`core`, `checkpoints`, `vectors`) & Supavisor Pooler port 6543
+- [x] `TASK-001` `[BE-Core - Tạ Quang Huy]`: Thiết kế Schemas DB Supabase PostgreSQL 16 (`core`, `checkpoints`, `vectors`) & Supavisor Pooler port 6543
 - [X] `TASK-002` `[BE-Services - Phạm Đình Ánh Dương]`: FastAPI APIRouter Skeleton & Swagger Docs
 - [ ] `TASK-003` `[AI Lead - Nguyễn Tùng Dương & Tạ Quang Huy]`: Định nghĩa `AgentState` Two-Phase & Dữ liệu Fixtures JSON
 - [x] `TASK-004` `[FE-Core - Hà Đăng Huy]`: MSW Mock Handlers Core APIs

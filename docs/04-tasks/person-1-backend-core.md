@@ -30,19 +30,19 @@
   - **Docs & Tracking**: Cập nhật `docs/03-architecture/database-schema.md` + tick `[x]` task board.
 
 ### Sprint 1 — Supabase Core Models & Initial Migration
-- [ ] **`TASK-101`** **Khởi tạo Database Models Core & Alembic Initial Migration**
+- [x] **`TASK-101`** **Khởi tạo Database Models Core & Alembic Initial Migration**
   - **Mục tiêu**: Khởi tạo bảng `core.users` và `core.event_members`.
   - **Target Files**: `backend/app/models/user.py`, `backend/alembic/versions/`
   - **Acceptance Criteria**: Bảng `users` và `event_members` tạo thành công với các trường `id`, `email`, `password_hash`, `full_name`, `avatar_url`, `role` (HOST, MEMBER, VIEWER). Kết nối qua Supavisor pooler port 6543.
   - **Docs & Tracking**: Cập nhật `database-schema.md` + tick `[x]` task board.
 
 ### Sprint 2 — Room Management & RolesGuard
-- [ ] **`TASK-201`** **Event Database Models (Day Hangouts & Vacations)**
+- [x] **`TASK-201`** **Event Database Models (Day Hangouts & Vacations)**
   - **Mục tiêu**: Bảng `core.events` hỗ trợ 2 phạm vi kế hoạch linh hoạt.
   - **Target Files**: `backend/app/models/event.py`, `backend/alembic/versions/`
   - **Acceptance Criteria**: Các trường `scope` (`DAY_HANGOUT` | `VACATION`), `macro_locked`, `final_locked`, `start_date`, `end_date`, `budget_tier`.
   - **Docs & Tracking**: Cập nhật `database-schema.md` + tick `[x]`.
-- [ ] **`TASK-202`** **Room CRUD APIs**
+- [x] **`TASK-202`** **Room CRUD APIs**
   - **Mục tiêu**: Các endpoint quản trị phòng lập kế hoạch.
   - **Target Files**: `backend/app/api/v1/events.py`, `backend/app/services/event_service.py`
   - **Acceptance Criteria**: `POST /events` tạo phòng và tự động gán creator làm `HOST`. `GET /events` lấy danh sách phòng của user. `PATCH /events/{id}` cập nhật thông tin phòng.
