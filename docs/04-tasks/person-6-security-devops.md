@@ -32,7 +32,7 @@
   - **Target Files**: `.github/workflows/ci.yml`
   - **Acceptance Criteria**: Pipeline chạy: `ruff check backend`, `pytest backend`, `pnpm run lint frontend`, `pnpm run test frontend`.
   - **Docs & Tracking**: Cập nhật `docs/01-workflow/git-workflow.md` + tick `[x]`.
-- [ ] **`TASK-008`** **Pre-commit Hooks & Linter Configuration**
+- [x] **`TASK-008`** **Pre-commit Hooks & Linter Configuration**
   - **Mục tiêu**: Chặn commit nếu code vi phạm convention.
   - **Target Files**: `.pre-commit-config.yaml`, `backend/pyproject.toml`
   - **Acceptance Criteria**: Chặn commit nếu Ruff hoặc Black phát hiện lỗi format.
