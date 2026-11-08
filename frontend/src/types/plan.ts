@@ -7,7 +7,37 @@
 import type { BackupOption, RoadmapTheme } from './consensus.ts';
 
 // --- Enums ---
-export type PlanStatus = 'DRAFT' | 'VOTING' | 'CONFIRMED' | 'ARCHIVED';
+export type PlanStatus =
+  | 'INITIAL'
+  | 'DRAFT'
+  | 'VOTING'
+  | 'FINALIZED'
+  | 'CONFIRMED'
+  | 'ONGOING'
+  | 'COMPLETED'
+  | 'ARCHIVED';
+
+export type StopStatus =
+  | 'INITIAL_PROPOSED'
+  | 'VOTING_OPEN'
+  | 'SELECTED_AFTER_VOTE'
+  | 'REJECTED_IN_VOTE'
+  | 'FINALIZED_LOCKED'
+  | 'ONGOING_ACTIVE'
+  | 'ADAPTED_ON_TRIP'
+  | 'SKIPPED_ON_TRIP'
+  | 'COMPLETED';
+
+export type TransportMode =
+  | 'WALKING'
+  | 'MOTORBIKE'
+  | 'TAXI_GRAB'
+  | 'CAR'
+  | 'BUS'
+  | 'TRAIN'
+  | 'FLIGHT'
+  | 'BOAT'
+  | 'OTHER';
 
 export type TimeSlot = 'MORNING' | 'AFTERNOON' | 'EVENING';
 
@@ -26,48 +56,82 @@ export type VoteValue = 'UP' | 'DOWN' | 'NEUTRAL';
 // --- Requests ---
 export interface PlanCreateRequest {
   title: string;
+  version_number?: number;
   total_budget?: string | null;
+  parent_plan_id?: string | null;
+  is_active?: boolean;
+  change_summary?: string | null;
   is_ai_generated?: boolean;
   macro_roadmap?: RoadmapTheme[] | null;
 }
 
 export interface PlanUpdateRequest {
   title?: string;
+  version_number?: number;
   total_budget?: string | null;
+  parent_plan_id?: string | null;
+  is_active?: boolean;
+  change_summary?: string | null;
   status?: PlanStatus;
   macro_roadmap?: RoadmapTheme[] | null;
 }
 
 export interface PlanStopCreateRequest {
   day_number?: number;
+  stop_date?: string | null;
   time_slot?: TimeSlot | null;
   order: number;
   place_name: string;
   place_ref_id?: string | null;
+  address?: string | null;
   lat?: number | null;
   lng?: number | null;
   note?: string | null;
   estimated_cost?: string | null;
   category?: StopCategory | null;
   start_time?: string | null;
+  end_time?: string | null;
   duration_minutes?: number | null;
+  transport_mode?: TransportMode | null;
+  transit_duration_minutes?: number | null;
+  transit_distance_km?: number | null;
+  transit_cost?: string | null;
+  stop_status?: StopStatus;
+  is_initial_stop?: boolean;
+  is_finalized_stop?: boolean;
+  replaced_by_stop_id?: string | null;
+  change_reason?: string | null;
+  locked_at?: string | null;
   metadata?: Record<string, unknown> | null;
   backup_options?: BackupOption[] | null;
 }
 
 export interface PlanStopUpdateRequest {
   day_number?: number;
+  stop_date?: string | null;
   time_slot?: TimeSlot | null;
   order?: number;
   place_name?: string;
   place_ref_id?: string | null;
+  address?: string | null;
   lat?: number | null;
   lng?: number | null;
   note?: string | null;
   estimated_cost?: string | null;
   category?: StopCategory | null;
   start_time?: string | null;
+  end_time?: string | null;
   duration_minutes?: number | null;
+  transport_mode?: TransportMode | null;
+  transit_duration_minutes?: number | null;
+  transit_distance_km?: number | null;
+  transit_cost?: string | null;
+  stop_status?: StopStatus;
+  is_initial_stop?: boolean;
+  is_finalized_stop?: boolean;
+  replaced_by_stop_id?: string | null;
+  change_reason?: string | null;
+  locked_at?: string | null;
   metadata?: Record<string, unknown> | null;
   backup_options?: BackupOption[] | null;
 }
@@ -85,16 +149,29 @@ export interface PlanStopResponse {
   order: number;
   order_index?: number;
   day_number: number;
+  stop_date?: string | null;
   time_slot: TimeSlot | null;
   place_name: string;
   place_ref_id: string | null;
+  address?: string | null;
   lat: number | null;
   lng: number | null;
   note: string | null;
   estimated_cost: string | null; // Decimal serialized as string
   category: StopCategory | null;
   start_time: string | null;
+  end_time?: string | null;
   duration_minutes: number | null;
+  transport_mode?: TransportMode | null;
+  transit_duration_minutes?: number | null;
+  transit_distance_km?: number | null;
+  transit_cost?: string | null;
+  stop_status?: StopStatus;
+  is_initial_stop?: boolean;
+  is_finalized_stop?: boolean;
+  replaced_by_stop_id?: string | null;
+  change_reason?: string | null;
+  locked_at?: string | null;
   metadata: Record<string, unknown> | null;
   up_votes: number;
   down_votes: number;
@@ -106,6 +183,11 @@ export interface PlanResponse {
   id: string;
   event_id: string;
   title: string;
+  version_number?: number;
+  parent_plan_id?: string | null;
+  is_active?: boolean;
+  change_summary?: string | null;
+  locked_at?: string | null;
   total_budget: string | null; // Decimal serialized as string
   status: PlanStatus;
   is_ai_generated: boolean;
@@ -115,6 +197,22 @@ export interface PlanResponse {
   stops: PlanStopResponse[];
   macro_locked?: boolean;
   final_locked?: boolean;
+}
+
+export interface PlanStatusTransitionRequest {
+  status: PlanStatus;
+  change_summary?: string | null;
+}
+
+export interface PlanStageHistoryResponse {
+  plan_id: string;
+  event_id: string;
+  version_number: number;
+  current_status: PlanStatus;
+  initial_stops: PlanStopResponse[];
+  finalized_stops: PlanStopResponse[];
+  ongoing_stops: PlanStopResponse[];
+  rejected_or_skipped_stops: PlanStopResponse[];
 }
 
 // --- Vote Response ---

@@ -264,3 +264,116 @@ def test_chat_schemas():
         created_at=now,
     )
     assert msg_resp.role == ChatRole.AI
+
+
+def test_plan_stop_transit_and_lifecycle_schemas():
+    from datetime import date
+    from app.models.enums import StopStatus, TransportMode
+    from app.schemas.plan import PlanStageHistoryResponse, PlanStatusTransitionRequest
+
+    now = datetime.now(timezone.utc)
+    stop = PlanStopResponse(
+        id="stop-initial-1",
+        plan_id="plan-v1",
+        order=1,
+        place_name="Ba Na Hills",
+        address="Hoa Ninh, Hoa Vang, Da Nang",
+        stop_date=date(2026, 11, 15),
+        start_time=now,
+        end_time=now,
+        duration_minutes=180,
+        estimated_cost=Decimal("900000.00"),
+        transport_mode=TransportMode.TAXI_GRAB,
+        transit_duration_minutes=45,
+        transit_distance_km=28.5,
+        transit_cost=Decimal("350000.00"),
+        stop_status=StopStatus.SKIPPED_ON_TRIP,
+        is_initial_stop=True,
+        is_finalized_stop=True,
+        replaced_by_stop_id="stop-rain-backup-1",
+        change_reason="Heavy rain at mountain peak; switched to indoor cafe",
+    )
+    assert stop.transport_mode == TransportMode.TAXI_GRAB
+    assert stop.transit_cost == Decimal("350000.00")
+    assert stop.stop_status == StopStatus.SKIPPED_ON_TRIP
+    assert stop.replaced_by_stop_id == "stop-rain-backup-1"
+
+    transition = PlanStatusTransitionRequest(
+        status=PlanStatus.ONGOING,
+        change_summary="Trip started on schedule",
+    )
+    assert transition.status == PlanStatus.ONGOING
+
+    history = PlanStageHistoryResponse(
+        plan_id="plan-v1",
+        event_id="ev-1",
+        version_number=1,
+        current_status=PlanStatus.ONGOING,
+        initial_stops=[stop],
+        finalized_stops=[stop],
+        ongoing_stops=[],
+        rejected_or_skipped_stops=[stop],
+    )
+    assert history.version_number == 1
+    assert len(history.rejected_or_skipped_stops) == 1
+
+
+def test_plan_stop_negative_transit_rejected():
+    with pytest.raises(ValidationError):
+        PlanStopCreate(
+            order=1,
+            place_name="Invalid Transit Stop",
+            transit_duration_minutes=-10,
+        )
+    with pytest.raises(ValidationError):
+        PlanStopCreate(
+            order=1,
+            place_name="Invalid Transit Cost",
+            transit_cost=Decimal("-5000"),
+        )
+
+
+@pytest.mark.asyncio
+async def test_plan_endpoints_501_skeletons():
+    from httpx import ASGITransport, AsyncClient
+    from app.main import app
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        r1 = await client.get("/api/v1/events/ev-1/plans")
+        assert r1.status_code == 501
+
+        r2 = await client.post("/api/v1/events/ev-1/plans", json={"title": "Test Plan"})
+        assert r2.status_code == 501
+
+        r3 = await client.get("/api/v1/events/ev-1/plans/p-1")
+        assert r3.status_code == 501
+
+        r4 = await client.patch(
+            "/api/v1/events/ev-1/plans/p-1/stops",
+            json=[{"order": 1, "place_name": "Test"}],
+        )
+        assert r4.status_code == 501
+
+        r5 = await client.patch(
+            "/api/v1/events/ev-1/plans/p-1/status",
+            json={"status": "VOTING"},
+        )
+        assert r5.status_code == 501
+
+        r6 = await client.post(
+            "/api/v1/events/ev-1/plans/p-1/stops/s-1/swap",
+            json={"target_backup_place_ref_id": "ref-1"},
+        )
+        assert r6.status_code == 501
+
+        r7 = await client.post(
+            "/api/v1/events/ev-1/plans/p-1/stops/s-1/adapt",
+            json={"place_name": "Cafe", "place_ref_id": "ref-2", "note": "rain"},
+        )
+        assert r7.status_code == 501
+
+        r8 = await client.get("/api/v1/events/ev-1/plans/p-1/history")
+        assert r8.status_code == 501
+
+

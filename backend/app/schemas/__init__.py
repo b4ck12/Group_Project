@@ -12,6 +12,8 @@ from .plan import (
     PlanStopBase,
     PlanStopCreate,
     PlanStopResponse,
+    PlanStatusTransitionRequest,
+    PlanStageHistoryResponse,
 )
 from .vote import (
     PlanVoteBase,
@@ -72,6 +74,8 @@ __all__ = [
     "PlanStopBase",
     "PlanStopCreate",
     "PlanStopResponse",
+    "PlanStatusTransitionRequest",
+    "PlanStageHistoryResponse",
     # Vote
     "PlanVoteBase",
     "PlanVoteCreate",
