@@ -12,7 +12,7 @@ def test_migration_chain_integrity():
     assert versions_dir.exists(), f"Versions dir not found: {versions_dir}"
 
     migration_files = list(versions_dir.glob("*.py"))
-    assert len(migration_files) >= 3, f"Expected at least 3 migration files, found {len(migration_files)}"
+    assert len(migration_files) >= 4, f"Expected at least 4 migration files, found {len(migration_files)}"
 
     revisions = {}
     for mf in migration_files:
@@ -40,9 +40,14 @@ def test_migration_chain_integrity():
     # Verify latest revision (align_models_with_design_docs)
     assert "b3a7c1e8d9f4" in revisions
     assert revisions["b3a7c1e8d9f4"]["down_revision"] == "e1ed950842d0"
-    latest_mod = revisions["b3a7c1e8d9f4"]["module"]
-    assert hasattr(latest_mod, "upgrade") and callable(latest_mod.upgrade)
-    assert hasattr(latest_mod, "downgrade") and callable(latest_mod.downgrade)
+
+    # Verify supervisor database feedback revision (Items 2.1-2.5)
+    assert "c4d8e2f1a0b5" in revisions
+    assert revisions["c4d8e2f1a0b5"]["down_revision"] == "b3a7c1e8d9f4"
+    feedback_mod = revisions["c4d8e2f1a0b5"]["module"]
+    assert hasattr(feedback_mod, "upgrade") and callable(feedback_mod.upgrade)
+    assert hasattr(feedback_mod, "downgrade") and callable(feedback_mod.downgrade)
+
 
 
 def test_alembic_env_configuration():
@@ -83,13 +88,13 @@ def test_core_schema_isolation_on_models():
         "core.plans",
         "core.plan_stops",
         "core.plan_votes",
-        "core.expenses",
-        "core.expense_splits",
-        "core.settlements",
         "core.agent_logs",
         "core.chat_messages",
     }
 
     registered_tables = {table.key for table in Base.metadata.tables.values()}
+    assert "core.expenses" not in registered_tables
+    assert "core.expense_splits" not in registered_tables
+    assert "core.settlements" not in registered_tables
     for expected in expected_tables:
         assert expected in registered_tables, f"Missing table {expected} in Base.metadata"
