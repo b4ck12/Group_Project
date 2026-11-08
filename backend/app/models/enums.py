@@ -62,16 +62,7 @@ class VoteValue(str, enum.Enum):
     UP = "UP"
     DOWN = "DOWN"
     NEUTRAL = "NEUTRAL"
-    
-class ExpenseType(str, enum.Enum):
-    ADVANCE = "ADVANCE"
-    PAYMENT = "PAYMENT"
-    
-class SplitType(str, enum.Enum):
-    EQUAL = "EQUAL"
-    EXACT = "EXACT"
-    PERCENTAGE = "PERCENTAGE"
-    
+
 class InvitationStatus(str, enum.Enum):
     PENDING = "PENDING"
     ACCEPTED = "ACCEPTED"

@@ -77,3 +77,23 @@ def test_chat_message_model():
     assert "role" in cols
     assert "content" in cols
     assert ChatMessage.__tablename__ == "chat_messages"
+
+
+def test_expense_and_settlement_removed():
+    import app.models as models_pkg
+    import app.schemas as schemas_pkg
+    from app.models import enums as enums_mod
+
+    registered_tables = set(Base.metadata.tables.keys())
+    assert "core.expenses" not in registered_tables
+    assert "core.expense_splits" not in registered_tables
+    assert "core.settlements" not in registered_tables
+
+    assert not hasattr(models_pkg, "Expense")
+    assert not hasattr(models_pkg, "ExpenseSplit")
+    assert not hasattr(models_pkg, "Settlement")
+    assert not hasattr(schemas_pkg, "ExpenseCreate")
+    assert not hasattr(schemas_pkg, "SettlementCreate")
+    assert not hasattr(enums_mod, "ExpenseType")
+    assert not hasattr(enums_mod, "SplitType")
+
