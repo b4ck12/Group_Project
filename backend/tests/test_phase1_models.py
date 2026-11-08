@@ -97,3 +97,63 @@ def test_expense_and_settlement_removed():
     assert not hasattr(enums_mod, "ExpenseType")
     assert not hasattr(enums_mod, "SplitType")
 
+
+def test_event_to_plan_one_to_many_versioning():
+    from app.models.enums import PlanStatus
+
+    assert PlanStatus.INITIAL == "INITIAL"
+    assert PlanStatus.VOTING == "VOTING"
+    assert PlanStatus.FINALIZED == "FINALIZED"
+    assert PlanStatus.ONGOING == "ONGOING"
+
+    assert "plans" in Event.__mapper__.relationships
+    assert "event" in Plan.__mapper__.relationships
+
+    plan_cols = Plan.__table__.columns
+    assert "version_number" in plan_cols
+    assert "parent_plan_id" in plan_cols
+    assert "is_active" in plan_cols
+    assert "locked_at" in plan_cols
+    assert "change_summary" in plan_cols
+
+    constraint_names = {c.name for c in Plan.__table__.constraints if c.name}
+    assert "uq_event_plan_version" in constraint_names
+
+    parent_fks = [fk.target_fullname for fk in plan_cols["parent_plan_id"].foreign_keys]
+    assert any("plans.id" in target for target in parent_fks)
+
+
+def test_plan_stop_transit_and_lifecycle_columns():
+    from app.models.enums import StopStatus, TransportMode
+
+    assert TransportMode.MOTORBIKE == "MOTORBIKE"
+    assert TransportMode.TAXI_GRAB == "TAXI_GRAB"
+    assert StopStatus.INITIAL_PROPOSED == "INITIAL_PROPOSED"
+    assert StopStatus.REJECTED_IN_VOTE == "REJECTED_IN_VOTE"
+    assert StopStatus.FINALIZED_LOCKED == "FINALIZED_LOCKED"
+    assert StopStatus.ADAPTED_ON_TRIP == "ADAPTED_ON_TRIP"
+    assert StopStatus.SKIPPED_ON_TRIP == "SKIPPED_ON_TRIP"
+
+    stop_cols = PlanStop.__table__.columns
+    # Item 2.4: Date, location address, specific times, cost, transport mode
+    assert "stop_date" in stop_cols
+    assert "start_time" in stop_cols
+    assert "end_time" in stop_cols
+    assert "address" in stop_cols
+    assert "transport_mode" in stop_cols
+    assert "transit_duration_minutes" in stop_cols
+    assert "transit_distance_km" in stop_cols
+    assert "transit_cost" in stop_cols
+
+    # Item 2.5: Non-destructive lifecycle & history tracking
+    assert "stop_status" in stop_cols
+    assert "is_initial_stop" in stop_cols
+    assert "is_finalized_stop" in stop_cols
+    assert "replaced_by_stop_id" in stop_cols
+    assert "change_reason" in stop_cols
+    assert "locked_at" in stop_cols
+
+    replaced_fks = [fk.target_fullname for fk in stop_cols["replaced_by_stop_id"].foreign_keys]
+    assert any("plan_stops.id" in target for target in replaced_fks)
+
+

@@ -7,6 +7,7 @@ from .enums import EventType, EventRole, EventScope, BudgetTier
 
 if TYPE_CHECKING:
     from .user import User
+    from .plan import Plan
 
 class Event(Base):
     __tablename__ = "events"
@@ -30,6 +31,7 @@ class Event(Base):
     )
 
     members: Mapped[List["EventMember"]] = relationship("EventMember", back_populates="event", cascade="all, delete-orphan")
+    plans: Mapped[List["Plan"]] = relationship("Plan", back_populates="event", cascade="all, delete-orphan")
 
 class EventMember(Base):
     __tablename__ = "event_members"

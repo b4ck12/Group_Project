@@ -34,10 +34,36 @@ class EventRole(str, enum.Enum):
     VIEWER = "VIEWER"
 
 class PlanStatus(str, enum.Enum):
-    DRAFT = "DRAFT"       
+    INITIAL = "INITIAL"
+    DRAFT = "DRAFT"
     VOTING = "VOTING"
+    FINALIZED = "FINALIZED"
     CONFIRMED = "CONFIRMED"
+    ONGOING = "ONGOING"
+    COMPLETED = "COMPLETED"
     ARCHIVED = "ARCHIVED"
+
+class StopStatus(str, enum.Enum):
+    INITIAL_PROPOSED = "INITIAL_PROPOSED"
+    VOTING_OPEN = "VOTING_OPEN"
+    SELECTED_AFTER_VOTE = "SELECTED_AFTER_VOTE"
+    REJECTED_IN_VOTE = "REJECTED_IN_VOTE"
+    FINALIZED_LOCKED = "FINALIZED_LOCKED"
+    ONGOING_ACTIVE = "ONGOING_ACTIVE"
+    ADAPTED_ON_TRIP = "ADAPTED_ON_TRIP"
+    SKIPPED_ON_TRIP = "SKIPPED_ON_TRIP"
+    COMPLETED = "COMPLETED"
+
+class TransportMode(str, enum.Enum):
+    WALKING = "WALKING"
+    MOTORBIKE = "MOTORBIKE"
+    TAXI_GRAB = "TAXI_GRAB"
+    CAR = "CAR"
+    BUS = "BUS"
+    TRAIN = "TRAIN"
+    FLIGHT = "FLIGHT"
+    BOAT = "BOAT"
+    OTHER = "OTHER"
 
 class AuthProvider(str, enum.Enum):
     LOCAL = "LOCAL"
