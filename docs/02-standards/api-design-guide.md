@@ -73,12 +73,11 @@
   PATCH  /events/{id}/stops/{stopId}                 # Living Itinerary: Cập nhật duy nhất 1 điểm dừng khi trời mưa
 
 /api/v1/places & Travel APIs (Adapter Pattern)
-  GET    /places/search?category=&keyword=&lat=&lng= # Tra cứu địa điểm qua Google Maps, Google Search, TripAdvisor + Redis Cache
-  GET    /places/{placeId}/details                   # Chi tiết địa điểm, giờ mở cửa, hình ảnh
-  GET    /accommodations/search                      # Tra cứu & so sánh khách sạn đa nguồn (Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia)
-  GET    /accommodations/{id}                        # Chi tiết phòng, xếp hạng, tiện ích và liên kết đặt phòng
-  GET    /weather?lat=&lng=                          # Dự báo thời tiết 3 ngày (OpenWeatherMap)
-  GET    /exchange-rate?from=USD&to=VND              # Tỷ giá ngoại tệ
+  GET    /places/search?category=&keyword=&lat=&lng= # Tra cứu địa điểm qua Google Places API (New) + Redis L2 Cache (TTL 24h)
+  GET    /places/{placeId}/details                   # Chi tiết địa điểm, giờ mở cửa, hình ảnh (POIItem)
+  GET    /places/hotels/compare?ids=id1,id2          # So sánh 2-3 khách sạn cạnh nhau (side-by-side) từ Google Places (Sprint 2 TASK-206)
+  GET    /weather?lat=&lng=                          # Dự báo thời tiết 3 ngày (OpenWeatherMap API)
+  GET    /exchange-rate?from=USD&to=VND              # Tỷ giá ngoại tệ cho các chuyến đi ASEAN
 
 /api/v1/export
   GET    /events/{id}/export/pdf                     # Xuất file PDF lịch trình chi tiết (WeasyPrint)
