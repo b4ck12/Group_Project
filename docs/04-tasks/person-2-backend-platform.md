@@ -38,7 +38,7 @@
 - [x] **`TASK-108`** `[BE-Platform - Hà Đăng Huy]` **Google Places API Base Service & PyBreaker Wrapper** *(Branch: `feature/TASK-107-108-redis-cache-places-api`)*
   - **Feature**: #24, #27
   - **Target Files**: `backend/app/services/places_service.py`
-  - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s, tự động ngắt mạch khi lỗi).
+  - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s, tự động ngắt mạch khi lỗi). Đã bổ sung `POIItem.to_llm_compact_dict()` nén ~85% token cho AI Agent (Mục 3.2).
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
 - [X] **`TASK-102`** `[BE-Services - Phạm Đình Ánh Dương]` **User Registration & Password Hashing**
   - **Feature**: #2

@@ -74,7 +74,7 @@
   - *Layered Architecture*: Phân định ranh giới rõ ràng Router $\rightarrow$ Service $\rightarrow$ DAL $\rightarrow$ Adapters, không để logic rò rỉ giữa các tầng.
   - *Component-Driven Architecture*: Tách biệt giao diện (Presentation) khỏi logic (Custom Hooks) và trạng thái (Stores).
 - **Modular Design (Tính Mô-đun Hóa)**:
-  - Phân vùng theo domain nghiệp vụ (`features/event-planning`, `features/ai-chat`, `features/finance-settlement`).
+  - Phân vùng theo domain nghiệp vụ (`features/event-planning`, `features/ai-chat`, `features/budget-planning`).
   - Đảm bảo High Cohesion (nội hàm module gắn kết chặt) và Low Coupling (phụ thuộc lỏng lẻo qua Interface/DTO).
 - **Bộ Ba Tiêu Chí Công Kỹ Nghệ**:
   - 🛠️ **Dễ Maintain (Maintainable)**: Tuân thủ SOLID, DRY, hàm ngắn ($\le 30$ dòng), circuit breaker tự phục hồi, kiểm thử tự động.
@@ -87,7 +87,7 @@
 |---|---|---|
 | **Tạ Quang Huy** | Backend Core & AI Integration | FastAPI, SQLAlchemy 2.0, Supabase Schemas, Supavisor Pooler, WebSockets, Redis Streams/PubSub. |
 | **Hà Đăng Huy** | Backend Platform & Frontend Core | HTTPX Async, Google Places API, PyBreaker, Upstash Redis Cache, React 18, Mapbox GL JS, Tailwind. |
-| **Phạm Đình Ánh Dương** | Backend Services & Settlement | Supabase Auth, JWT, SMTP Email, WeasyPrint PDF, .ics Calendar, Thuật toán giải quyết nợ tối ưu (Settlement). |
+| **Phạm Đình Ánh Dương** | Backend Services & Notifications | Supabase Auth, JWT, SMTP Email, WeasyPrint PDF, .ics Calendar, Link Invitations. |
 | **Nguyễn Minh Đức** | Frontend Growth & AI Experience | React 18, Realtime WebSockets, AI Streaming UI, Design System, i18n (VI/EN), Recharts Admin UI. |
 | **Nguyễn Tùng Dương** | AI Agent Lead | LangGraph Python, DeepSeek-V4, Model Abstraction Layer, Four-Tier Grounding, Geo-Clustering. |
 | **Đinh Tiến Luân** | DevOps & Cyber Security | Multi-Cloud (Vercel, Render, Supabase), GitHub Actions CI/CD, OpenTelemetry, LangSmith, OWASP Pentest. |
