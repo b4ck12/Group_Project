@@ -14,7 +14,7 @@
 | **Model Abstraction** | **LangChain Model Abstraction** | **Cloud LLM APIs** | Mô hình suy luận chính: **DeepSeek-V4**; Cơ chế tự động Fallback trong suốt sang **OpenAI (GPT-4o)**, **Anthropic Claude**, hoặc **Google Gemini** để chống vendor lock-in. |
 | **Database & BaaS** | **PostgreSQL 16 + pgvector** | **Supabase** | Lưu trữ quan hệ ACID chuẩn hóa, phân tách 3 schema (`core`, `checkpoints`, `vectors`), kết nối qua **Supavisor Connection Pooler (port 6543, Transaction Mode)** ghép 200+ phiên, bảo mật Row Level Security (RLS). |
 | **Queue & Cache** | **Redis 7 / Redis Streams** | **Upstash Redis** | Serverless Redis quản lý hàng đợi tác vụ bất đồng bộ (**Redis Streams** `XADD`/`XREADGROUP`), phát sóng sự kiện đa máy chủ (**Redis Pub/Sub** `plan:updated`), và bộ nhớ đệm L2 Cache lưu POIs (TTL 24h). |
-| **Travel & Lodging APIs** | **Google Places & OpenWeather** | **Google Cloud & OpenWeather** | Nguồn dữ liệu địa điểm & lưu trú cốt lõi: **Google Places API (New)** (đã bao phủ cả tọa độ, đánh giá, phân khúc giá của quán ăn lẫn khách sạn) + **OpenWeatherMap** (thời tiết). Tầng liên kết dịch vụ: Tích hợp Smart Deep-Links sang **Agoda, Booking.com, Klook** đặt phòng và mua vé trực tiếp. |
+| **Travel & Lodging APIs** | **Multi-Provider Adapters** | **Multi-Provider APIs** | Tích hợp hệ thống tìm kiếm khách sạn & địa điểm đa nguồn: **Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia** qua Adapter/Strategy Pattern. |
 | **Resilience & Ops** | **PyBreaker + OpenTelemetry** | **Cloud Observability** | Ngắt mạch tự động (**Circuit Breaker**) bảo vệ các API du lịch bên ngoài (timeout 2.5s), phân tán vết đo lường (Distributed Tracing) và kiểm soát LLM qua **LangSmith**. |
 
 ---
@@ -62,8 +62,9 @@
 - **L2 Cache (TTL 24h)**: Lưu trữ các kết quả tra cứu địa điểm và thời tiết để giảm tải chi phí và chống rate limit API bên thứ 3.
 
 ### 2.6. Travel & Lodging Multi-Provider APIs (Adapter & Strategy Pattern)
-- **Địa điểm & Lưu trú (POIs & Lodging)**: **Google Places API (New)** — Nguồn dữ liệu thực tế duy nhất cho AI: xác thực tọa độ GPS, địa chỉ, phân khúc giá (`price_level`), giờ mở cửa, và xếp hạng đánh giá cộng đồng cho cả quán ăn, điểm vui chơi lẫn khách sạn/homestay. Dữ liệu được nén tinh gọn còn 7 trường cốt lõi trước khi đưa vào LLM để chống tràn token.
-- **Đặt phòng & Vé trải nghiệm (Smart Deep-Links)**: **Agoda, Booking.com, Klook** — Tự động sinh liên kết đặt phòng và mua vé trải nghiệm trực tiếp gắn vào thẻ điểm dừng trên giao diện sau khi AI đã chọn xong địa điểm (không đưa văn bản thô vào prompt của AI).
+- **Khách sạn & Lưu trú**: **Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia** — Tích hợp để đối soát phòng trống, so sánh phân khúc giá và định tuyến liên kết đặt phòng.
+- **Địa điểm & Điểm tham quan (POIs)**: **Google Maps (Google Places API New), Google Search, TripAdvisor, OpenStreetMap (OSM)** — Xác thực tọa độ GPS, ảnh thực tế, giờ mở cửa và xếp hạng đánh giá cộng đồng.
+- **Hoạt động & Vé vui chơi**: **Klook, 12Go Asia** — Đặt vé trải nghiệm và phương tiện trung chuyển liên tỉnh.
 - **Thời tiết**: **OpenWeatherMap API** (cache 3 giờ).
 - **Kiến trúc Adapter (`BaseTravelProvider`)**: Mọi provider đều kế thừa interface chuẩn hóa, cho phép cắm thêm (plug-and-play) nhà cung cấp mới mà không sửa code nghiệp vụ.
 - **Độ Bền PyBreaker Circuit Breaker**: Đặt ngưỡng timeout 2.5 giây. Nếu API bên thứ 3 bị treo hoặc quá tải quá 3 lần liên tiếp, mạch sẽ tự động ngắt (OPEN) trong 60 giây và trả về dữ liệu fallback từ cache hoặc gợi ý đã lưu trong database.
