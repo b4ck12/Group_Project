@@ -72,13 +72,27 @@
   POST   /events/{id}/final-lock                     # [Consensus 2] Host Chốt Kế Hoạch Chính Thức
   PATCH  /events/{id}/stops/{stopId}                 # Living Itinerary: Cập nhật duy nhất 1 điểm dừng khi trời mưa
 
+/api/v1/events/{id}/plans (Plan Management & Versioning - Items 2.2, 2.4, 2.5)
+  GET    /events/{id}/plans                          # Danh sách các phiên bản Plan của phòng
+  POST   /events/{id}/plans                          # Tạo phiên bản Plan mới (version_number, macro_roadmap)
+  GET    /events/{id}/plans/{planId}                 # Chi tiết Plan và danh sách điểm dừng (stops)
+  PATCH  /events/{id}/plans/{planId}                 # Cập nhật thông tin Plan (tiêu đề, macro_roadmap, budget)
+  PATCH  /events/{id}/plans/{planId}/status          # Chuyển trạng thái Plan (INITIAL -> VOTING -> FINALIZED -> ONGOING)
+  PATCH  /events/{id}/plans/{planId}/stops           # Sắp xếp và cập nhật toàn bộ danh sách điểm dừng
+  POST   /events/{id}/plans/{planId}/stops           # Thêm 1 điểm dừng mới vào Plan
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/swap # 1-Click Swap đổi điểm dự phòng (lưu vết REJECTED_IN_VOTE)
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/adapt # Thích ứng đổi điểm trời mưa (lưu vết SKIPPED_ON_TRIP)
+  GET    /events/{id}/plans/{planId}/history         # Xem lịch sử 4 giai đoạn: Initial vs Finalized vs Ongoing
+  DELETE /events/{id}/plans/{planId}                 # Xóa phiên bản Plan (chỉ Host)
+  POST   /events/{id}/plans/{planId}/votes           # Bình chọn điểm dừng trong Plan
+  GET    /events/{id}/plans/{planId}/votes           # Lấy danh sách phiếu bầu của Plan
+
 /api/v1/places & Travel APIs (Adapter Pattern)
-  GET    /places/search?category=&keyword=&lat=&lng= # Tra cứu địa điểm qua Google Maps, Google Search, TripAdvisor + Redis Cache
-  GET    /places/{placeId}/details                   # Chi tiết địa điểm, giờ mở cửa, hình ảnh
-  GET    /accommodations/search                      # Tra cứu & so sánh khách sạn đa nguồn (Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia)
-  GET    /accommodations/{id}                        # Chi tiết phòng, xếp hạng, tiện ích và liên kết đặt phòng
-  GET    /weather?lat=&lng=                          # Dự báo thời tiết 3 ngày (OpenWeatherMap)
-  GET    /exchange-rate?from=USD&to=VND              # Tỷ giá ngoại tệ
+  GET    /places/search?category=&keyword=&lat=&lng= # Tra cứu địa điểm qua Google Places API (New) + Redis L2 Cache (TTL 24h)
+  GET    /places/{placeId}/details                   # Chi tiết địa điểm, giờ mở cửa, hình ảnh (POIItem)
+  GET    /places/hotels/compare?ids=id1,id2          # So sánh 2-3 khách sạn cạnh nhau (side-by-side) từ Google Places (Sprint 2 TASK-206)
+  GET    /weather?lat=&lng=                          # Dự báo thời tiết 3 ngày (OpenWeatherMap API)
+  GET    /exchange-rate?from=USD&to=VND              # Tỷ giá ngoại tệ cho các chuyến đi ASEAN
 
 /api/v1/export
   GET    /events/{id}/export/pdf                     # Xuất file PDF lịch trình chi tiết (WeasyPrint)
@@ -257,6 +271,51 @@
   ```json
   {
     "detail": "External Places provider temporarily unavailable: Circuit breaker is open"
+  }
+  ```
+
+---
+
+### 3.6. `PATCH /api/v1/events/{id}/plans/{planId}` (Cập nhật thông tin Plan & Macro Roadmap)
+- **Mô tả**: Cho phép chỉnh sửa thông tin Plan (tiêu đề, tổng ngân sách, và danh sách chủ đề từng ngày `macro_roadmap` chỉnh sửa bằng tay trên UI hoặc qua chat AI ở Pha 1).
+- **Quyền hạn (Auth)**: `Bearer JWT` (Role `HOST` hoặc `MEMBER`).
+- **Request Body (JSON)**:
+  ```json
+  {
+    "title": "Lịch trình Đà Nẵng 3N2Đ - Bản cập nhật",
+    "macro_roadmap": [
+      { "day": 1, "theme": "Khám phá trung tâm phố hoa & ngắm hoàng hôn biển Mỹ Khê" },
+      { "day": 2, "theme": "Khám phá Bán đảo Sơn Trà & lặn ngắm san hô Thọ Quang" },
+      { "day": 3, "theme": "Phố cổ Hội An & Thưởng thức ẩm thực đêm" }
+    ]
+  }
+  ```
+- **Response `200 OK`**: Trả về `PlanResponse` chứa `macro_roadmap` mới đã được lưu vào PostgreSQL.
+
+---
+
+### 3.7. `GET /api/v1/events/{id}/plans/{planId}/history` (Xem Lịch Sử 4 Giai Đoạn - Item 2.5)
+- **Mô tả**: Trả về đối tượng `PlanStageHistoryResponse` tổng hợp toàn bộ các điểm dừng được phân loại theo 4 giai đoạn vòng đời (`initial_stops`, `finalized_stops`, `ongoing_stops`, `rejected_or_skipped_stops`), cho phép UI hiển thị tab so sánh mà không mất dấu dữ liệu lịch sử.
+- **Quyền hạn (Auth)**: `Bearer JWT`.
+- **Response `200 OK` (`PlanStageHistoryResponse`)**:
+  ```json
+  {
+    "plan_id": "plan_001",
+    "event_id": "evt_001",
+    "version_number": 1,
+    "current_status": "ONGOING",
+    "initial_stops": [],
+    "finalized_stops": [],
+    "ongoing_stops": [],
+    "rejected_or_skipped_stops": [
+      {
+        "id": "stop_002",
+        "place_name": "Quán Bún Bò Huế Cũ",
+        "stop_status": "REJECTED_IN_VOTE",
+        "replaced_by_stop_id": "stop_005",
+        "change_reason": "Bị vote DOWN 3 phiếu"
+      }
+    ]
   }
   ```
 

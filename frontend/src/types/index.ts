@@ -4,3 +4,4 @@ export * from './event.ts';
 export * from './plan.ts';
 export * from './consensus.ts';
 export * from './chat.ts';
+export * from './place.ts';

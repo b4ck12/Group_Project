@@ -20,7 +20,7 @@ flowchart TD
     subgraph Row2 ["Pha 2: Tuyển Chọn Chi Tiết & Tích Hợp (Micro Curation)"]
         STATE["PostgreSQL Checkpoints<br/>• Typed AgentState qua DAL<br/>• AsyncPostgresSaver"]
         MICRO["Phase 2: Micro Curation State<br/>• Tra cứu Maps, Search & Khách sạn đa nguồn<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Nạp sẵn 2 backup stops cho 1-Click Swap"]
-        TOOLS["Resilient Travel APIs & DB (PyBreaker 2.5s)<br/>• Google Maps, Google Search, Google Hotels<br/>• TripAdvisor, Airbnb, Trip.com, Hotels.com<br/>• Trivago, Expedia, Klook, 12Go Asia"]
+        TOOLS["Resilient Travel APIs & DB (PyBreaker 2.5s)<br/>• Google Places API (POIs, Lodging, Price Level)<br/>• OpenWeatherMap API (Weather Forecast)<br/>• Smart Deep-Links (Agoda, Booking.com, Klook)"]
     end
 
     IN -->|"Kích hoạt (Trigger)"| MACRO
@@ -45,7 +45,7 @@ flowchart TD
 
 ### 1.2. Phase 2 — Micro Curation State (Trạng Thái Tuyển Chọn Địa Điểm Chi Tiết)
 - **Kích hoạt**: Chỉ được kích hoạt **sau khi Host bấm nút Khóa Lộ Trình Vĩ Mô (Macro Consensus)**.
-- **Nghiệp vụ**: Thực thi các lệnh gọi công cụ ngoài qua PyBreaker kết nối bộ Adapter đa nguồn (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**), áp dụng thuật toán gom cụm khoảng cách Haversine ($\le 2.5$\,km, thời gian di chuyển $\le 20$\,phút), và chuẩn bị sẵn 2 địa điểm dự phòng cho mỗi điểm dừng chính phục vụ cơ chế 1-Click Swap.
+- **Nghiệp vụ**: Thực thi các lệnh gọi công cụ ngoài qua PyBreaker kết nối **Google Places API (New)** để lấy dữ liệu địa điểm, ăn uống và chỗ ở đã nén gọn 7 trường cốt lõi, kết hợp **OpenWeatherMap API**, áp dụng thuật toán gom cụm khoảng cách Haversine ($\le 2.5$\,km, thời gian di chuyển $\le 20$\,phút), và chuẩn bị sẵn 2 địa điểm dự phòng cho mỗi điểm dừng chính phục vụ cơ chế 1-Click Swap. Tầng liên kết dịch vụ tự động sinh Smart Deep-Links sang Agoda, Booking.com và Klook trên giao diện người dùng mà không làm tràn token của LLM.
 - **Độ trễ**: $10$--$20$\,giây (truy vấn song song các địa điểm thực tế).
 
 ---
@@ -68,10 +68,10 @@ flowchart LR
 
 ### Chi tiết 4 tầng bảo vệ:
 1. **Tier 1 (Strict Schema)**: Ép đầu ra của LLM vào cấu trúc Pydantic nghiêm ngặt (`PlaceCandidate`), gồm các trường bắt buộc: `name`, `category`, `estimated_stay_minutes`, `budget_tier`, `lat_hint`, `lng_hint`. Bất kỳ đầu ra nào không khớp schema sẽ bị Pydantic v2 chặn lại và yêu cầu LLM format lại ngay lập tức.
-2. **Tier 2 (Live Map & Hotel Check)**: Xác thực chéo từng địa điểm và khách sạn qua hệ sinh thái API đối tác:
-   - **Bản đồ & Điểm tham quan**: Google Maps (Google Places API New), Google Search, TripAdvisor, OpenStreetMap.
-   - **Khách sạn & Nơi lưu trú**: Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia.
-   - Bắt buộc kiểm tra tọa độ GPS có thật, cờ `open_now`, giá phòng theo thời gian thực và đối chiếu giờ đóng/mở cửa với khung giờ dự kiến ghé thăm.
+2. **Tier 2 (Live Map & Hotel Check)**: Xác thực chéo từng địa điểm và khách sạn qua Google Places API (New) được chuẩn hóa và nén gọn:
+   - **Bản đồ, Điểm tham quan & Chỗ ở**: Google Places API (New) bao phủ cả POI, nhà hàng, quán cafe lẫn khách sạn (`lodging`).
+   - Bắt buộc kiểm tra tọa độ GPS có thật (`lat`, `lng`), cờ `open_now`, phân khúc giá (`price_level`), giờ đóng/mở cửa và đánh giá cộng đồng (`rating`, `user_ratings_total`).
+   - Dữ liệu được nén gọn chỉ giữ 7 trường cần thiết trước khi đưa vào LLM để chống tràn token (Over Token Limit). Smart Deep-Links sang Agoda/Booking được sinh ở tầng UI sau khi chốt điểm dừng.
 3. **Tier 3 (Distance Guard — Gom Cụm Thông Minh)**:
    - Sử dụng công thức khoảng cách Haversine:
      $$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta \phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right)}\right)$$
@@ -228,11 +228,9 @@ class BaseTravelProvider(ABC):
 ```
 
 ### Các lớp chuyển đổi cụ thể (Concrete Adapters):
-1. **GoogleMapsProvider & GoogleHotelsProvider**: Xác thực Place ID, tọa độ chính xác và giá phòng niêm yết trên Google Travel.
-2. **TripAdvisorProvider**: Lấy thông tin xếp hạng uy tín và đánh giá xác thực từ cộng đồng du lịch.
-3. **AirbnbProvider**: Tìm kiếm căn hộ, homestay và villa theo nhóm đông người.
-4. **TripComProvider, HotelsDotComProvider, TrivagoProvider, ExpediaProvider**: So sánh giá phòng theo thời gian thực và lấy link đặt phòng đối tác tốt nhất.
-5. **TransitProvider (12Go Asia & Flight Aggregators)**: Tra cứu lịch trình và giá vé máy bay (Vietjet, Vietnam Airlines, Bamboo), tàu hỏa VNR và xe khách liên tỉnh chất lượng cao.
+1. **GooglePlacesService (Core Implemented Provider)**: Xác thực Place ID, tọa độ chính xác, phân khúc giá (`price_level`), giờ mở cửa và xếp hạng đánh giá cộng đồng cho cả điểm ăn chơi lẫn nơi lưu trú (`lodging`). Dữ liệu được nén tinh gọn còn 7 trường cốt lõi trước khi đưa vào LLM để chống tràn token và chống ảo giác.
+2. **Smart Deep-Links Layer (Agoda, Booking.com, Klook)**: Tự động sinh liên kết đặt phòng đối tác và mua vé trải nghiệm trực tiếp gắn vào thẻ điểm dừng trên giao diện sau khi AI đã chọn xong địa điểm (không đưa văn bản thô vào prompt của AI).
+3. **Mở rộng thương mại trong tương lai (Future Extensibility)**: Kiến trúc `BaseTravelProvider` sẵn sàng cắm thêm các Provider chuyên biệt (như TripAdvisor, Expedia, 12Go Asia) thông qua Adapter Pattern khi dự án có hợp đồng API đối tác B2B chính thức.
 
 
 ### Lợi ích thiết kế (Design Benefits):
