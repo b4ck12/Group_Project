@@ -1,7 +1,9 @@
 import inspect
 import logging
 from typing import Any, AsyncIterator, Optional
+
 from redis.asyncio import ConnectionPool, Redis
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -16,10 +18,13 @@ async def init_redis_pool() -> None:
     if _redis_pool is None:
         url = settings.REDIS_URL
         is_tls = url.startswith("rediss://")
-        logger.info(f"Khởi tạo Redis pool (TLS={is_tls}) tới {url.split('@')[-1] if '@' in url else url}")
+        # Strip credentials before '@' so secrets are never written to logs
+        logger.info(
+            f"Khởi tạo Redis pool (TLS={is_tls}) tới {url.split('@')[-1] if '@' in url else url}"
+        )
         _redis_pool = ConnectionPool.from_url(
             url,
-            decode_responses=True,
+            decode_responses=True,  # Return Python str instead of raw bytes
             max_connections=20,
             socket_timeout=5.0,
         )
@@ -33,6 +38,7 @@ async def close_redis_pool() -> None:
         await _redis_client.aclose()
         _redis_client = None
     if _redis_pool is not None:
+        # disconnect() may be sync or async depending on redis-py version; inspect.isawaitable handles both
         res = _redis_pool.disconnect()
         if inspect.isawaitable(res):
             await res
@@ -51,7 +57,7 @@ async def get_redis() -> AsyncIterator[Redis]:
     if client is None:
         await init_redis_pool()
         client = get_redis_client()
-    yield client
+    yield client  # Async generator dependency for FastAPI Depends(get_redis)
 
 
 async def check_redis_health() -> dict[str, Any]:
