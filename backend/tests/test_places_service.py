@@ -210,3 +210,42 @@ async def test_google_places_search_with_category_and_open_now_filter():
     sent_json = mock_client.post.call_args.kwargs["json"]
     assert sent_json["includedType"] == "cafe"
     assert sent_json["openNow"] is True
+
+
+def test_estimate_transit_walking_short_distance():
+    from decimal import Decimal
+    from app.models.enums import TransportMode
+    from app.services.places_service import estimate_transit_between_coords
+
+    # ~0.4 km apart in Hoan Kiem, Ha Noi
+    est = estimate_transit_between_coords(21.0285, 105.8542, 21.0315, 105.8530)
+    assert est.transport_mode == TransportMode.WALKING
+    assert 0.1 <= est.transit_distance_km <= 0.8
+    assert est.transit_duration_minutes >= 2
+    assert est.transit_cost == Decimal("0")
+
+
+def test_estimate_transit_motorbike_medium_distance():
+    from decimal import Decimal
+    from app.models.enums import TransportMode
+    from app.services.places_service import estimate_transit_between_coords
+
+    # ~2.5 km apart in Ha Noi
+    est = estimate_transit_between_coords(21.0285, 105.8542, 21.0278, 105.8355)
+    assert est.transport_mode == TransportMode.MOTORBIKE
+    assert 0.8 < est.transit_distance_km <= 5.0
+    assert est.transit_duration_minutes > 0
+    assert est.transit_cost >= Decimal("15000")
+
+
+def test_estimate_transit_taxi_long_distance():
+    from decimal import Decimal
+    from app.models.enums import TransportMode
+    from app.services.places_service import estimate_transit_between_coords
+
+    # ~8.5 km apart (Hoan Kiem to West Lake / Cau Giay)
+    est = estimate_transit_between_coords(21.0285, 105.8542, 21.0362, 105.7829)
+    assert est.transport_mode == TransportMode.TAXI_GRAB
+    assert est.transit_distance_km > 5.0
+    assert est.transit_duration_minutes > 10
+    assert est.transit_cost >= Decimal("30000")
