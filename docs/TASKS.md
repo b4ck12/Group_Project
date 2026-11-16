@@ -197,7 +197,7 @@ feature/TASK-004-msw-core-mocks
   - **Acceptance Criteria**: Dependency `require_host` chặn các thao tác khóa kế hoạch nếu user không phải là Host (`403 Forbidden`).
 
 ### 2.2 External APIs & PyBreaker Resilience (Backend Platform)
-- [ ] **TASK-205** `[BE-B]` **Google Places Search with Category & Hours Filter**
+- [x] **TASK-205** `[BE-B]` **Google Places Search with Category & Hours Filter**
   - **Feature**: #24, #25
   - **Target Files**: `backend/app/api/v1/places.py`, `backend/app/services/places_service.py`
   - **Acceptance Criteria**: `GET /places/search?category=...` lọc địa điểm kèm cờ `open_now` và gán metadata.
