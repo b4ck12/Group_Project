@@ -14,10 +14,10 @@
 |:---:|:---:|:---:|:---:|:---:|
 | **Sprint 0** | 1 Task | Phạm Đình Ánh Dương | 1/1 | ✅ Done (TASK-002) |
 | **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 3/7 | 🟡 Đang thực hiện |
-| **Sprint 2** | 5 Tasks | Hà Đăng Huy (4) + Phạm Đình Ánh Dương (1) | 0/5 | 🔲 To Do |
+| **Sprint 2** | 5 Tasks | Hà Đăng Huy (4) + Phạm Đình Ánh Dương (1) | 1/5 | 🟡 Đang thực hiện |
 | **Sprint 3** | 3 Tasks | Phạm Đình Ánh Dương | 0/3 | 🔲 To Do |
 | **Sprint 4** | 2 Tasks | Phạm Đình Ánh Dương | 0/2 | 🔲 To Do |
-| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 4/18 | 🟡 Đang thực hiện |
+| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 5/18 | 🟡 Đang thực hiện |
 
 ---
 
@@ -67,7 +67,7 @@
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
 
 ### Sprint 2 — External Travel APIs & Link Invitations
-- [ ] **`TASK-205`** `[BE-Platform - Hà Đăng Huy]` **Google Places Search with Category & Hours Filter**
+- [x] **`TASK-205`** `[BE-Platform - Hà Đăng Huy]` **Google Places Search with Category & Hours Filter** *(Branch: `feature/TASK-205-places-category-hours-filter`)*
   - **Feature**: #24, #25
   - **Target Files**: `backend/app/api/v1/places.py`, `backend/app/services/places_service.py`
   - **Acceptance Criteria**: `GET /places/search?category=...` lọc địa điểm kèm cờ `open_now` và gán metadata.
