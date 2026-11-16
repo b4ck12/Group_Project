@@ -58,6 +58,7 @@ from .place import (
     POIItem,
     PlaceSearchResponse,
     PlaceDetailResponse,
+    TransitEstimate,
 )
 
 __all__ = [
@@ -110,8 +111,9 @@ __all__ = [
     # Chat
     "ChatMessageCreate",
     "ChatMessageResponse",
-    # Place (TASK-108)
+    # Place (TASK-108 & TASK-205)
     "POIItem",
     "PlaceSearchResponse",
     "PlaceDetailResponse",
+    "TransitEstimate",
 ]
