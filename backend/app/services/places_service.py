@@ -64,14 +64,18 @@ async def call_with_breaker(
     Execute an async callable inside a PyBreaker CircuitBreaker with strict timeout.
     Guarantees state transitions and fast-fails with CircuitBreakerError when circuit is OPEN.
     """
+    # PyBreaker's native call() is sync-only (unless Tornado is used), so we drive its
+    # state machine manually around asyncio.wait_for():
+    # 1) Fast-fail with CircuitBreakerError if OPEN (or transition to HALF-OPEN after reset_timeout)
     if breaker.current_state == "open":
         breaker.call(lambda: None)
 
     try:
         result = await asyncio.wait_for(func(*args, **kwargs), timeout=timeout)
-        breaker.call(lambda: None)
+        breaker.call(lambda: None)  # Record success (resets failure count / closes HALF-OPEN)
         return result
     except Exception as exc:
+        # Re-raise inside breaker.call() so PyBreaker counts the failure and trips at fail_max
         def _fail() -> None:
             raise exc
 
@@ -99,6 +103,7 @@ def _map_price_level(raw_price: Optional[str]) -> Optional[int]:
 def _normalize_place(raw: Dict[str, Any]) -> POIItem:
     """Normalize a raw Google Places v1 dict into a POIItem schema."""
     loc = raw.get("location") or {}
+    # Google Places v1 wraps names in {"text": "...", "languageCode": "..."}
     display_name = raw.get("displayName")
     name = (
         display_name.get("text")
@@ -118,9 +123,7 @@ def _normalize_place(raw: Dict[str, Any]) -> POIItem:
 
     rating = float(raw["rating"]) if raw.get("rating") is not None else None
     user_ratings_total = (
-        int(raw["userRatingCount"])
-        if raw.get("userRatingCount") is not None
-        else None
+        int(raw["userRatingCount"]) if raw.get("userRatingCount") is not None else None
     )
 
     return POIItem(
@@ -157,6 +160,7 @@ class GooglePlacesService(BaseTravelProvider):
         self.breaker = breaker or places_circuit_breaker
 
     def __repr__(self) -> str:
+        # Must stay constant (no memory address or api_key) because @cache_response uses str(self) in cache keys
         return f"GooglePlacesService(provider={self.provider_name})"
 
     def __str__(self) -> str:
@@ -176,6 +180,7 @@ class GooglePlacesService(BaseTravelProvider):
         headers = {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": self.api_key,
+            # FieldMask limits Google response & billing tier to only the fields we actually normalize
             "X-Goog-FieldMask": (
                 "places.id,places.displayName,places.formattedAddress,"
                 "places.location,places.primaryType,places.rating,"
@@ -213,6 +218,7 @@ class GooglePlacesService(BaseTravelProvider):
             total=len(items),
             provider=self.provider_name,
         )
+        # Return plain JSON-safe dict so @cache_response can store it in Redis cleanly
         return result.model_dump(mode="json")
 
     async def search_places(
@@ -240,6 +246,7 @@ class GooglePlacesService(BaseTravelProvider):
         headers = {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": self.api_key,
+            # Single-object endpoint omits the "places." prefix used in searchText FieldMask
             "X-Goog-FieldMask": (
                 "id,displayName,formattedAddress,location,primaryType,"
                 "rating,userRatingCount,priceLevel,regularOpeningHours,"
