@@ -15,12 +15,15 @@ places_service = GooglePlacesService()
 @router.get("/search", response_model=PlaceSearchResponse)
 async def search_places(
     keyword: Optional[str] = Query(default=None, description="Search keyword"),
-    category: Optional[str] = Query(default=None, description="Place category (e.g. restaurant, hotel)"),
+    category: Optional[str] = Query(
+        default=None, description="Place category (e.g. restaurant, cafe, hotel)"
+    ),
     lat: Optional[float] = Query(default=None, ge=-90.0, le=90.0),
     lng: Optional[float] = Query(default=None, ge=-180.0, le=180.0),
     radius: int = Query(default=5000, ge=100, le=50000),
+    open_now: Optional[bool] = Query(default=None, description="Filter places currently open"),
 ) -> PlaceSearchResponse:
-    """Search places via Google Places API with 24h Redis cache and PyBreaker protection."""
+    """Search places via Google Places API with category & hours filter, 24h Redis cache, and PyBreaker."""
     try:
         return await places_service.search_places(
             keyword=keyword,
@@ -28,6 +31,7 @@ async def search_places(
             lat=lat,
             lng=lng,
             radius=radius,
+            open_now=open_now,
         )
     except (pybreaker.CircuitBreakerError, httpx.TimeoutException, asyncio.TimeoutError, httpx.HTTPError) as exc:
         raise HTTPException(

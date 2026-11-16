@@ -1,6 +1,8 @@
+from decimal import Decimal
 import pytest
 from pydantic import ValidationError
-from app.schemas.place import POIItem, PlaceSearchResponse, PlaceDetailResponse
+from app.models.enums import TransportMode
+from app.schemas.place import POIItem, PlaceSearchResponse, PlaceDetailResponse, TransitEstimate
 
 
 def test_poi_item_valid():
@@ -90,3 +92,16 @@ def test_poi_item_to_llm_compact_dict_minimal():
         "place_id": "min_001",
         "name": "Điểm ngắm hoàng hôn",
     }
+
+
+def test_transit_estimate_schema_valid():
+    est = TransitEstimate(
+        transport_mode=TransportMode.WALKING,
+        transit_distance_km=0.5,
+        transit_duration_minutes=6,
+        transit_cost=Decimal("0"),
+    )
+    assert est.transport_mode == TransportMode.WALKING
+    assert est.transit_distance_km == 0.5
+    assert est.transit_duration_minutes == 6
+    assert est.transit_cost == Decimal("0")

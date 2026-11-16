@@ -72,3 +72,59 @@ async def test_get_place_details_endpoint_200():
     assert resp.status_code == 200
     assert resp.json()["place"]["name"] == "Hanoi Opera House"
 
+
+@pytest.mark.asyncio
+async def test_search_places_endpoint_with_category_and_open_now_filter():
+    mock_result = PlaceSearchResponse(
+        results=[
+            POIItem(
+                place_id="ChIJ_cafe_open",
+                name="Cong Caphe",
+                address="116 Cau Go, Hoan Kiem, Ha Noi",
+                lat=21.0321,
+                lng=105.8519,
+                category="cafe",
+                rating=4.5,
+                open_now=True,
+                metadata={
+                    "raw_primary_type": "cafe",
+                    "stop_category": "CAFE",
+                    "weekday_hours": ["Monday: 7:30 AM – 11:30 PM"],
+                    "types": ["cafe", "coffee_shop"],
+                },
+            )
+        ],
+        total=1,
+        provider="google_places",
+    )
+
+    mock_search = AsyncMock(return_value=mock_result)
+    with patch("app.api.v1.places.places_service.search_places", new=mock_search):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/v1/places/search",
+                params={
+                    "keyword": "Cong",
+                    "category": "CAFE",
+                    "lat": 21.03,
+                    "lng": 105.85,
+                    "radius": 2000,
+                    "open_now": "true",
+                },
+            )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["results"][0]["open_now"] is True
+    assert body["results"][0]["metadata"]["stop_category"] == "CAFE"
+    mock_search.assert_awaited_once_with(
+        keyword="Cong",
+        category="CAFE",
+        lat=21.03,
+        lng=105.85,
+        radius=2000,
+        open_now=True,
+    )
+
