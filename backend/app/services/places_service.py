@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 import asyncio
+from decimal import Decimal
 import logging
+import math
 from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
 
 import httpx
@@ -8,7 +10,13 @@ import pybreaker
 
 from app.core.config import settings
 from app.core.http_client import get_http_client
-from app.schemas.place import POIItem, PlaceDetailResponse, PlaceSearchResponse
+from app.models.enums import TransportMode
+from app.schemas.place import (
+    POIItem,
+    PlaceDetailResponse,
+    PlaceSearchResponse,
+    TransitEstimate,
+)
 from app.services.cache_service import cache_response
 
 logger = logging.getLogger(__name__)
@@ -331,3 +339,54 @@ class GooglePlacesService(BaseTravelProvider):
         """Get place details via Google Places API (New) with 24h cache & PyBreaker."""
         data = await self._get_place_details_cached(place_id=place_id)
         return PlaceDetailResponse.model_validate(data)
+
+
+def estimate_transit_between_coords(
+    lat1: float,
+    lng1: float,
+    lat2: float,
+    lng2: float,
+) -> TransitEstimate:
+    """
+    Calculate Haversine distance and estimate transport mode, duration, and cost (VND)
+    between two coordinates for PlanStop (Supervisor Item 2.4).
+    """
+    earth_radius_km = 6371.0
+    d_lat = math.radians(lat2 - lat1)
+    d_lng = math.radians(lng2 - lng1)
+    a = (
+        math.sin(d_lat / 2) ** 2
+        + math.cos(math.radians(lat1))
+        * math.cos(math.radians(lat2))
+        * math.sin(d_lng / 2) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    # Multiply straight-line Haversine by 1.25 road winding factor
+    distance_km = round(earth_radius_km * c * 1.25, 2)
+
+    if distance_km <= 0.8:
+        duration = max(2, round(distance_km * 12))
+        return TransitEstimate(
+            transport_mode=TransportMode.WALKING,
+            transit_distance_km=distance_km,
+            transit_duration_minutes=duration,
+            transit_cost=Decimal("0"),
+        )
+    if distance_km <= 5.0:
+        duration = max(5, round((distance_km / 25.0) * 60) + 3)
+        raw_cost = max(15000, int(round(distance_km * 12000, -3)))
+        return TransitEstimate(
+            transport_mode=TransportMode.MOTORBIKE,
+            transit_distance_km=distance_km,
+            transit_duration_minutes=duration,
+            transit_cost=Decimal(str(raw_cost)),
+        )
+
+    duration = max(10, round((distance_km / 30.0) * 60) + 5)
+    raw_cost = max(30000, int(round(distance_km * 15000, -3)))
+    return TransitEstimate(
+        transport_mode=TransportMode.TAXI_GRAB,
+        transit_distance_km=distance_km,
+        transit_duration_minutes=duration,
+        transit_cost=Decimal(str(raw_cost)),
+    )
