@@ -88,7 +88,7 @@
   GET    /events/{id}/plans/{planId}/votes           # Lấy danh sách phiếu bầu của Plan
 
 /api/v1/places & Travel APIs (Adapter Pattern)
-  GET    /places/search?category=&keyword=&lat=&lng= # Tra cứu địa điểm qua Google Places API (New) + Redis L2 Cache (TTL 24h)
+  GET    /places/search?category=&keyword=&lat=&lng=&open_now= # Tra cứu địa điểm qua Google Places API (New) + lọc danh mục/giờ mở cửa + Redis L2 Cache (TTL 24h)
   GET    /places/{placeId}/details                   # Chi tiết địa điểm, giờ mở cửa, hình ảnh (POIItem)
   GET    /places/hotels/compare?ids=id1,id2          # So sánh 2-3 khách sạn cạnh nhau (side-by-side) từ Google Places (Sprint 2 TASK-206)
   GET    /weather?lat=&lng=                          # Dự báo thời tiết 3 ngày (OpenWeatherMap API)
@@ -216,9 +216,9 @@
 
 ---
 
-### 3.5. `GET /api/v1/places/search` & `GET /api/v1/places/{placeId}/details` (Places Service & PyBreaker - TASK-108)
-- **Mô tả**: Tra cứu địa điểm và lấy thông tin chi tiết POI qua Google Places API (New) được bảo vệ bởi Circuit Breaker `PyBreaker` (`fail_max=3`, `reset_timeout=60s`, `timeout=2.5s`) và Redis L2 Cache 24 giờ.
-- **Query Params (`/places/search`)**: `keyword` (string), `category` (string), `lat` (float), `lng` (float), `radius` (int, default 5000m).
+### 3.5. `GET /api/v1/places/search` & `GET /api/v1/places/{placeId}/details` (Places Service & PyBreaker - TASK-108 & TASK-205)
+- **Mô tả**: Tra cứu địa điểm và lấy thông tin chi tiết POI qua Google Places API (New) được bảo vệ bởi Circuit Breaker `PyBreaker` (`fail_max=3`, `reset_timeout=60s`, `timeout=2.5s`) và Redis L2 Cache 24 giờ. Hỗ trợ chuẩn hóa `category` sang `StopCategory`/`includedType`, lọc theo cờ `open_now`, và làm giàu `metadata` (`stop_category`, `weekday_hours`, `types`).
+- **Query Params (`/places/search`)**: `keyword` (string), `category` (string, hỗ trợ `StopCategory` như `CAFE`, `RESTAURANT`, `HOTEL` hoặc Google `includedType`), `lat` (float), `lng` (float), `radius` (int, default 5000m), `open_now` (bool, optional — lọc địa điểm đang mở/đóng cửa).
 - **Response `200 OK` (`PlaceSearchResponse`)**:
   ```json
   {
@@ -237,7 +237,12 @@
         "photo_url": "places/ChIJN1t_tDeuEmsRUsoyG83frY4/photos/photo1",
         "website_uri": "https://example.com",
         "phone_number": "+84 24 3825 1234",
-        "metadata": { "raw_primary_type": "vietnamese_restaurant" }
+        "metadata": {
+          "raw_primary_type": "vietnamese_restaurant",
+          "stop_category": "RESTAURANT",
+          "weekday_hours": ["Monday: 6:00 AM – 9:00 PM"],
+          "types": ["vietnamese_restaurant", "restaurant", "food"]
+        }
       }
     ],
     "total": 1,
