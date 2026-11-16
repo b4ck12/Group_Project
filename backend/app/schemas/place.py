@@ -1,5 +1,8 @@
+from decimal import Decimal
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
+
+from app.models.enums import TransportMode
 
 
 class POIItem(BaseModel):
@@ -58,3 +61,12 @@ class PlaceSearchResponse(BaseModel):
 class PlaceDetailResponse(BaseModel):
     place: POIItem
     provider: str = "google_places"
+
+
+class TransitEstimate(BaseModel):
+    """Estimated transit metrics between two coordinates for PlanStop (Supervisor Item 2.4)."""
+
+    transport_mode: TransportMode
+    transit_distance_km: float = Field(..., ge=0.0)
+    transit_duration_minutes: int = Field(..., ge=0)
+    transit_cost: Decimal = Field(default=Decimal("0"), ge=0)
