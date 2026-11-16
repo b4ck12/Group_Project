@@ -28,8 +28,9 @@ class BaseTravelProvider(ABC):
         lat: Optional[float] = None,
         lng: Optional[float] = None,
         radius: int = 5000,
+        open_now: Optional[bool] = None,
     ) -> PlaceSearchResponse:
-        """Search POIs with optional category, geo-location, and radius."""
+        """Search POIs with optional category, geo-location, radius, and open_now filter."""
         raise NotImplementedError
 
     @abstractmethod
@@ -100,6 +101,50 @@ def _map_price_level(raw_price: Optional[str]) -> Optional[int]:
     return mapping.get(raw_price)
 
 
+_CATEGORY_TO_INCLUDED_TYPE: Dict[str, str] = {
+    "RESTAURANT": "restaurant",
+    "CAFE": "cafe",
+    "HOTEL": "lodging",
+    "LODGING": "lodging",
+    "ATTRACTION": "tourist_attraction",
+    "ENTERTAINMENT": "amusement_park",
+    "SHOPPING": "shopping_mall",
+    "TRANSPORT": "transit_station",
+}
+
+
+def _map_to_google_included_type(category: Optional[str]) -> Optional[str]:
+    """Normalize a StopCategory or user category string to a Google Places includedType."""
+    if not category:
+        return None
+    cleaned = category.strip()
+    upper = cleaned.upper()
+    if upper in _CATEGORY_TO_INCLUDED_TYPE:
+        return _CATEGORY_TO_INCLUDED_TYPE[upper]
+    return cleaned.lower()
+
+
+def _map_to_stop_category(primary_type: Optional[str], types: Optional[List[str]] = None) -> str:
+    """Map Google Places primaryType/types to TripMate StopCategory enum string."""
+    candidates = [t.lower() for t in ([primary_type] if primary_type else []) + (types or []) if t]
+    for t in candidates:
+        if "cafe" in t or "coffee" in t or "bakery" in t:
+            return "CAFE"
+        if "restaurant" in t or "food" in t or "meal" in t or "bar" in t:
+            return "RESTAURANT"
+        if "lodging" in t or "hotel" in t or "resort" in t or "hostel" in t:
+            return "HOTEL"
+        if "tourist_attraction" in t or "museum" in t or "park" in t or "historical" in t:
+            return "ATTRACTION"
+        if "shopping" in t or "market" in t or "store" in t:
+            return "SHOPPING"
+        if "amusement" in t or "night_club" in t or "movie" in t or "spa" in t:
+            return "ENTERTAINMENT"
+        if "airport" in t or "station" in t or "transit" in t:
+            return "TRANSPORT"
+    return "OTHER"
+
+
 def _normalize_place(raw: Dict[str, Any]) -> POIItem:
     """Normalize a raw Google Places v1 dict into a POIItem schema."""
     loc = raw.get("location") or {}
@@ -111,8 +156,10 @@ def _normalize_place(raw: Dict[str, Any]) -> POIItem:
         else (display_name or raw.get("name") or "")
     )
 
-    hours = raw.get("regularOpeningHours") or {}
+    hours = raw.get("regularOpeningHours") or raw.get("currentOpeningHours") or {}
     open_now = hours.get("openNow") if isinstance(hours, dict) else None
+    weekday_hours = hours.get("weekdayDescriptions", []) if isinstance(hours, dict) else []
+    raw_types = raw.get("types") if isinstance(raw.get("types"), list) else []
 
     photos = raw.get("photos") or []
     photo_url = None
@@ -140,7 +187,12 @@ def _normalize_place(raw: Dict[str, Any]) -> POIItem:
         photo_url=photo_url,
         website_uri=raw.get("websiteUri"),
         phone_number=raw.get("nationalPhoneNumber") or raw.get("internationalPhoneNumber"),
-        metadata={"raw_primary_type": raw.get("primaryType")},
+        metadata={
+            "raw_primary_type": raw.get("primaryType"),
+            "stop_category": _map_to_stop_category(raw.get("primaryType"), raw_types),
+            "weekday_hours": weekday_hours,
+            "types": raw_types,
+        },
     )
 
 
@@ -174,6 +226,7 @@ class GooglePlacesService(BaseTravelProvider):
         lat: Optional[float] = None,
         lng: Optional[float] = None,
         radius: int = 5000,
+        open_now: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """Internal cached search query returning a serialized dictionary."""
         client = get_http_client()
@@ -183,15 +236,18 @@ class GooglePlacesService(BaseTravelProvider):
             # FieldMask limits Google response & billing tier to only the fields we actually normalize
             "X-Goog-FieldMask": (
                 "places.id,places.displayName,places.formattedAddress,"
-                "places.location,places.primaryType,places.rating,"
+                "places.location,places.primaryType,places.types,places.rating,"
                 "places.userRatingCount,places.priceLevel,places.regularOpeningHours"
             ),
         }
         body: Dict[str, Any] = {}
         query_text = " ".join(filter(None, [keyword, category])) or "point of interest"
         body["textQuery"] = query_text
-        if category:
-            body["includedType"] = category
+        included_type = _map_to_google_included_type(category)
+        if included_type:
+            body["includedType"] = included_type
+        if open_now is True:
+            body["openNow"] = True
         if lat is not None and lng is not None:
             body["locationBias"] = {
                 "circle": {
@@ -213,6 +269,8 @@ class GooglePlacesService(BaseTravelProvider):
         data = resp.json()
         raw_places = data.get("places") or []
         items = [_normalize_place(p) for p in raw_places]
+        if open_now is not None:
+            items = [item for item in items if item.open_now is open_now]
         result = PlaceSearchResponse(
             results=items,
             total=len(items),
@@ -228,6 +286,7 @@ class GooglePlacesService(BaseTravelProvider):
         lat: Optional[float] = None,
         lng: Optional[float] = None,
         radius: int = 5000,
+        open_now: Optional[bool] = None,
     ) -> PlaceSearchResponse:
         """Search places via Google Places API (New) with 24h cache & PyBreaker."""
         data = await self._search_places_cached(
@@ -236,6 +295,7 @@ class GooglePlacesService(BaseTravelProvider):
             lat=lat,
             lng=lng,
             radius=radius,
+            open_now=open_now,
         )
         return PlaceSearchResponse.model_validate(data)
 
