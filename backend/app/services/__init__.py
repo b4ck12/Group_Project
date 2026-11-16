@@ -9,6 +9,7 @@ from app.services.event_service import EventService
 from app.services.places_service import (
     BaseTravelProvider,
     GooglePlacesService,
+    estimate_transit_between_coords,
     places_circuit_breaker,
 )
 
@@ -21,5 +22,6 @@ __all__ = [
     "cache_response",
     "BaseTravelProvider",
     "GooglePlacesService",
+    "estimate_transit_between_coords",
     "places_circuit_breaker",
 ]
