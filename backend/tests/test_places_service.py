@@ -139,3 +139,74 @@ async def test_google_places_get_details_normalizes_response():
     assert detail.place.name == "Hoan Kiem Lake"
     assert detail.place.rating == 4.8
     assert mock_client.get.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_google_places_search_with_category_and_open_now_filter():
+    mock_payload = {
+        "places": [
+            {
+                "id": "cafe_open",
+                "displayName": {"text": "The Note Coffee"},
+                "formattedAddress": "64 Luong Van Can, Hoan Kiem, Ha Noi",
+                "location": {"latitude": 21.0318, "longitude": 105.8512},
+                "primaryType": "coffee_shop",
+                "types": ["coffee_shop", "cafe", "food"],
+                "rating": 4.6,
+                "userRatingCount": 4200,
+                "priceLevel": "PRICE_LEVEL_INEXPENSIVE",
+                "regularOpeningHours": {
+                    "openNow": True,
+                    "weekdayDescriptions": ["Monday: 8:00 AM – 10:30 PM"],
+                },
+            },
+            {
+                "id": "cafe_closed",
+                "displayName": {"text": "Closed Night Cafe"},
+                "formattedAddress": "10 Hang Gai, Hoan Kiem, Ha Noi",
+                "location": {"latitude": 21.0310, "longitude": 105.8505},
+                "primaryType": "cafe",
+                "types": ["cafe"],
+                "rating": 4.1,
+                "userRatingCount": 120,
+                "regularOpeningHours": {
+                    "openNow": False,
+                    "weekdayDescriptions": ["Monday: 7:00 AM – 5:00 PM"],
+                },
+            },
+        ]
+    }
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status = MagicMock()
+    mock_response.json.return_value = mock_payload
+
+    mock_client = AsyncMock()
+    mock_client.post = AsyncMock(return_value=mock_response)
+
+    mem_cache = InMemoryCache()
+    service = GooglePlacesService(api_key="test-api-key")
+
+    with patch("app.services.places_service.get_http_client", return_value=mock_client), \
+         patch("app.services.cache_service._get_active_cache", return_value=mem_cache):
+        res = await service.search_places(
+            keyword="Coffee",
+            category="CAFE",
+            lat=21.03,
+            lng=105.85,
+            open_now=True,
+        )
+
+    assert res.total == 1
+    place = res.results[0]
+    assert place.place_id == "cafe_open"
+    assert place.open_now is True
+    assert place.metadata is not None
+    assert place.metadata["raw_primary_type"] == "coffee_shop"
+    assert place.metadata["stop_category"] == "CAFE"
+    assert place.metadata["weekday_hours"] == ["Monday: 8:00 AM – 10:30 PM"]
+    assert "cafe" in place.metadata["types"]
+
+    sent_json = mock_client.post.call_args.kwargs["json"]
+    assert sent_json["includedType"] == "cafe"
+    assert sent_json["openNow"] is True
