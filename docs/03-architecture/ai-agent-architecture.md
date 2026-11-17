@@ -20,7 +20,7 @@ flowchart TD
     subgraph Row2 ["Pha 2: Tuyển Chọn Chi Tiết & Tích Hợp (Micro Curation)"]
         STATE["PostgreSQL Checkpoints<br/>• Typed AgentState qua DAL<br/>• AsyncPostgresSaver"]
         MICRO["Phase 2: Micro Curation State<br/>• Tra cứu Maps, Search & Khách sạn đa nguồn<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Nạp sẵn 2 backup stops cho 1-Click Swap"]
-        TOOLS["Resilient Travel APIs & DB (PyBreaker 2.5s)<br/>• Google Places API (POIs, Lodging, Price Level)<br/>• OpenWeatherMap API (Weather Forecast)<br/>• Smart Deep-Links (Agoda, Booking.com, Klook)"]
+        TOOLS["Resilient Travel APIs & DB (PyBreaker 2.5s)<br/>• Google Maps, Google Search, Google Hotels<br/>• TripAdvisor, Airbnb, Trip.com, Hotels.com<br/>• Trivago, Expedia, Klook, 12Go Asia"]
     end
 
     IN -->|"Kích hoạt (Trigger)"| MACRO
