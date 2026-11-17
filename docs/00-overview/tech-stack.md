@@ -50,7 +50,7 @@
 ### 2.4. Database & BaaS (Supabase PostgreSQL 16)
 - **Engine**: PostgreSQL 16 hỗ trợ quan hệ toàn vẹn, chỉ mục tối ưu, và tiện ích mở rộng `pgvector`.
 - **Cấu trúc Schema phân lập**:
-  - `core`: Bảng `users`, `events`, `event_members`, `plans`, `plan_stops`, `plan_votes`, `chat_messages`, `invitations`.
+  - `core`: Bảng `users`, `events`, `event_members`, `plans`, `plan_stops`, `plan_votes`, `chat_messages`, `expenses`, `settlements`.
   - `checkpoints`: Lưu trữ trạng thái đồ thị của LangGraph.
   - `vectors`: Lưu trữ vector embeddings cho địa điểm.
 - **Supavisor Connection Pooler**: Hoạt động tại **port 6543 ở chế độ Transaction Mode**, ghép tải từ hàng trăm request đồng thời qua 15 kết nối vật lý.
