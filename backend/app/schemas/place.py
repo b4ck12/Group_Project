@@ -70,3 +70,51 @@ class TransitEstimate(BaseModel):
     transit_distance_km: float = Field(..., ge=0.0)
     transit_duration_minutes: int = Field(..., ge=0)
     transit_cost: Decimal = Field(default=Decimal("0"), ge=0)
+
+
+class ProviderBookingLink(BaseModel):
+    """Deep-link and estimated/live price for an external OTA or tour provider (TASK-206)."""
+
+    provider: str = Field(..., min_length=1, max_length=64)
+    display_name: str = Field(..., min_length=1, max_length=100)
+    booking_url: str = Field(..., min_length=1)
+    estimated_price_vnd: Optional[Decimal] = Field(default=None, ge=0)
+    currency: str = "VND"
+    is_live_price: bool = Field(
+        default=False,
+        description="True if fetched via custom scraper/reverse-API, False if estimated from price_level",
+    )
+
+
+class HotelComparisonItem(BaseModel):
+    """Side-by-side hotel comparison card with multi-provider booking links (TASK-206)."""
+
+    place: POIItem
+    estimated_nightly_vnd: Decimal = Field(..., ge=0)
+    currency: str = "VND"
+    amenities: List[str] = Field(default_factory=list)
+    provider_links: List[ProviderBookingLink] = Field(default_factory=list)
+
+
+class HotelCompareResponse(BaseModel):
+    """Response payload for GET /api/v1/places/hotels/compare."""
+
+    hotels: List[HotelComparisonItem] = Field(default_factory=list)
+    total: int = Field(default=0, ge=0)
+
+
+class TourActivityItem(BaseModel):
+    """Enriched tour/experience item with Klook, TripAdvisor, and 12Go Asia links (TASK-206)."""
+
+    place: POIItem
+    estimated_ticket_vnd: Decimal = Field(..., ge=0)
+    currency: str = "VND"
+    duration_hours: float = Field(default=2.0, gt=0)
+    provider_links: List[ProviderBookingLink] = Field(default_factory=list)
+
+
+class TourSearchResponse(BaseModel):
+    """Response payload for GET /api/v1/places/tours/search."""
+
+    results: List[TourActivityItem] = Field(default_factory=list)
+    total: int = Field(default=0, ge=0)
