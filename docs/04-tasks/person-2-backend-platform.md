@@ -72,7 +72,7 @@
   - **Target Files**: `backend/app/api/v1/places.py`, `backend/app/services/places_service.py`
   - **Acceptance Criteria**: `GET /places/search?category=...` lọc địa điểm kèm cờ `open_now` và gán metadata.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-206`** `[BE-Platform - Hà Đăng Huy]` **Lodging & Tours Integration (Agoda, Booking.com, Klook)**
+- [x] **`TASK-206`** `[BE-Platform - Hà Đăng Huy]` **Lodging & Tours Integration (Agoda, Booking.com, Klook)** *(Branch: `feature/TASK-206-lodging-tours-integration`)*
   - **Feature**: #25
   - **Target Files**: `backend/app/services/external_travel_service.py`
   - **Acceptance Criteria**: Cung cấp link và thông tin chỗ ở, vé trải nghiệm Klook.

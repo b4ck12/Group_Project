@@ -90,7 +90,8 @@
 /api/v1/places & Travel APIs (Adapter Pattern)
   GET    /places/search?category=&keyword=&lat=&lng=&open_now= # Tra cứu địa điểm qua Google Places API (New) + lọc danh mục/giờ mở cửa + Redis L2 Cache (TTL 24h)
   GET    /places/{placeId}/details                   # Chi tiết địa điểm, giờ mở cửa, hình ảnh (POIItem)
-  GET    /places/hotels/compare?ids=id1,id2          # So sánh 2-3 khách sạn cạnh nhau (side-by-side) từ Google Places (Sprint 2 TASK-206)
+  GET    /places/hotels/compare?ids=id1,id2          # So sánh 1-5 khách sạn cạnh nhau (side-by-side) kèm 9 link OTA (TASK-206)
+  GET    /places/tours/search?destination=&keyword=  # Tìm kiếm tour & điểm vui chơi kèm link Klook, TripAdvisor, 12Go Asia (TASK-206)
   GET    /weather?lat=&lng=                          # Dự báo thời tiết 3 ngày (OpenWeatherMap API)
   GET    /exchange-rate?from=USD&to=VND              # Tỷ giá ngoại tệ cho các chuyến đi ASEAN
 
@@ -321,6 +322,42 @@
         "change_reason": "Bị vote DOWN 3 phiếu"
       }
     ]
+  }
+  ```
+
+---
+
+### 3.8. `GET /api/v1/places/hotels/compare` & `GET /api/v1/places/tours/search` (Multi-OTA Lodging & Tours - TASK-206)
+- **Mô tả**:
+  - `GET /places/hotels/compare?ids=h1,h2&checkin=YYYY-MM-DD&checkout=YYYY-MM-DD&guests=2`: So sánh `1`–`5` khách sạn cạnh nhau (`HotelCompareResponse`), trả về giá ước tính VND, tiện nghi (`amenities`) và deep-link đặt phòng trên 9 OTA (`agoda`, `booking_com`, `airbnb`, `trip_com`, `hotels_com`, `expedia`, `trivago`, `google_hotels`, `tripadvisor`). Trả về `400` nếu `ids` rỗng hoặc `> 5` IDs; trả về `503` nếu circuit breaker mở.
+  - `GET /places/tours/search?destination=&keyword=&lat=&lng=`: Tìm kiếm tour/điểm tham quan (`TourSearchResponse`) kèm giá vé ước tính VND và deep-link trên `klook`, `tripadvisor`, `12go_asia`.
+- **Response `200 OK` (`HotelCompareResponse`)**:
+  ```json
+  {
+    "hotels": [
+      {
+        "place": {
+          "place_id": "h1",
+          "name": "Hotel Alpha",
+          "rating": 4.5,
+          "price_level": 2
+        },
+        "estimated_nightly_vnd": "850000",
+        "currency": "VND",
+        "amenities": ["Free Wi-Fi", "Breakfast Included", "Air Conditioning", "Airport Shuttle"],
+        "provider_links": [
+          {
+            "provider": "agoda",
+            "display_name": "Agoda",
+            "booking_url": "https://www.agoda.com/search?text=Hotel+Alpha&adults=2&checkin=2026-12-20&checkout=2026-12-22",
+            "estimated_price_vnd": "816000",
+            "currency": "VND",
+            "is_live_price": false
+          }
+        ]
+      }
+    ],
+    "total": 1
   }
   ```
 
