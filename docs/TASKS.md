@@ -65,7 +65,7 @@ feature/TASK-004-msw-core-mocks
   - **Acceptance Criteria**: `docker compose up -d` khởi chạy thành công toàn bộ service với health check pass.
 
 ### 0.2 CI/CD & Code Quality Rules
-- [ ] **TASK-007** `[SEC/DEVOPS]` **GitHub Actions CI Pipeline Setup**
+- [X] **TASK-007** `[SEC/DEVOPS]` **GitHub Actions CI Pipeline Setup**
   - **Mục tiêu**: Tự động hóa kiểm tra code quality khi mở PR.
   - **Target Files**: `.github/workflows/ci.yml`
   - **Acceptance Criteria**: Pipeline chạy: `ruff check backend`, `pytest backend`, `pnpm run lint frontend`, `pnpm run test frontend`.

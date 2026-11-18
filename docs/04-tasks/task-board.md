@@ -16,8 +16,8 @@ Xem quy trình chi tiết tại [contract-first-workflow.md](../01-workflow/cont
 - [x] `TASK-004` `[FE-Core - Hà Đăng Huy]`: MSW Mock Handlers Core APIs
 - [ ] `TASK-005` `[FE-Growth - Nguyễn Minh Đức]`: MSW Mock Handlers Realtime AI Streaming Token & WS Events
 - [x] `TASK-006` `[DevOps/Sec - Đinh Tiến Luân]`: Docker Compose & Môi trường phát triển cục bộ
-- [ ] `TASK-007` `[DevOps/Sec - Đinh Tiến Luân]`: Pipeline CI GitHub Actions tự động kiểm thử
-- [ ] `TASK-008` `[DevOps/Sec - Đinh Tiến Luân]`: Cấu hình Pre-commit Hooks & Linter Ruff/Black
+- [X] `TASK-007` `[DevOps/Sec - Đinh Tiến Luân]`: Pipeline CI GitHub Actions tự động kiểm thử
+- [X] `TASK-008` `[DevOps/Sec - Đinh Tiến Luân]`: Cấu hình Pre-commit Hooks & Linter Ruff/Black
 - [ ] `TASK-009` `[FE-Growth - Nguyễn Minh Đức]`: Design Tokens & Design System Spec (Tailwind & shadcn)
 - [ ] `TASK-010` `[FE-Growth - Nguyễn Minh Đức]`: User Flows & Wireframes (Two-Stage Consensus & Dynamic Living Itinerary)
 - [ ] `TASK-011` `[FE-Growth - Nguyễn Minh Đức]`: Hi-fi Mockups, Thư viện Component & Tiêu chuẩn WCAG AA
