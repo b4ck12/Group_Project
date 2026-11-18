@@ -10,12 +10,12 @@
 
 | Sprint | Số Tasks | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|
-| **Sprint 0** | 3 Tasks | 2/3 | 🔲 To Do |
+| **Sprint 0** | 3 Tasks | 3/3 | ✅ Done |
 | **Sprint 1** | 3 Tasks | 0/3 | 🔲 To Do |
 | **Sprint 2** | 1 Task | 0/1 | 🔲 To Do |
 | **Sprint 3** | 0 Tasks (Hỗ trợ Tracing & Chaos Test) | 0/0 | 🔲 To Do |
 | **Sprint 4** | 4 Tasks | 0/4 | 🔲 To Do |
-| **Tổng cộng** | **11 Tasks** | 0/11 | 🔲 Sẵn sàng bắt tay vào làm |
+| **Tổng cộng** | **11 Tasks** | 3/11 | 🟡 In Progress |
 
 ---
 
@@ -27,7 +27,7 @@
   - **Target Files**: `docker-compose.yml`, `backend/Dockerfile`, `.env.example`
   - **Acceptance Criteria**: `docker compose up -d` khởi chạy thành công toàn bộ service với health check pass.
   - **Docs & Tracking**: Cập nhật `.env.example` + tick `[x]`.
-- [ ] **`TASK-007`** **GitHub Actions CI Pipeline Setup**
+- [X] **`TASK-007`** **GitHub Actions CI Pipeline Setup**
   - **Mục tiêu**: Tự động hóa kiểm tra code quality khi mở PR.
   - **Target Files**: `.github/workflows/ci.yml`
   - **Acceptance Criteria**: Pipeline chạy: `ruff check backend`, `pytest backend`, `pnpm run lint frontend`, `pnpm run test frontend`.
