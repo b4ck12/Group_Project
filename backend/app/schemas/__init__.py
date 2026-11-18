@@ -59,6 +59,11 @@ from .place import (
     PlaceSearchResponse,
     PlaceDetailResponse,
     TransitEstimate,
+    ProviderBookingLink,
+    HotelComparisonItem,
+    HotelCompareResponse,
+    TourActivityItem,
+    TourSearchResponse,
 )
 
 __all__ = [
@@ -111,9 +116,14 @@ __all__ = [
     # Chat
     "ChatMessageCreate",
     "ChatMessageResponse",
-    # Place (TASK-108 & TASK-205)
+    # Place (TASK-108, TASK-205 & TASK-206)
     "POIItem",
     "PlaceSearchResponse",
     "PlaceDetailResponse",
     "TransitEstimate",
+    "ProviderBookingLink",
+    "HotelComparisonItem",
+    "HotelCompareResponse",
+    "TourActivityItem",
+    "TourSearchResponse",
 ]

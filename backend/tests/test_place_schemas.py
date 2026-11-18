@@ -2,7 +2,17 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 from app.models.enums import TransportMode
-from app.schemas.place import POIItem, PlaceSearchResponse, PlaceDetailResponse, TransitEstimate
+from app.schemas.place import (
+    HotelCompareResponse,
+    HotelComparisonItem,
+    POIItem,
+    PlaceDetailResponse,
+    PlaceSearchResponse,
+    ProviderBookingLink,
+    TourActivityItem,
+    TourSearchResponse,
+    TransitEstimate,
+)
 
 
 def test_poi_item_valid():
@@ -105,3 +115,49 @@ def test_transit_estimate_schema_valid():
     assert est.transit_distance_km == 0.5
     assert est.transit_duration_minutes == 6
     assert est.transit_cost == Decimal("0")
+
+
+def test_hotel_comparison_and_tour_schemas_valid():
+    link = ProviderBookingLink(
+        provider="agoda",
+        display_name="Agoda",
+        booking_url="https://www.agoda.com/search?text=Muong+Thanh+Da+Nang",
+        estimated_price_vnd=Decimal("850000"),
+    )
+    poi = POIItem(
+        place_id="hotel_dn_1",
+        name="Muong Thanh Luxury Da Nang",
+        address="270 Vo Nguyen Giap, Da Nang",
+        lat=16.0544,
+        lng=108.2478,
+        category="lodging",
+        rating=4.4,
+        user_ratings_total=1800,
+        price_level=3,
+    )
+    hotel_item = HotelComparisonItem(
+        place=poi,
+        estimated_nightly_vnd=Decimal("1200000"),
+        amenities=["Free Wi-Fi", "Breakfast Included", "Swimming Pool"],
+        provider_links=[link],
+    )
+    compare_resp = HotelCompareResponse(hotels=[hotel_item], total=1)
+    assert compare_resp.total == 1
+    assert compare_resp.hotels[0].provider_links[0].provider == "agoda"
+    assert compare_resp.hotels[0].provider_links[0].is_live_price is False
+
+    klook_link = ProviderBookingLink(
+        provider="klook",
+        display_name="Klook",
+        booking_url="https://www.klook.com/en-US/search/result/?query=Ba+Na+Hills",
+        estimated_price_vnd=Decimal("900000"),
+    )
+    tour_item = TourActivityItem(
+        place=poi,
+        estimated_ticket_vnd=Decimal("900000"),
+        duration_hours=6.0,
+        provider_links=[klook_link],
+    )
+    tour_resp = TourSearchResponse(results=[tour_item], total=1)
+    assert tour_resp.total == 1
+    assert tour_resp.results[0].provider_links[0].provider == "klook"
