@@ -65,6 +65,12 @@ from .place import (
     TourActivityItem,
     TourSearchResponse,
 )
+from .weather import (
+    CurrentWeather,
+    DailyForecastItem,
+    WeatherAlert,
+    WeatherResponse,
+)
 
 __all__ = [
     # Event
@@ -126,4 +132,9 @@ __all__ = [
     "HotelCompareResponse",
     "TourActivityItem",
     "TourSearchResponse",
+    # Weather (TASK-207)
+    "CurrentWeather",
+    "DailyForecastItem",
+    "WeatherAlert",
+    "WeatherResponse",
 ]
