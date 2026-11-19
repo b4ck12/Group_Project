@@ -56,6 +56,10 @@ class Settings(BaseSettings):
     CIRCUIT_BREAKER_RESET_TIMEOUT: int = 60
     MAPBOX_ACCESS_TOKEN: str = ""
     OPENWEATHER_API_KEY: str = ""
+    OPENWEATHER_BASE_URL: str = "https://api.openweathermap.org/data/2.5"
+    OPEN_METEO_BASE_URL: str = "https://api.open-meteo.com/v1"
+    WEATHER_API_TIMEOUT: float = 3.0
+    WEATHER_CACHE_TTL: int = 10800  # 3 giờ cho Weather L2 Cache (TASK-207)
     EXCHANGE_RATE_API_KEY: str = ""
 
     # --- Email & SMTP ---
