@@ -5,6 +5,7 @@ Author: Ta Quang Huy (Person 1 - Backend Core Dev A).
 Contains:
 - get_current_user_id: Identifies current user (Header X-User-Id with dev fallback).
 - get_event_membership: Verifies user membership within an event room.
+- require_host: RolesGuard enforcing HOST privileges (403 Forbidden otherwise).
 """
 
 from typing import Optional
@@ -68,5 +69,28 @@ async def get_event_membership(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not a member of this trip room.",
+        )
+    return member
+
+
+async def require_host(
+    member: EventMember = Depends(get_event_membership),
+) -> EventMember:
+    """
+    RolesGuard: Enforce that caller holds the HOST role.
+
+    Protects critical actions:
+    - Update room details (PATCH /api/v1/events/{id})
+    - Delete room (DELETE /api/v1/events/{id})
+    - Macro consensus lock (POST /api/v1/events/{id}/macro-lock)
+    - Final itinerary confirmation (POST /api/v1/events/{id}/final-lock)
+
+    Raises:
+        HTTPException 403: If member is not a HOST.
+    """
+    if member.role != EventRole.HOST:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This action requires Host privileges.",
         )
     return member
