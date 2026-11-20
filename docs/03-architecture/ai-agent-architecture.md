@@ -5,21 +5,59 @@
 
 ---
 
-## 🧠 1. Kiến Trúc AI Agent Hợp Nhất (Unified AI Agent with Two-Phase State Execution)
+## 🧠 1. Kiến Trúc AI Agent Hợp Nhất & Cơ Chế Kích Hoạt Tương Tác
 
+### 1.0. Phân Định: Lúc Nào Chat Thường, Lúc Nào Gọi Agent Bắt Đầu Làm Việc?
+Trong phòng cộng tác, các thành viên liên tục trao đổi với nhau. Để tối ưu trải nghiệm và tiết kiệm chi phí vận hành, hệ thống phân định rạch ròi giữa **Kênh Chat Nhóm Thông Thường** và **Hai Chế Độ Kích Hoạt AI Agent**:
+
+1. **Kênh Chat Nhóm Thông Thường (Group Channel - `message_type = 'CHAT'`)**:
+   - Các thành viên nhắn tin trao đổi tự do, bàn bạc, chém gió.
+   - Các tin nhắn này được lưu tức thì vào bảng `core.chat_messages` để đồng bộ thời gian thực qua WebSocket, **hoàn toàn không kích hoạt tiến trình AI Worker hay gọi LLM**.
+
+2. **Chế Độ 1: Trợ Lý Hỏi Đáp & Gợi Ý Ẩm Thực / Du Lịch (`message_type = 'AGENT_QA'`)**:
+   - **Thời điểm kích hoạt**: Khi thành viên mention `@TripMate` / `@agent` hoặc đặt câu hỏi tự nhiên cần giải đáp (ví dụ: *"Thời tiết Đà Nẵng mùa này thế nào?"*, *"Đà Nẵng có đặc sản gì ngon?"*, *"Quán này có món gì phù hợp cho người ăn chay không?"*).
+   - **Hành vi xử lý**: Agent chạy luồng suy luận nhẹ (Lightweight Q&A Router), tra cứu thông tin du lịch và gợi ý các món ăn đặc trưng vùng miền cũng như món ăn cụ thể *bên trong quán/nhà hàng* dựa theo sở thích ăn uống của từng thành viên trong nhóm.
+   - **Đầu ra**: Trả lời trực tiếp dạng tin nhắn hội thoại trong group chat, **tuyệt đối không can thiệp hay sửa đổi dữ liệu Plan**.
+
+3. **Chế Độ 2: Động Cơ Lập & Cập Nhật Lịch Trình (Planning Engine - `message_type = 'AGENT_TRIGGER'`)**:
+   - **Thời điểm kích hoạt**: Khi Host hoặc nhóm bấm nút **"Gợi Ý Lịch Trình" / "Tạo Lịch Trình"** trên giao diện, hoặc gửi lệnh rõ ràng như `@TripMate lên lịch trình 3 ngày 2 đêm đi Đà Nẵng...`.
+   - **Bộ Lọc Đầu Vào (Input Filter Check)**: Trước khi kích hoạt LangGraph Worker, tin nhắn **bắt buộc phải vượt qua Bộ lọc đầu vào** tại Gateway:
+     - Phải có đủ **Location (Điểm đến)** và **Date (Thời gian / Ngày đi)**.
+     - Nếu thiếu thông tin cốt lõi, hệ thống nhắc người dùng bổ sung ngay trên giao diện mà không gọi LLM.
+   - **Hành vi xử lý**: Kích hoạt máy trạng thái 2 pha (Phase 1: Macro $\rightarrow$ Phase 2: Micro), sinh các điểm dừng `plan_stops` với đầy đủ thuộc tính bắt buộc và lưu trữ theo lịch sử 4 giai đoạn không ghi đè.
+
+```mermaid
+flowchart TD
+    MSG["Tin nhắn từ thành viên trong phòng Chat"] --> FILTER{"Bộ lọc Gateway (Input Filter)"}
+    FILTER -- "Tán gẫu / Chém gió thường" --> CHAT["Lưu core.chat_messages (type='CHAT')<br/>Broadcast WebSocket tới nhóm<br/>(KHÔNG gọi AI)"]
+    FILTER -- "Hỏi đáp du lịch / Gợi ý món ăn" --> QA["AI Assistant Mode (type='AGENT_QA')<br/>• Giải đáp thời tiết, văn hóa, kinh nghiệm<br/>• Gợi ý đặc sản & món ăn trong quán<br/>• Trả lời trực tiếp vào Chat (Không đổi Plan)"]
+    FILTER -- "Lệnh lập/đổi lịch trình" --> CORE_CHECK{"Đã đủ Location & Date?"}
+    CORE_CHECK -- "Thiếu thông tin cốt lõi" --> REJECT["Nhắc người dùng bổ sung Điểm đến & Ngày đi<br/>(Chặn gọi LLM tốn kém)"]
+    CORE_CHECK -- "Đầy đủ thông tin cốt lõi" --> WORKER["Kích hoạt LangGraph AI Worker<br/>(type='AGENT_TRIGGER')<br/>Chạy Two-Phase Planning State Machine"]
+
+    style MSG fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
+    style CHAT fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px;
+    style QA fill:#fff3e0,stroke:#f57c00,stroke-width:1.5px;
+    style REJECT fill:#ffebee,stroke:#c62828,stroke-width:1.5px;
+    style WORKER fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
+```
+
+---
+
+### 1.1. Kiến Trúc Hai Pha Trạng Thái (Two-Phase State Execution)
 Thay vì chia nhỏ thành nhiều sub-agent phân mảnh gây nghẽn độ trễ (latency bottleneck) và khó kiểm thử, TripMate AI ứng dụng **một Agent hợp nhất duy nhất chạy DeepSeek-V4 trên LangGraph Python**, hoạt động qua 2 pha trạng thái tách biệt:
 
 ```mermaid
 flowchart TD
     subgraph Row1 ["Pha 1: Lập Kế Hoạch Vĩ Mô (Macro Planning)"]
-        IN["Ngữ Cảnh Phòng Chat (Room Input Context)<br/>• Tin nhắn mong muốn, ngân sách, ngày đi"]
+        IN["Ngữ Cảnh Phòng Chat Đã Qua Lọc<br/>• Điểm đến, Khung ngày, Ngân sách, Thành viên"]
         MACRO["Phase 1: Macro Planning State<br/>• Đề xuất số ngày, chủ đề từng buổi, nhịp độ<br/>• KHÔNG gọi API ngoài tốn phí"]
         LLM["Model Abstraction Layer<br/>• Động cơ chính: DeepSeek-V4<br/>• Fallback trong suốt: GPT-4o / Claude / Gemini"]
     end
 
     subgraph Row2 ["Pha 2: Tuyển Chọn Chi Tiết & Tích Hợp (Micro Curation)"]
         STATE["PostgreSQL Checkpoints<br/>• Typed AgentState qua DAL<br/>• AsyncPostgresSaver"]
-        MICRO["Phase 2: Micro Curation State<br/>• Tra cứu Maps, Search & Khách sạn đa nguồn<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Nạp sẵn 2 backup stops cho 1-Click Swap"]
+        MICRO["Phase 2: Micro Curation State<br/>• Tra cứu Maps, Search & Khách sạn đa nguồn<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Nạp sẵn 2 backup stops cho 1-Click Swap<br/>• Gợi ý món ăn trong quán theo sở thích nhóm"]
         TOOLS["Resilient Travel APIs & DB (PyBreaker 2.5s)<br/>• Google Maps, Google Search, Google Hotels<br/>• TripAdvisor, Airbnb, Trip.com, Hotels.com<br/>• Trivago, Expedia, Klook, 12Go Asia"]
     end
 
@@ -38,15 +76,9 @@ flowchart TD
     style TOOLS fill:#ffffff,stroke:#283241,stroke-width:1.5px;
 ```
 
-### 1.1. Phase 1 — Macro Planning State (Trạng Thái Lập Kế Hoạch Vĩ Mô)
-- **Mục tiêu**: Đề xuất ngày đi, nhịp độ và chủ đề cho từng buổi sáng/chiều/tối dựa trên mong muốn của nhóm.
-- **Tiết kiệm Token & Chi phí**: Ở pha này, Agent **tuyệt đối không gọi các API du lịch bên ngoài** (Google Maps, khách sạn, Klook), bảo tồn token và giảm tối đa chi phí cho đến khi nhóm đạt được thỏa thuận vĩ mô.
-- **Độ trễ**: Thời gian phản hồi nhanh ($6$--$12$\,giây).
-
-### 1.2. Phase 2 — Micro Curation State (Trạng Thái Tuyển Chọn Địa Điểm Chi Tiết)
-- **Kích hoạt**: Chỉ được kích hoạt **sau khi Host bấm nút Khóa Lộ Trình Vĩ Mô (Macro Consensus)**.
-- **Nghiệp vụ**: Thực thi các lệnh gọi công cụ ngoài qua PyBreaker kết nối bộ Adapter đa nguồn (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**), áp dụng thuật toán gom cụm khoảng cách Haversine ($\le 2.5$\,km, thời gian di chuyển $\le 20$\,phút), và chuẩn bị sẵn 2 địa điểm dự phòng cho mỗi điểm dừng chính phục vụ cơ chế 1-Click Swap.
-- **Độ trễ**: $10$--$20$\,giây (truy vấn song song các địa điểm thực tế).
+#### Chi tiết 2 pha:
+- **Phase 1 — Macro Planning State (Trạng Thái Lập Kế Hoạch Vĩ Mô)**: Đề xuất ngày đi, nhịp độ và chủ đề cho từng buổi sáng/chiều/tối dựa trên mong muốn của nhóm. Tuyệt đối không gọi các API du lịch bên ngoài, tiết kiệm token và chi phí. Độ trễ: $6$--$12$\,giây.
+- **Phase 2 — Micro Curation State (Trạng Thái Tuyển Chọn Chi Tiết & Món Ăn)**: Kích hoạt sau khi Host bấm Khóa Lộ Trình Vĩ Mô (Macro Consensus). Thực thi các lệnh gọi công cụ ngoài qua PyBreaker, áp dụng thuật toán gom cụm Haversine ($\le 2.5$\,km), chuẩn bị sẵn 2 địa điểm dự phòng cho 1-Click Swap, và sinh danh sách gợi ý món ăn cụ thể tại quán (`recommended_dishes`). Độ trễ: $10$--$20$\,giây.
 
 ---
 
@@ -67,7 +99,10 @@ flowchart LR
 ```
 
 ### Chi tiết 4 tầng bảo vệ:
-1. **Tier 1 (Strict Schema)**: Ép đầu ra của LLM vào cấu trúc Pydantic nghiêm ngặt (`PlaceCandidate`), gồm các trường bắt buộc: `name`, `category`, `estimated_stay_minutes`, `budget_tier`, `lat_hint`, `lng_hint`. Bất kỳ đầu ra nào không khớp schema sẽ bị Pydantic v2 chặn lại và yêu cầu LLM format lại ngay lập tức.
+1. **Tier 1 (Strict Schema — Ép Khuôn Thuộc Tính Cho SQL Truyền Thống)**:
+   - **Nguyên lý cốt lõi**: Vì hệ thống lưu trữ trên CSDL quan hệ SQL truyền thống (PostgreSQL) thay vì NoSQL, mọi đầu ra của AI bắt buộc phải được **ép (force) về chung một định dạng cố định** với đầy đủ các thuộc tính bắt buộc. Tuyệt đối không chấp nhận dữ liệu thiếu trường hay kiểu dữ liệu bất định.
+   - Sử dụng OpenAI / DeepSeek Structured Outputs (`response_format={"type": "json_object"}` hoặc Tool Calling `strict=True`) và Pydantic v2 Schema (`PlaceStopDTO`, `POIItem`).
+   - Mọi điểm dừng bắt buộc phải có đủ 100% các trường: ngày tháng (`stop_date`), thời gian cụ thể (`start_time`, `end_time`), tên địa điểm (`place_name`), mã định danh Google Place ID (`place_ref_id`), tọa độ GPS (`lat`, `lng`), mức giá ước tính (`estimated_cost`), phương thức di chuyển (`transport_mode`), chi phí di chuyển (`transit_cost`) và danh sách món ăn gợi ý (`recommended_dishes`). Bất kỳ đầu ra nào vi phạm schema sẽ bị Pydantic v2 chặn lại và ép LLM format lại ngay lập tức.
 2. **Tier 2 (Live Map & Hotel Check)**: Xác thực chéo từng địa điểm và khách sạn qua hệ sinh thái API đối tác:
    - **Bản đồ & Điểm tham quan**: Google Maps (Google Places API New), Google Search, TripAdvisor, OpenStreetMap.
    - **Khách sạn & Nơi lưu trú**: Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia.
@@ -111,17 +146,41 @@ Trạng thái của LangGraph được định nghĩa chặt chẽ bằng Pydant
 from typing import TypedDict, Optional, List
 from pydantic import BaseModel
 
+class RecommendedDishItem(BaseModel):
+    dish_name: str             # Tên món ăn (ví dụ: Bánh xèo tôm nhảy, Mì Quảng ếch)
+    estimated_price: float     # Giá ước tính / phần (VNĐ)
+    tags: List[str]            # ["Đặc sản", "Ăn chay được", "Không cay", "Hải sản"]
+    dietary_match: bool = True # Khớp với sở thích/dị ứng của các thành viên trong nhóm
+
 class PlaceStopDTO(BaseModel):
+    day_number: int            # Ngày thứ mấy trong hành trình (1, 2, 3...)
+    stop_date: str             # Ngày cụ thể (YYYY-MM-DD)
+    time_slot: str             # MORNING | AFTERNOON | EVENING
+    order_index: int           # Thứ tự điểm dừng trong ngày (1, 2, 3...)
+    start_time: str            # Thời gian bắt đầu (ISO 8601)
+    end_time: str              # Thời gian kết thúc (ISO 8601)
+    duration_minutes: int      # Thời lượng dừng chân (phút)
     place_name: str
-    place_ref_id: str  # Google Place ID thật 100%
-    category: str      # RESTAURANT | CAFE | ATTRACTION | HOTEL | ENTERTAINMENT
+    place_ref_id: str          # Google Place ID thật 100%
+    address: str
+    category: str              # RESTAURANT | CAFE | ATTRACTION | HOTEL | ENTERTAINMENT
     lat: float
     lng: float
-    duration_minutes: int
     price_level: int = 1       # Google Places Price Level: 0 (Free), 1 ($), 2 ($$), 3 ($$$), 4 ($$$$)
     estimated_cost: float      # Chi phí ước tính cho cả nhóm (VNĐ)
     cost_per_person: float     # Chi phí ước tính trên đầu người (VNĐ)
-    backup_options: List[dict] # 2 địa điểm dự phòng cùng phân khúc giá cho 1-click swap
+    
+    # Thuộc tính di chuyển bắt buộc
+    transport_mode: str = "TAXI_GRAB" # WALKING | MOTORBIKE | TAXI_GRAB | CAR | BUS | TRAIN | FLIGHT | BOAT
+    transit_duration_minutes: Optional[int] = 15
+    transit_distance_km: Optional[float] = 2.0
+    transit_cost: float = 0.0  # Chi phí di chuyển từ điểm trước tới điểm này (VNĐ)
+
+    # Gợi ý món ăn trong quán theo ý kiến thành viên nhóm
+    recommended_dishes: List[RecommendedDishItem] = []
+    
+    # 2 địa điểm dự phòng cùng phân khúc giá cho 1-click swap
+    backup_options: List[dict]
 
 class TransitInfoDTO(BaseModel):
     is_prebooked: bool = False             # Đã tự mua vé chặng dài trước chưa (True: bỏ qua khỏi trần tối ưu)
@@ -157,6 +216,7 @@ class AgentState(TypedDict):
     daily_themes: List[dict]    # Khung chương trình vĩ mô từng ngày
     plan_stops: List[dict]      # Danh sách điểm dừng chi tiết đã qua 4-Tier Grounding
     user_desires: dict          # Ngân sách, khẩu vị, ngày đi, sở thích
+    dietary_preferences: dict   # Tổng hợp sở thích ăn uống của toàn bộ thành viên nhóm (ăn chay, dị ứng, kiêng cay...)
     messages: List[dict]        # Lịch sử hội thoại trong phòng
 
 
@@ -402,5 +462,58 @@ Nếu tổng chi phí các điểm dừng được chọn vượt quá trần ch
 3. **Bước 3 — Nạp 2 phương án dự phòng đồng giá (Backup Parity for 1-Click Swap)**:
    - Với mỗi quán ăn chính được chọn, Agent luôn tìm kiếm thêm **2 quán ăn thay thế nằm trong bán kính $\le 1$\,km và có cùng phân khúc giá (Price Parity)**.
    - Khi thành viên trong nhóm không thích món ăn đó và bấm **1-Click Swap**, địa điểm mới thay thế ngay lập tức mà **hoàn toàn không làm xáo trộn ngân sách chung** của cả chuyến đi.
+
+---
+
+### 6.5. Gợi Ý Món Ăn Trong Quán & Đặc Sản Vùng Miền Theo Ý Kiến Thành Viên Nhóm (In-Venue Dish Recommendations)
+
+Đáp ứng nhận xét phản biện từ Giảng viên, AI Agent không dừng lại ở việc chỉ gợi ý tên quán ăn hay nhà hàng một cách chung chung, mà còn đào sâu vào **thực đơn bên trong quán** để phục vụ tốt nhất sở thích đa dạng của các thành viên:
+
+1. **Khảo sát & Tổng hợp khẩu vị nhóm (`dietary_preferences`)**:
+   - Khi các thành viên chat trong phòng hoặc cập nhật hồ sơ, Agent tự động ghi nhận các ràng buộc ăn uống:
+     - Chế độ ăn đặc thù: Ăn chay trường, ăn chay linh hoạt, Halal, Kosher.
+     - Dị ứng thực phẩm: Dị ứng tôm cua biển, dị ứng đậu phộng, không dung nạp lactose.
+     - Khẩu vị & Thói quen: Không ăn cay, thích ăn ngọt, thích ẩm thực chua cay miền Trung.
+2. **Gợi ý món ăn cụ thể bên trong quán (`recommended_dishes`)**:
+   - Với mỗi điểm dừng là `RESTAURANT` hoặc `CAFE`, Agent trích xuất thực đơn tiêu biểu từ Google Places Reviews và TripAdvisor để đưa ra danh sách $2$--$4$ món ăn signature:
+     - Tên món ăn cụ thể (ví dụ: *Bánh tráng cuốn thịt heo hai đầu da*, *Mì Quảng ếch*, *Bánh xèo tôm nhảy*).
+     - Giá tiền ước tính từng món để các thành viên dễ cân đối chi tiêu cá nhân.
+     - Nhãn khẩu vị (`tags`): Gắn nhãn rõ ràng món nào dành cho người ăn chay, món nào không cay cho trẻ em/người không ăn cay được, món nào là "Must-try" đặc sản bản địa.
+3. **Giải đáp thắc mắc Q&A trong luồng Chat**:
+   - Nếu thành viên hỏi: *"Quán Bếp Cuốn Đà Nẵng này người ăn chay có ăn được không?"*, Agent phản hồi ngay trong tin nhắn chat: *"Quán Bếp Cuốn có menu chay riêng với hơn 10 món cuốn rau củ, bánh tráng nấm và lẩu nấm chay thanh đạm, rất phù hợp cho bạn Nam trong nhóm nhé!"*.
+
+---
+
+## 🔍 7. Bộ Lọc Đầu Vào Cốt Lõi Tại Gateway (Input Filter Layer)
+
+Để giải quyết triệt để vấn đề tin nhắn rác làm xao nhãng mô hình và ép buộc đầu vào của Plan phải có các thông tin chuẩn xác trước khi nạp vào AI, hệ thống thiết lập tầng **Input Filter Layer**:
+
+```mermaid
+flowchart LR
+    RAW["Tin nhắn thô<br/>từ người dùng"] --> NOISE{"1. Lọc Tin Nhắn Rác<br/>(Noise Filter)"}
+    NOISE -- "Tán gẫu / Spam" --> LOG["Lưu Chat thường<br/>Không gọi AI Agent"]
+    NOISE -- "Yêu cầu Lập Kế Hoạch" --> CORE{"2. Kiểm Tra Thông Tin Cốt Lõi<br/>(Core Parameters Validator)"}
+    CORE -- "Thiếu Location hoặc Date" --> PROMPT["Yêu cầu bổ sung Điểm đến & Khung ngày<br/>(Chặn gọi LLM)"}
+    CORE -- "Đầy đủ Location & Date" --> ENRICH["Chuẩn hóa Input Context<br/>Đưa vào LangGraph AI Worker"]
+
+    style RAW fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
+    style NOISE fill:#fff3e0,stroke:#f57c00,stroke-width:1.5px;
+    style CORE fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
+    style LOG fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px;
+    style PROMPT fill:#ffebee,stroke:#c62828,stroke-width:1.5px;
+    style ENRICH fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+```
+
+### Chi tiết 2 bước lọc:
+1. **Bước 1 — Lọc Tin Nhắn Rác (Spam / Chitchat Filter)**:
+   - Dùng quy tắc regex kết hợp mô hình phân loại intent nhỏ gọn tại Gateway để nhận diện các tin nhắn tán gẫu ("Hello", "Đi mấy giờ thế", "Mọi người ăn gì chưa").
+   - Các tin nhắn này được xử lý như tin nhắn chat thông thường (`'CHAT'`), không gửi sự kiện tới Redis Streams, giúp tiết kiệm $100\%$ chi phí token cho các đoạn hội thoại thường nhật.
+2. **Bước 2 — Ép Buộc Thông Tin Cốt Lõi (Core Planning Parameters Enforcement)**:
+   - Một yêu cầu lập lịch trình chỉ được coi là hợp lệ khi có **đầy đủ 2 tham số cốt lõi**:
+     - **`Location / Destination` (Điểm đến)**: Xác định rõ địa danh (ví dụ: *Đà Nẵng, Phú Quốc, Đà Lạt, Hội An*).
+     - **`Date / Date Range` (Thời gian đi)**: Xác định rõ ngày bắt đầu, ngày kết thúc hoặc số ngày cụ thể (ví dụ: *3 ngày 2 đêm, từ ngày 15/10 đến 17/10*).
+   - Nếu người dùng nhắn: *"Lên giúp mình lịch trình đi chơi với"* (thiếu địa điểm và ngày), Gateway sẽ không gọi LLM sinh bừa bãi mà phản hồi lại ngay: *"Bạn muốn đi du lịch ở đâu và trong khoảng thời gian nào (mấy ngày) để TripMate AI lên lịch giúp bạn nhé?"*.
+   - Cách làm đơn giản này ngăn ngừa hoàn toàn tình trạng AI bị ảo giác hoặc sinh lịch trình chung chung không thể lưu vào cơ sở dữ liệu quan hệ SQL.
+
 
 

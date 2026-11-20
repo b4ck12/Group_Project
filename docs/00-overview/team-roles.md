@@ -10,7 +10,7 @@ Dự án được phân bổ đồng đều cho 6 thành viên phụ trách các
 
 - **Backend Core & AI Integration (1 người)**: **Tạ Quang Huy**
 - **Backend Platform & Frontend Core (1 người)**: **Hà Đăng Huy**
-- **Backend Services & Settlement (1 người)**: **Phạm Đình Ánh Dương**
+- **Backend Services & Realtime Platform (1 người)**: **Phạm Đình Ánh Dương**
 - **Frontend AI Experience & Growth UI (1 người)**: **Nguyễn Minh Đức**
 - **AI Agent Lead (1 người)**: **Nguyễn Tùng Dương**
 - **DevOps & Cyber Security Engineer (1 người)**: **Đinh Tiến Luân**
@@ -25,8 +25,8 @@ Mỗi thành viên làm việc song song từ Sprint 0 thông qua **Hợp đồn
 |:---:|---|---|---|:---:|
 | 1 | **Tạ Quang Huy** | **Backend Dev A (Core Domain)** & **AI Integration** | Thiết kế Schema DB Supabase gốc (`core`, `checkpoints`), Event/Room CRUD, Two-Stage Consensus APIs (Macro Lock & Final Lock), RolesGuard (Host vs Member), Data Access Layer (DAL) Bridge cho AI Agent, WebSocket Room Server. | [person-1-backend-core.md](../04-tasks/person-1-backend-core.md) |
 | 2 | **Hà Đăng Huy** | **Backend Dev B (Platform)** & **Frontend Dev A (Core UI)** | Tích hợp External Travel APIs (Google Places, Agoda, Booking.com, Klook), PyBreaker Circuit Breaker (timeout 2.5s), Upstash Redis Cache; Dựng UI Auth, Room Dashboard, Dòng thời gian tương tác (Interactive Timeline), Bản đồ Mapbox GL. | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) / [person-4-frontend-core.md](../04-tasks/person-4-frontend-core.md) |
-| 3 | **Phạm Đình Ánh Dương** | **Backend Dev C (Services & Settlement)** | Tích hợp Supabase Auth & JWT rotation, Hệ thống mời tham gia phòng qua Link (`Invitation`), Notification Services (SMTP), Xuất PDF lịch trình & Calendar (.ics), Quản lý chi phí nhóm & Thuật toán thanh toán nợ tối ưu (Optimal Settlement). | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) |
-| 4 | **Nguyễn Minh Đức** | **Frontend Dev B (AI Experience & Growth UI)** | UI Màn hình Chat phòng cộng tác thời gian thực & AI Streaming token, Thẻ bình chọn điểm dừng (Stop Voting Cards UP/DOWN kèm 1-Click Swap), Design Tokens & Design System (Tailwind/shadcn), Đa ngôn ngữ (i18n), UI Quyết toán chi phí & Admin Dashboard. | [person-5-frontend-growth.md](../04-tasks/person-5-frontend-growth.md) |
+| 3 | **Phạm Đình Ánh Dương** | **Backend Dev C (Services & Platform)** | Tích hợp Supabase Auth & JWT rotation, Hệ thống mời tham gia phòng qua Link (`Invitation`), Notification Services (SMTP), Xuất PDF lịch trình & Calendar (.ics), Bộ lọc đầu vào tại Gateway (Input Filter & Core Params), Dịch vụ Quản lý lịch sử phiên bản Plan 4 giai đoạn. | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) |
+| 4 | **Nguyễn Minh Đức** | **Frontend Dev B (AI Experience & Growth UI)** | UI Màn hình Chat phòng cộng tác thời gian thực & AI Streaming token, Thẻ bình chọn điểm dừng (Stop Voting Cards UP/DOWN kèm 1-Click Swap), Design Tokens & Design System (Tailwind/shadcn), Đa ngôn ngữ (i18n), UI Gợi ý món ăn trong quán theo sở thích nhóm & UI Xem lịch sử các mốc Plan. | [person-5-frontend-growth.md](../04-tasks/person-5-frontend-growth.md) |
 | 5 | **Nguyễn Tùng Dương** | **AI Agent Lead (LangGraph & DeepSeek-V4)** | Kiến trúc Unified AI Agent trên LangGraph Python, Máy trạng thái 2 pha (Phase 1: Macro State, Phase 2: Micro State), Model Abstraction Layer (DeepSeek-V4 + Fallback GPT-4o/Claude/Gemini), Four-Tier Grounding Pipeline, Thuật toán Haversine Geo-Clustering. | [person-3-ai-engineer.md](../04-tasks/person-3-ai-engineer.md) |
 | 6 | **Đinh Tiến Luân** | **DevOps & Cyber Security Engineer** | Thiết lập CI/CD GitHub Actions, Triển khai đám mây (Vercel Edge CDN + Render Web Service/Worker + Supabase DB + Upstash Redis), Cấu hình Keep-Alive ping `/api/healthz`, OpenTelemetry Distributed Tracing, Supabase RLS Audit, Pentest OWASP Top 10, Concurrency Benchmark (Locust/k6). | [person-6-security-devops.md](../04-tasks/person-6-security-devops.md) |
 
@@ -62,7 +62,7 @@ Mỗi thành viên làm việc song song từ Sprint 0 thông qua **Hợp đồn
 | **Four-Tier Grounding & Geo-Clustering** | C | C (Places) | I | I | **R/A** | I |
 | **UI Room Chat, Timeline & Voting Cards** | C | **R** (Timeline) | I | **R/A** (Cards/Chat) | C | I |
 | **PDF & .ics Calendar Export** | I | I | **R/A** | C (UI) | I | I |
-| **Shared Expenses & Settlement** | C (Review) | I | **R/A** (Logic) | **R** (UI) | I | I |
+| **Input Filter & Plan History Stages** | C (Review) | I | **R/A** (Logic) | **R** (UI) | I | I |
 | **Cloud Deploy (Vercel, Render, Supabase)** | C | C | C | C | C | **R/A** |
 | **OpenTelemetry Tracing & Load Benchmarks** | C | C | C | C | C | **R/A** |
 | **Docs-as-Code & Progress Tracking** | **R/A** | **R/A** | **R/A** | **R/A** | **R/A** | **R/A** |

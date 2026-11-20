@@ -12,7 +12,7 @@
 | **Sprint 1** | Supabase Auth, Upstash Redis & PyBreaker Base, LangGraph Skeleton, UI Base, Vercel Edge Deploy | 18 Tasks | 🔲 To Do |
 | **Sprint 2** | Room CRUD, External Travel APIs, Phase 1 Macro State, Four-Tier Grounding, Timeline, Render Deploy | 16 Tasks | 🔲 To Do |
 | **Sprint 3** | Two-Stage Consensus Engine, Stop Voting & 1-Click Swap, Phase 2 Micro State, PDF & .ics Export | 17 Tasks | 🔲 To Do |
-| **Sprint 4** | WebSocket Room Server, Token Streaming UI, Shared Expenses, OpenTelemetry, Locust Load Test | 16 Tasks | 🔲 To Do |
+| **Sprint 4** | WebSocket Room Server, Token Streaming UI, Input Filter, Dish Recommendations, OpenTelemetry, Locust Load Test | 16 Tasks | 🔲 To Do |
 | **Tổng cộng** | 5 Sprint (Sprint 0 đến 4) | **78 Tasks** | 🔲 Sẵn sàng bắt tay vào làm |
 
 ---
@@ -23,9 +23,9 @@
 |---|---|---|---|
 | `[BE-A]` / `[BE-Core]` | Backend Core Domain, Two-Stage Consensus & AI DAL Bridge | **Tạ Quang Huy** | [person-1-backend-core.md](04-tasks/person-1-backend-core.md) |
 | `[BE-B]` / `[BE-Platform]` | External Travel APIs, PyBreaker Circuit Breaker & Redis Cache | **Hà Đăng Huy** | [person-2-backend-platform.md](04-tasks/person-2-backend-platform.md) |
-| `[BE-Services]` | Supabase Auth, Invitations, Email SMTP, PDF/.ics Export, Settlement | **Phạm Đình Ánh Dương** | [person-2-backend-platform.md](04-tasks/person-2-backend-platform.md) |
+| `[BE-Services]` | Supabase Auth, Invitations, Email SMTP, PDF/.ics Export, Input Filter & Plan History | **Phạm Đình Ánh Dương** | [person-2-backend-platform.md](04-tasks/person-2-backend-platform.md) |
 | `[FE-A]` / `[FE-Core]` | Frontend Core Flows UI (Auth, Room Dashboard, Timeline, Mapbox) | **Hà Đăng Huy** | [person-4-frontend-core.md](04-tasks/person-4-frontend-core.md) |
-| `[FE-B]` / `[FE-Growth]` | Frontend AI Chat UI, Stop Voting Cards (1-Click Swap), Expenses UI | **Nguyễn Minh Đức** | [person-5-frontend-growth.md](04-tasks/person-5-frontend-growth.md) |
+| `[FE-B]` / `[FE-Growth]` | Frontend AI Chat UI, Stop Voting Cards (1-Click Swap), Dish Recommendations & Plan History UI | **Nguyễn Minh Đức** | [person-5-frontend-growth.md](04-tasks/person-5-frontend-growth.md) |
 | `[AI]` | AI Agent Lead (LangGraph, DeepSeek-V4, Four-Tier Grounding) | **Nguyễn Tùng Dương** (Lead) & **Tạ Quang Huy** (Bridge) | [person-3-ai-engineer.md](04-tasks/person-3-ai-engineer.md) |
 | `[SEC/DEVOPS]` | Cyber Security & DevOps (Multi-Cloud, CI/CD, Tracing, Locust Test) | **Đinh Tiến Luân** | [person-6-security-devops.md](04-tasks/person-6-security-devops.md) |
 
@@ -334,7 +334,7 @@ feature/TASK-004-msw-core-mocks
 
 ---
 
-## 🚀 Sprint 4 — Realtime Synchronization, Shared Expenses, Load Benchmarks & Release
+## 🚀 Sprint 4 — Realtime Synchronization, Input Filter, Dish Recommendations, Load Benchmarks & Release
 
 ### 4.1 WebSocket Room Server & Redis Pub/Sub Sync (Backend Core)
 - [ ] **TASK-401** `[BE-A]` **FastAPI WebSocket Room Server**
@@ -350,21 +350,21 @@ feature/TASK-004-msw-core-mocks
   - **Target Files**: `backend/app/services/metrics_logger.py`
   - **Acceptance Criteria**: Ghi nhận `input_tokens`, `output_tokens`, `ttft_ms`, `total_duration_ms` cho mỗi lần gọi AI.
 
-### 4.2 Shared Expense Splitting & Optimal Debt Settlement (Backend Services)
-- [ ] **TASK-404** `[BE-Services]` **Thuật toán Bù trừ Nợ Tối ưu (Optimal Settlement Algorithm)**
-  - **Feature**: #38, #39
-  - **Target Files**: `backend/app/services/settlement_service.py`
-  - **Acceptance Criteria**: Tính net balance từng thành viên qua SQL GROUP BY; chạy thuật toán Min-Cash-Flow khớp cặp nợ với số giao dịch ít nhất.
-- [ ] **TASK-415** `[BE-Services]` **Quỹ Nhóm & Chi Phí CRUD APIs**
+### 4.2 Gateway Input Filter & Multi-Stage Plan History (Backend Services)
+- [ ] **TASK-404** `[BE-Services]` **Bộ Lọc Đầu Vào Cốt Lõi (Gateway Input Filter & Core Parameter Validation)**
   - **Feature**: #38
-  - **Target Files**: `backend/app/api/v1/finance.py`
-  - **Acceptance Criteria**: `POST /events/{id}/fund-contributions` (thu quỹ trước) và `/expenses` (chi tiêu thật), trả về danh sách chuyển khoản tối ưu.
+  - **Target Files**: `backend/app/middleware/input_filter.py`, `backend/app/services/filter_service.py`
+  - **Acceptance Criteria**: Lọc bỏ tin nhắn rác/chém gió không kích hoạt AI; kiểm tra bắt buộc phải có Location (Điểm đến) và Date (Thời gian/Ngày đi) trước khi đẩy task vào Redis Streams; phản hồi hướng dẫn người dùng nếu thiếu tham số cốt lõi.
+- [ ] **TASK-415** `[BE-Services]` **Dịch Vụ Lịch Sử Phiên Bản Plan 4 Giai Đoạn (Multi-Stage Plan History Service)**
+  - **Feature**: #39
+  - **Target Files**: `backend/app/services/plan_history_service.py`, `backend/app/api/v1/plans.py`
+  - **Acceptance Criteria**: `GET /events/{id}/plans` và `GET /events/{id}/plans/{version}`; truy xuất dữ liệu 3 mốc (Initial do AI gợi ý `is_initial_stop = TRUE`, Finalized đã chốt `is_finalized_stop = TRUE`, và Ongoing thích ứng thực tế qua `replaced_by_stop_id` và `stop_status`); tuyệt đối không ghi đè mất dấu.
 
-### 4.3 Realtime AI Chat, Shared Expenses & Admin UI (Frontend Growth)
+### 4.3 Realtime AI Chat, Dish Recommendations, Plan History & Admin UI (Frontend Growth)
 - [ ] **TASK-406** `[FE-B]` **Realtime Room Chat & Token Streaming UI**
   - **Feature**: #34
   - **Target Files**: `frontend/src/features/chat/pages/RoomChatPage.tsx`
-  - **Acceptance Criteria**: Stream từng token phản hồi của AI qua WebSockets với TTFT $< 800$\,ms, hiển thị typing indicator.
+  - **Acceptance Criteria**: Stream từng token phản hồi của AI qua WebSockets với TTFT $< 800$\,ms, phân biệt tin nhắn chat thường với câu trả lời Q&A / gợi ý món ăn của AI.
 - [ ] **TASK-407** `[FE-B]` **Macro Roadmap Preview Card Renderer**
   - **Feature**: #12
   - **Target Files**: `frontend/src/features/chat/components/MacroRoadmapCard.tsx`
@@ -373,10 +373,10 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #16
   - **Target Files**: `frontend/src/features/plan/components/AdaptationToast.tsx`
   - **Acceptance Criteria**: Khi có thành viên đổi điểm do trời mưa, UI hiện thông báo và tự động cập nhật thẻ điểm dừng mới.
-- [ ] **TASK-409** `[FE-B]` **Shared Expense & Settlement UI Screen**
+- [ ] **TASK-409** `[FE-B]` **Dish Recommendations & Multi-Stage Plan History UI**
   - **Feature**: #40
-  - **Target Files**: `frontend/src/features/expense/pages/ExpensePage.tsx`
-  - **Acceptance Criteria**: Hiển thị tổng quỹ, ai đã chi, ai nợ ai bao nhiêu tiền kèm nút đánh dấu đã thanh toán thành công.
+  - **Target Files**: `frontend/src/features/plan/components/DishRecommendationCard.tsx`, `frontend/src/features/plan/components/PlanHistoryViewer.tsx`
+  - **Acceptance Criteria**: Hiển thị danh sách món ăn gợi ý đặc sản và món ăn trong quán theo sở thích/chế độ ăn của từng thành viên (chay, không cay, dị ứng); giao diện so sánh 3 mốc lịch trình (Initial do AI gợi ý vs Finalized sau khi vote vs Ongoing thay đổi lúc đi).
 - [ ] **TASK-410** `[FE-B]` **Admin Dashboard UI Screen**
   - **Feature**: #41
   - **Target Files**: `frontend/src/features/admin/pages/AdminDashboardPage.tsx`

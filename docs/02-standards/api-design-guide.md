@@ -61,16 +61,20 @@
   POST   /events/{id}/invitations                    # Sinh link mời thành viên vào phòng
   GET    /events/{id}/members                        # Danh sách thành viên và phân quyền (Host vs Member)
 
-/api/v1/events/{id}/consensus (Two-Stage Consensus Engine)
-  GET    /events/{id}/chat                           # Lịch sử tin nhắn phòng chat (Bước 1)
-  POST   /events/{id}/chat                           # Gửi tin nhắn mong muốn / yêu cầu điều chỉnh
-  POST   /events/{id}/ai/macro-plan                  # Kích hoạt Pha 1 LangGraph soạn thảo Roadmap vĩ mô
+/api/v1/events/{id}/plans (Quản lý Phiên bản Lịch trình 1-to-N & 4 Giai đoạn)
+  GET    /events/{id}/plans                          # Danh sách các phiên bản lịch trình (v1, v2, v3...)
+  GET    /events/{id}/plans/{version}                # Chi tiết lịch trình theo giai đoạn (INITIAL, VOTING, FINALIZED, ONGOING)
+  POST   /events/{id}/plans/generate                 # Kích hoạt sinh lịch trình (Bắt buộc qua Input Filter: Location & Date)
+  GET    /events/{id}/stops/{stopId}/dishes          # Gợi ý món ăn trong quán theo sở thích/chế độ ăn của nhóm
+
+/api/v1/events/{id}/consensus (Two-Stage Consensus Engine & Voting)
+  GET    /events/{id}/chat                           # Lịch sử tin nhắn phòng chat chung (Group Channel)
+  POST   /events/{id}/chat                           # Gửi tin nhắn (thường, hỏi đáp Q&A, hoặc gọi agent)
   POST   /events/{id}/macro-lock                     # [Consensus 1] Host bấm Khóa Roadmap Vĩ mô
-  POST   /events/{id}/ai/micro-curation              # Kích hoạt Pha 2 LangGraph tuyển chọn địa điểm & gom cụm
   POST   /events/{id}/stops/{stopId}/vote            # Thành viên vote UP / DOWN cho từng điểm dừng
-  POST   /events/{id}/stops/{stopId}/swap            # 1-Click Swap: Đổi điểm dừng sang phương án dự phòng
-  POST   /events/{id}/final-lock                     # [Consensus 2] Host Chốt Kế Hoạch Chính Thức
-  PATCH  /events/{id}/stops/{stopId}                 # Living Itinerary: Cập nhật duy nhất 1 điểm dừng khi trời mưa
+  POST   /events/{id}/stops/{stopId}/swap            # 1-Click Swap: Đổi điểm dừng sang phương án dự phòng (Non-destructive)
+  POST   /events/{id}/final-lock                     # [Consensus 2] Host Chốt Kế Hoạch Chính Thức (Khóa is_finalized_stop)
+  POST   /events/{id}/stops/{stopId}/adapt           # Thích ứng lúc đang đi (Trời mưa -> SKIPPED + Chèn điểm mới ADAPTED)
 
 /api/v1/events/{id}/plans (Plan Management & Versioning - Items 2.2, 2.4, 2.5)
   GET    /events/{id}/plans                          # Danh sách các phiên bản Plan của phòng
@@ -99,13 +103,10 @@
   GET    /events/{id}/export/pdf                     # Xuất file PDF lịch trình chi tiết (WeasyPrint)
   GET    /events/{id}/export/calendar                # Xuất file lịch .ics đồng bộ Google / Apple Calendar
 
-/api/v1/events/{id}/finance (Quản lý chi phí & Settlement) [DEPRECATED / CUT THEO YÊU CẦU GVHD]
-  POST   /events/{id}/fund-contributions             # [DEPRECATED] Thu quỹ trước chuyến đi
-  GET    /events/{id}/expenses                       # [DEPRECATED] Danh sách các khoản chi tiêu thực tế
-  POST   /events/{id}/expenses                       # [DEPRECATED] Thêm khoản chi tiêu mới kèm phân bổ split
-  GET    /events/{id}/balances                       # [DEPRECATED] Số dư ròng (Net Balance) của từng thành viên
-  GET    /events/{id}/settlements                    # [DEPRECATED] Gợi ý chuyển khoản bù trừ nợ tối ưu (Min-Cash-Flow)
-  PATCH  /events/{id}/settlements/{settlementId}     # [DEPRECATED] Đánh dấu đã chuyển khoản thành công
+# LƯU Ý KIẾN TRÚC: CÁC ENDPOINT CHI PHÍ & SETTLEMENT ĐÃ ĐƯỢC XÓA BỎ HOÀN TOÀN
+# Theo phản biện của GVHD: Hệ thống không tích hợp cổng thanh toán trực tuyến,
+# việc lưu trữ các bảng/endpoint chia tiền (expenses, settlements) là không cần thiết và làm rối CSDL.
+# Quản lý ngân sách hiện được tích hợp gọn gàng trong thuộc tính total_budget, estimated_cost và transit_cost.
 
 /api/v1/admin
   GET    /admin/dashboard/stats                      # Thống kê CCU, số phòng hoạt động, uptime
