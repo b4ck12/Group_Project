@@ -146,3 +146,86 @@ async def test_require_member_rejects_viewer_raises_403():
 
 
 # =====================================================================
+# 2. HTTP Endpoint Integration Tests with RolesGuard
+# =====================================================================
+
+@pytest.mark.asyncio
+async def test_update_event_allowed_for_host():
+    """Test PATCH /api/v1/events/{id} succeeds when caller is HOST."""
+    now = datetime.now(timezone.utc)
+    host_member = EventMember(id="m_h", event_id="evt_123", user_id="user_host", role=EventRole.HOST)
+    mock_updated_event = Event(
+        id="evt_123",
+        name="Da Lat Updated",
+        type=EventType.TRAVEL,
+        scope=EventScope.VACATION,
+        start_date=now,
+        end_date=now,
+        macro_locked=False,
+        final_locked=False,
+        created_at=now,
+    )
+
+    app.dependency_overrides[require_host] = lambda: host_member
+    try:
+        with patch("app.api.v1.events.EventService.update_event", new=AsyncMock(return_value=mock_updated_event)):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                resp = await client.patch("/api/v1/events/evt_123", json={"name": "Da Lat Updated"})
+
+        assert resp.status_code == 200
+        assert resp.json()["name"] == "Da Lat Updated"
+    finally:
+        app.dependency_overrides.pop(require_host, None)
+
+
+@pytest.mark.asyncio
+async def test_update_event_blocked_for_regular_member():
+    """Test PATCH /api/v1/events/{id} returns 403 when caller is only a MEMBER."""
+    regular_member = EventMember(id="m_r", event_id="evt_123", user_id="user_reg", role=EventRole.MEMBER)
+
+    app.dependency_overrides[get_event_membership] = lambda: regular_member
+    try:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.patch("/api/v1/events/evt_123", json={"name": "Hacked Name"})
+
+        assert resp.status_code == 403
+        assert "host privileges" in resp.json()["detail"].lower()
+    finally:
+        app.dependency_overrides.pop(get_event_membership, None)
+
+
+@pytest.mark.asyncio
+async def test_delete_event_blocked_for_regular_member():
+    """Test DELETE /api/v1/events/{id} returns 403 when caller is only a MEMBER."""
+    regular_member = EventMember(id="m_r", event_id="evt_123", user_id="user_reg", role=EventRole.MEMBER)
+
+    app.dependency_overrides[get_event_membership] = lambda: regular_member
+    try:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.delete("/api/v1/events/evt_123")
+
+        assert resp.status_code == 403
+        assert "host privileges" in resp.json()["detail"].lower()
+    finally:
+        app.dependency_overrides.pop(get_event_membership, None)
+
+
+@pytest.mark.asyncio
+async def test_update_event_blocked_for_non_member():
+    """Test PATCH /api/v1/events/{id} returns 403 when caller is not enrolled in room."""
+    def mock_non_member():
+        raise HTTPException(status_code=403, detail="You are not a member of this trip room.")
+
+    app.dependency_overrides[get_event_membership] = mock_non_member
+    try:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.patch("/api/v1/events/evt_123", json={"name": "Stranger Attack"})
+
+        assert resp.status_code == 403
+        assert "not a member" in resp.json()["detail"].lower()
+    finally:
+        app.dependency_overrides.pop(get_event_membership, None)
