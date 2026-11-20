@@ -20,6 +20,7 @@ from httpx import ASGITransport, AsyncClient
 from app.main import app
 from app.models.enums import BudgetTier, EventRole, EventScope, EventType
 from app.models.event import Event, EventMember
+from app.api.v1.dependencies import require_host
 from app.schemas.event import EventCreate, EventUpdate
 from app.services.event_service import EventService
 
@@ -142,29 +143,38 @@ async def test_update_event_endpoint_200(sample_event):
     """Test API PATCH /api/v1/events/{id} cập nhật thông tin phòng thành công."""
     sample_event.name = "Chuyến đi Đà Lạt (Đã cập nhật)"
 
-    with patch("app.api.v1.events.EventService.update_event", new=AsyncMock(return_value=sample_event)):
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            resp = await client.patch(
-                "/api/v1/events/evt_test_123",
-                json={"name": "Chuyến đi Đà Lạt (Đã cập nhật)"},
-            )
+    app.dependency_overrides[require_host] = lambda: sample_event.members[0]
+    try:
+        with patch("app.api.v1.events.EventService.update_event", new=AsyncMock(return_value=sample_event)):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                resp = await client.patch(
+                    "/api/v1/events/evt_test_123",
+                    json={"name": "Chuyến đi Đà Lạt (Đã cập nhật)"},
+                )
 
-    assert resp.status_code == 200
-    assert resp.json()["name"] == "Chuyến đi Đà Lạt (Đã cập nhật)"
+        assert resp.status_code == 200
+        assert resp.json()["name"] == "Chuyến đi Đà Lạt (Đã cập nhật)"
+    finally:
+        app.dependency_overrides.pop(require_host, None)
 
 
 @pytest.mark.asyncio
 async def test_delete_event_endpoint_200():
     """Test API DELETE /api/v1/events/{id} xóa phòng thành công."""
-    with patch("app.api.v1.events.EventService.delete_event", new=AsyncMock(return_value=True)):
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            resp = await client.delete("/api/v1/events/evt_test_123")
+    mock_host = EventMember(id="m_h", event_id="evt_test_123", user_id="user_huy", role=EventRole.HOST)
+    app.dependency_overrides[require_host] = lambda: mock_host
+    try:
+        with patch("app.api.v1.events.EventService.delete_event", new=AsyncMock(return_value=True)):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                resp = await client.delete("/api/v1/events/evt_test_123")
 
-    assert resp.status_code == 200
-    assert resp.json()["event_id"] == "evt_test_123"
-    assert "Đã xóa phòng thành công" in resp.json()["message"]
+        assert resp.status_code == 200
+        assert resp.json()["event_id"] == "evt_test_123"
+        assert "Đã xóa phòng thành công" in resp.json()["message"]
+    finally:
+        app.dependency_overrides.pop(require_host, None)
 
 
 # =====================================================================
