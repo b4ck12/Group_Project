@@ -36,7 +36,7 @@ def _mock_open_meteo_payload(rain_code: int = 63, rain_prob: int = 85, rain_mm: 
             "weather_code": [rain_code, 2, 0],
             "temperature_2m_min": [23.0, 24.0, 24.5],
             "temperature_2m_max": [29.0, 31.0, 32.0],
-            "precipitation_sum": [12.0, 0.2, 0.0],
+            "precipitation_sum": [rain_mm, 0.2, 0.0],
             "precipitation_probability_max": [rain_prob, 20, 5],
         },
     }
