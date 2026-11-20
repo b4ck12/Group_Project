@@ -9,7 +9,7 @@
 
 Trong môi trường có nhiều nhóm bạn cùng lập kế hoạch song song, việc cô lập dữ liệu là ưu tiên hàng đầu:
 
-- **Nguyên tắc**: Không chỉ kiểm tra quyền ở tầng FastAPI Gateway, hệ thống kích hoạt **Row Level Security (RLS)** trên toàn bộ các bảng trong schema `core` (`events`, `plans`, `plan_stops`, `chat_messages`, `expenses`).
+- **Nguyên tắc**: Không chỉ kiểm tra quyền ở tầng FastAPI Gateway, hệ thống kích hoạt **Row Level Security (RLS)** trên toàn bộ các bảng trong schema `core` (`events`, `plans`, `plan_stops`, `chat_messages`).
 - **Thực thi**:
   ```sql
   -- Người dùng chỉ được SELECT hoặc INSERT vào phòng mà họ là thành viên hợp lệ
