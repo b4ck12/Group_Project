@@ -19,6 +19,12 @@ from app.services.places_service import (
     estimate_transit_between_coords,
     places_circuit_breaker,
 )
+from app.services.weather_service import (
+    BaseWeatherProvider,
+    WeatherService,
+    map_wmo_weather_code,
+    weather_circuit_breaker,
+)
 
 __all__ = [
     "AuthService",
@@ -36,4 +42,8 @@ __all__ = [
     "build_tour_provider_links",
     "estimate_lodging_nightly_vnd",
     "estimate_tour_ticket_vnd",
+    "BaseWeatherProvider",
+    "WeatherService",
+    "weather_circuit_breaker",
+    "map_wmo_weather_code",
 ]
