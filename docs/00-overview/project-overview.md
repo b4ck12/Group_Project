@@ -147,7 +147,7 @@ Hệ thống được thiết kế theo kiến trúc phi tập trung, phân bổ
 - **Backend Gateway (Render.com Web Service)**: FastAPI ASGI application (Python 3.11+) xử lý RESTful endpoints và WebSocket room server. Được cấu hình cron ping tự động tới `/api/healthz` để ngăn service rơi vào trạng thái ngủ khi đang trong phiên lập kế hoạch.
 - **AI Agent Worker (Render.com Background Worker)**: Tiến trình LangGraph Python chạy độc lập, giới hạn bộ nhớ $\le 512$\,MB RAM, tiêu thụ tác vụ bất đồng bộ từ hàng đợi Redis Streams (`XREADGROUP`).
 - **Database & BaaS (Supabase)**: Managed PostgreSQL 16 tích hợp extension `pgvector`, chia tách 3 schema độc lập:
-  - `core`: Lưu trữ users, events, event_members, plans, plan_stops, plan_votes, chat_messages, expenses.
+  - `core`: Lưu trữ users, events, event_members, plans, plan_stops, plan_votes, chat_messages (bảng expenses và settlements đã được loại bỏ hoàn toàn theo góp ý của GVHD).
   - `checkpoints`: Lưu trạng thái `AgentState` của LangGraph qua `AsyncPostgresSaver`.
   - `vectors`: Lưu trữ vector embeddings phục vụ tra cứu địa điểm tương tự.
   - **Supavisor Connection Pooler (port 6543, Transaction Mode)**: Ghép hơn 200 phiên client qua 15 kết nối cơ sở dữ liệu vật lý, đảm bảo không bao giờ cạn kiệt connection pool.
@@ -202,8 +202,8 @@ Dự án được phân bổ đồng đều cho 6 thành viên phụ trách 6 m�
 |---|---|---|---|
 | **BE-Core & DAL** | **Tạ Quang Huy** | Thiết kế Schema DB gốc Supabase, Event/Room CRUD, Two-Stage Consensus APIs, RolesGuard, LangGraph DAL Bridge, WebSocket Room Server | [person-1-backend-core.md](../04-tasks/person-1-backend-core.md) |
 | **BE-Platform & FE-Core** | **Hà Đăng Huy** | External Travel APIs (Places, Agoda, Klook), PyBreaker Circuit Breaker, Upstash Redis Cache, React 18 Core UI, Auth, Mapbox GL Canvas | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) / [person-4-frontend-core.md](../04-tasks/person-4-frontend-core.md) |
-| **BE-Services** | **Phạm Đình Ánh Dương** | Supabase Auth Integration, Link Invitations, Notification Services, PDF & Calendar (.ics) Export, Quản lý tài chính & Optimal Settlement | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) |
-| **FE-Growth** | **Nguyễn Minh Đức** | Realtime Room Chat & AI Streaming UI, Interactive Timeline, Stop Voting Cards (1-Click Swap), Design System, Shared Expenses UI | [person-5-frontend-growth.md](../04-tasks/person-5-frontend-growth.md) |
+| **BE-Services** | **Phạm Đình Ánh Dương** | Bộ lọc đầu vào (Input Filter & Core Params), Supabase Auth Integration, Link Invitations, Notification Services, PDF & Calendar (.ics) Export | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) |
+| **FE-Growth** | **Nguyễn Minh Đức** | Realtime Room Chat & AI Streaming UI, Gợi ý món ăn trong quán (Dish Recommendations UI), Interactive Timeline, Stop Voting Cards (1-Click Swap), Plan History Stage Viewer | [person-5-frontend-growth.md](../04-tasks/person-5-frontend-growth.md) |
 | **AI Lead** | **Nguyễn Tùng Dương** | Unified AI Agent Architecture, Two-Phase State Machine, Model Abstraction Layer, Four-Tier Grounding Pipeline, Geo-Clustering | [person-3-ai-engineer.md](../04-tasks/person-3-ai-engineer.md) |
 | **DevOps & Security** | **Đinh Tiến Luân** | Multi-Cloud Deployment (Vercel + Render + Supabase), CI/CD GitHub Actions, OpenTelemetry Tracing, Pentest OWASP Top 10, Concurrency Benchmark | [person-6-security-devops.md](../04-tasks/person-6-security-devops.md) |
 

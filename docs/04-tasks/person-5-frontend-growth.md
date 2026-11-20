@@ -83,10 +83,10 @@
   - **Target Files**: `frontend/src/features/plan/components/AdaptationToast.tsx`
   - **Acceptance Criteria**: Khi có thành viên đổi điểm do trời mưa, UI hiện thông báo toast và tự động cập nhật thẻ điểm dừng mới trên timeline và bản đồ.
   - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
-- [ ] **`TASK-409`** **Shared Expense & Settlement UI Screen**
+- [ ] **`TASK-409`** **Dish Recommendations & Multi-Stage Plan History UI**
   - **Feature**: #40
-  - **Target Files**: `frontend/src/features/expense/pages/ExpensePage.tsx`
-  - **Acceptance Criteria**: Hiển thị tổng quỹ, ai đã chi, ai nợ ai bao nhiêu tiền kèm nút đánh dấu đã thanh toán thành công.
+  - **Target Files**: `frontend/src/features/plan/components/DishRecommendationCard.tsx`, `frontend/src/features/plan/components/PlanHistoryViewer.tsx`
+  - **Acceptance Criteria**: Hiển thị danh sách món ăn gợi ý đặc sản và món ăn trong quán theo sở thích/chế độ ăn của từng thành viên (chay, không cay, dị ứng); giao diện so sánh 3 mốc lịch trình (Initial do AI gợi ý vs Finalized sau khi vote vs Ongoing thay đổi lúc đi).
   - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
 - [ ] **`TASK-410`** **Admin Dashboard UI Screen**
   - **Feature**: #41

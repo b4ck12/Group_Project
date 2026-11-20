@@ -93,12 +93,12 @@
 
 ---
 
-## 💰 Nhóm 7 — Quản Lý Tài Chính Nhóm & Giám Sát Hệ Thống (Expenses & Ops)
+## 🍽️ Nhóm 7 — Bộ Lọc Đầu Vào, Gợi Ý Món Ăn & Quản Lý Lịch Sử Plan (Input Filter & Plan History)
 
 | # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
 |:---:|:---:|---|---|:---:|
-| 38 | `TASK-404` | **Ghi nhận Thu Quỹ & Chi Phí Nhóm** | Hỗ trợ thu quỹ trước (`ExpenseType.ADVANCE`) và ghi nhận hóa đơn chi tiêu thực tế phát sinh. | Phạm Đình Ánh Dương |
-| 39 | `TASK-405` | **Thuật toán Bù trừ Nợ Tối ưu (Settlement)** | Tính toán số dư ròng của từng người và gợi ý số lượng giao dịch chuyển khoản ít nhất (Min-Cash-Flow). | Phạm Đình Ánh Dương |
-| 40 | `TASK-409` | **Giao diện Quyết toán Chi phí** | Màn hình hiển thị tổng quỹ, chi tiết ai đã chi, ai nợ ai bao nhiêu tiền kèm nút xác nhận đã bank. | Nguyễn Minh Đức |
+| 38 | `TASK-404` | **Bộ Lọc Đầu Vào Cốt Lõi (Input Filter & Core Params)** | Lọc tin nhắn rác, ép buộc đầu vào tạo Plan phải có Location và Date trước khi đưa vào mô hình AI. | Phạm Đình Ánh Dương |
+| 39 | `TASK-415` | **Dịch Vụ Lịch Sử Phiên Bản Plan 4 Giai Đoạn** | Lưu vết toàn vẹn 4 giai đoạn (Initial, Voting, Finalized, Ongoing), không ghi đè dữ liệu, hỗ trợ so sánh các mốc. | Phạm Đình Ánh Dương |
+| 40 | `TASK-409` | **Gợi Ý Món Ăn Trong Quán & Xem Lịch Sử Plan UI** | Thẻ gợi ý món ăn đặc sản vùng miền và món ăn cụ thể tại quán theo khẩu vị nhóm (chay, không cay...), kèm màn hình so sánh 3 mốc Plan. | Nguyễn Minh Đức |
 | 41 | `TASK-410` | **Dashboard Giám Sát Quản Trị (Admin UI)** | Thống kê số lượng phòng hoạt động, token LLM tiêu thụ, cache hit rate và thời gian phản hồi. | Nguyễn Minh Đức |
 | 42 | `TASK-414` | **Hạ tầng Giám sát OpenTelemetry & LangSmith** | Đo lường độ trễ end-to-end (Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ DB), theo dõi sức khỏe hệ thống. | Đinh Tiến Luân |

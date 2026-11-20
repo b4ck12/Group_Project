@@ -2,7 +2,7 @@
 
 > **Người phụ trách**: 
 > - **Hà Đăng Huy** (Backend Dev B: External Travel APIs, PyBreaker Circuit Breaker, Upstash Redis L2 Cache)
-> - **Phạm Đình Ánh Dương** (Backend Dev C: Supabase Auth & JWT, Link Invitations, Notification Services, PDF & Calendar (.ics) Export, Quản lý tài chính & Optimal Settlement)  
+> - **Phạm Đình Ánh Dương** (Backend Dev C: Supabase Auth & JWT, Link Invitations, Notification Services, PDF & Calendar (.ics) Export, Input Filter & Multi-Stage Plan History)  
 > **Tham gia bắt buộc**: Contract Session (Sprint 0), Integration Day cuối mỗi Sprint.  
 > **Quy định tracking bắt buộc**: Sau khi hoàn thành code và test mỗi task, đổi `[ ]` thành `[x]` kèm link PR, ngày hoàn thành và cập nhật tài liệu kỹ thuật tương ứng theo [post-task-documentation.md](../01-workflow/post-task-documentation.md).
 
@@ -110,14 +110,14 @@
   - **Acceptance Criteria**: `GET /events/{id}/export/calendar` tạo file `.ics` đồng bộ vào Google Calendar / Apple Calendar.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
 
-### Sprint 4 — Shared Expenses & Optimal Debt Settlement (Phụ trách: Phạm Đình Ánh Dương)
-- [ ] **`TASK-404`** `[BE-Services - Phạm Đình Ánh Dương]` **Thuật toán Bù trừ Nợ Tối ưu (Optimal Settlement Algorithm)**
-  - **Feature**: #38, #39
-  - **Target Files**: `backend/app/services/settlement_service.py`
-  - **Acceptance Criteria**: Tính net balance từng thành viên qua SQL GROUP BY; chạy thuật toán Min-Cash-Flow khớp cặp nợ với số giao dịch ít nhất.
-  - **Docs & Tracking**: Cập nhật `database-schema.md` + tick `[x]`.
-- [ ] **`TASK-415`** `[BE-Services - Phạm Đình Ánh Dương]` **Quỹ Nhóm & Chi Phí CRUD APIs**
+### Sprint 4 — Input Filter & Multi-Stage Plan History (Phụ trách: Phạm Đình Ánh Dương)
+- [ ] **`TASK-404`** `[BE-Services - Phạm Đình Ánh Dương]` **Bộ Lọc Đầu Vào Cốt Lõi (Gateway Input Filter & Core Parameter Validation)**
   - **Feature**: #38
-  - **Target Files**: `backend/app/api/v1/finance.py`
-  - **Acceptance Criteria**: `POST /events/{id}/fund-contributions` (thu quỹ trước) và `/expenses` (chi tiêu thật), trả về danh sách chuyển khoản tối ưu.
-  - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
+  - **Target Files**: `backend/app/middleware/input_filter.py`, `backend/app/services/filter_service.py`
+  - **Acceptance Criteria**: Lọc bỏ tin nhắn rác/chém gió không kích hoạt AI; kiểm tra bắt buộc phải có Location (Điểm đến) và Date (Thời gian/Ngày đi) trước khi đẩy task vào Redis Streams; phản hồi hướng dẫn người dùng nếu thiếu tham số cốt lõi.
+  - **Docs & Tracking**: Cập nhật `docs/03-architecture/ai-agent-architecture.md` + tick `[x]`.
+- [ ] **`TASK-415`** `[BE-Services - Phạm Đình Ánh Dương]` **Dịch Vụ Lịch Sử Phiên Bản Plan 4 Giai Đoạn (Multi-Stage Plan History Service)**
+  - **Feature**: #39
+  - **Target Files**: `backend/app/services/plan_history_service.py`, `backend/app/api/v1/plans.py`
+  - **Acceptance Criteria**: `GET /events/{id}/plans` và `GET /events/{id}/plans/{version}`; truy xuất dữ liệu 3 mốc (Initial do AI gợi ý `is_initial_stop = TRUE`, Finalized đã chốt `is_finalized_stop = TRUE`, và Ongoing thích ứng thực tế qua `replaced_by_stop_id` và `stop_status`); tuyệt đối không ghi đè mất dấu.
+  - **Docs & Tracking**: Cập nhật `docs/03-architecture/database-schema.md` + tick `[x]`.

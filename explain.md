@@ -224,11 +224,11 @@ TripMate AI được xây dựng theo chuẩn mực kỹ thuật cao cấp của
 ### 7.1. Kiến Trúc Ứng Dụng Phân Tầng (Clean / Layered Architecture)
 - **FastAPI Backend**:
   - `api/`: Transport Layer, nhận HTTP/WS request, validate JWT, bắt lỗi ngoại lệ chuẩn hóa.
-  - `services/`: Domain Logic Layer, giải quyết bài toán nghiệp vụ, điều phối Two-Stage Consensus, thuật toán Min-Cash-Flow.
+  - `services/`: Domain Logic Layer, giải quyết bài toán nghiệp vụ, điều phối Two-Stage Consensus, tuyển chọn món ăn trong quán, quản lý lịch sử 4 giai đoạn.
   - `dal/` (Data Access Layer): Repository Layer thao tác cơ sở dữ liệu qua SQLAlchemy 2.0 Async.
   - `adapters/`: Travel Provider Layer, cô lập toàn bộ các kết nối API du lịch và khách sạn bên ngoài.
 - **React Frontend**:
-  - `features/`: Chia nhỏ theo miền nghiệp vụ (`event-planning`, `ai-chat`, `finance`).
+  - `features/`: Chia nhỏ theo miền nghiệp vụ (`event-planning`, `ai-chat`, `dish-recommendations`, `plan-history`).
   - `components/ui/`: Atomic Presentation components xây dựng trên shadcn/ui.
   - `hooks/`: Custom Hooks đóng gói toàn bộ stateful logic và side effects.
   - `stores/`: Quản lý client state toàn cục qua Zustand.

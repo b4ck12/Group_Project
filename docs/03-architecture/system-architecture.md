@@ -30,8 +30,8 @@ flowchart TD
     end
 
     subgraph Bottom ["Tầng Dữ Liệu & Dịch Vụ Ngoài"]
-        subgraph L5 ["5. Managed Database & BaaS (Supabase PostgreSQL 16)"]
-            DB["• PostgreSQL 16 + pgvector (core, checkpoints, vectors)<br/>• Supavisor Connection Pooler (port 6543, Transaction Mode)<br/>• Row Level Security (RLS) Multi-tenant Privacy"]
+        subgraph L5 ["5. Managed Database & BaaS (PostgreSQL 16 & Supabase)"]
+            DB["• PostgreSQL 16 + pgvector (Local Docker / Deploy Supabase)<br/>• Supavisor Connection Pooler (port 6543, Transaction Mode)<br/>• Row Level Security (RLS) Multi-tenant Privacy"]
         end
 
         subgraph L6 ["6. External Travel & Lodging APIs (Multi-Provider Adapters)"]
@@ -135,6 +135,25 @@ sequenceDiagram
 
 ---
 
+## 🚦 3.1. Phân Định Luồng Chat Nhóm & Bộ Lọc Kích Hoạt AI Agent (Input Filter Layer)
+
+Hệ thống giải quyết câu hỏi: *"Lúc nào chat thường, lúc nào thì gọi Agent bắt đầu làm việc?"* thông qua tầng kiểm soát tại FastAPI Gateway:
+
+1. **Kênh Chat Nhóm Chung (Group Channel)**:
+   - Toàn bộ thành viên trong phòng cùng tham gia vào 1 kênh chat thời gian thực qua WebSocket (`/ws/rooms/{roomId}`).
+   - Các tin nhắn trao đổi, thảo luận thông thường (`'CHAT'`) được lưu vào CSDL và broadcast tới toàn bộ client trong phòng (<80ms) mà **tuyệt đối không kích hoạt LangGraph Worker**.
+2. **Bộ Lọc Đầu Vào Cốt Lõi (Input Filter Layer)**:
+   - Khi có tin nhắn gọi Agent (`@TripMate`) hoặc thao tác bấm nút tạo/sửa lịch trình, Gateway thực hiện 2 cấp lọc:
+     - **Cấp 1 - Lọc rác (Noise Filter)**: Loại bỏ các câu chém gió không liên quan đến du lịch.
+     - **Cấp 2 - Ép buộc tham số cốt lõi (Core Parameter Enforcement)**: Bắt buộc phải có **Location (Điểm đến)** và **Date (Thời gian/Ngày đi)**.
+   - Nếu đủ tham số cốt lõi: Gateway mới đẩy tác vụ vào Redis Streams (`XADD`) để kích hoạt AI Worker.
+   - Nếu thiếu tham số cốt lõi: Gateway phản hồi yêu cầu người dùng bổ sung thông tin, ngăn chặn hoàn toàn việc gọi LLM bừa bãi gây tốn token và sai lệch dữ liệu.
+3. **Phân Luồng Tương Tác Của Agent**:
+   - **Nhánh Hỏi Đáp / Gợi Ý Món Ăn (Q&A & Dish Suggestions)**: Tra cứu nhanh đặc sản, giải đáp thắc mắc du lịch, gợi ý món ăn theo sở thích ăn uống của thành viên $\rightarrow$ Trả lời trực tiếp dạng tin nhắn trong group chat, **không chạm vào Plan**.
+   - **Nhánh Lập / Điều Chỉnh Lịch Trình (Planning Engine)**: Chạy qua LangGraph State Machine $\rightarrow$ Ghi các `plan_stops` vào CSDL theo kịch bản 4 giai đoạn không ghi đè $\rightarrow$ Broadcast cập nhật lộ trình.
+
+---
+
 ## 🌧️ 4. Minh Họa Kịch Bản: Lịch Trình Tự Động Thích Ứng Khi Trời Mưa (Dynamic On-The-Go Adaptation)
 
 Để chứng minh sức mạnh của kiến trúc phân tầng bất đồng bộ, hãy xem xét kịch bản nhóm đang đi chơi thì gặp mưa to bất chợt:
@@ -143,7 +162,10 @@ sequenceDiagram
 2. **Gateway phản hồi tức thì**: FastAPI Gateway nhận tin qua WebSocket, trả về ACK `< 80$\,ms, ghi tin nhắn vào bảng `chat_messages` (Supabase `core` schema, Bước 2a) và đẩy task vào Redis Streams (Bước 2b).
 3. **AI Worker xử lý ngầm**: LangGraph Worker kéo task về (Bước 3), khôi phục phiên làm việc từ `checkpoints` schema (Bước 4), chuyển thẳng vào **Phase 2 Micro Curation State** (Bước 4b).
 4. **Truy vấn địa điểm trong nhà**: AI gọi Google Places API tìm các quán cafe có tiện ích trong nhà nằm trong bán kính $\le 1.5$\,km qua PyBreaker (Bước 5).
-5. **Cập nhật nguyên tử 1 dòng**: AI Agent ghi đè **duy nhất 1 dòng bản ghi điểm dừng bị ảnh hưởng** trong bảng `plan_stops` (Bước 6). Toàn bộ các điểm dừng của các ngày khác được giữ nguyên 100%.
+5. **Cập nhật nguyên tử không ghi đè (Non-destructive History)**: Thay vì ghi đè làm mất dấu dữ liệu quá khứ, AI Agent thực hiện cơ chế lưu vết lịch sử:
+   - Điểm dừng ngoài trời cũ được cập nhật trạng thái `stop_status = 'SKIPPED_ON_TRIP'` kèm lý do `change_reason = 'Trời mưa lớn tại địa điểm ngoài trời'`.
+   - Điểm dừng trong nhà mới được chèn với `stop_status = 'ADAPTED_ON_TRIP'`, trỏ `replaced_by_stop_id` tới điểm cũ.
+   - Toàn bộ các điểm dừng của các ngày khác được giữ nguyên 100%. Nhóm dễ dàng truy xuất cả 3 mốc: Ban đầu do AI gợi ý, Đã chốt sau khi vote, và Thực tế phát sinh lúc đang đi.
 6. **Đồng bộ thời gian thực**: AI Worker bắn sự kiện `plan:updated` qua Redis Pub/Sub (Bước 7), FastAPI Gateway nhận sự kiện và phát sóng ngay lập tức tới điện thoại của tất cả các thành viên qua WebSockets (Bước 8). Bản đồ Mapbox trên máy người dùng tự động vẽ lại lộ trình mới!
 
 ---
@@ -164,7 +186,7 @@ TripMate AI được kiến tạo nhằm đáp ứng tối đa các tiêu chuẩ
 ### 6.1. Architecture Pattern Phân Tầng Chuẩn Mực (Layered Clean Architecture)
 Hệ thống tuân thủ chặt chẽ nguyên lý phân tầng và đảo ngược phụ thuộc (Dependency Inversion):
 1. **Presentation / Transport Layer (FastAPI Routers)**: Tiếp nhận HTTP/WebSocket request, xác thực JWT, validate input bằng Pydantic Schema, chuyển tiếp tới Domain Service. Tuyệt đối không chứa logic nghiệp vụ hay truy vấn SQL trực tiếp.
-2. **Domain / Business Service Layer**: Chứa toàn bộ nghiệp vụ cốt lõi: Two-Stage Consensus Engine, Geo-clustering logic, Itinerary validation, Split expense calculations. Không phụ thuộc vào thư viện bên ngoài hay cơ sở dữ liệu cụ thể.
+2. **Domain / Business Service Layer**: Chứa toàn bộ nghiệp vụ cốt lõi: Two-Stage Consensus Engine, Geo-clustering logic, Itinerary validation, Venue dish recommendation, Budget estimation. Không phụ thuộc vào thư viện bên ngoài hay cơ sở dữ liệu cụ thể.
 3. **Data Access Layer (DAL / Repository)**: Thực thi truy vấn dữ liệu bất đồng bộ qua SQLAlchemy 2.0 Async, trừu tượng hóa các bảng Supabase PostgreSQL.
 4. **External Provider Adapter Layer (Strategy Pattern)**: Toàn bộ tương tác với các bên thứ 3 (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**) đều đi qua interface trừu tượng `BaseTravelProvider`. Tầng nghiệp vụ chỉ tương tác với interface này.
 
