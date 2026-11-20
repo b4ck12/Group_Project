@@ -399,3 +399,57 @@
     }
   }
   ```
+
+
+### 3.9. `GET /api/v1/weather` (Weather & Rain Alert Service - TASK-207)
+- **Endpoint**: `GET /api/v1/weather`
+- **Query Parameters**:
+  - `lat` (float, required, `-90.0` to `90.0`)
+  - `lng` (float, required, `-180.0` to `180.0`)
+  - `days` (int, optional, default `3`, `1` to `7`)
+- **Behavior**:
+  - Zero-cost 3-tier adapter: Tier 1 optional `custom_weather_fn` scraper hook (falls back on error), Tier 2 OpenWeatherMap 2.5 Forecast (when `OPENWEATHER_API_KEY` is configured), Tier 3 Open-Meteo Public API (free keyless live meteorological data default).
+  - Normalizes coordinates to 2 decimal places (`~1.1 km`) and caches responses for **3 hours (`10800s`)** in Upstash Redis (`weather_forecast` prefix).
+  - Protected by isolated `weather_circuit_breaker` (`PyBreaker`); returns `503 Service Unavailable` when upstream fails or circuit is open.
+- **Response `200 OK` (sample)**:
+  ```json
+  {
+    "lat": 16.05,
+    "lng": 108.2,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "provider": "open_meteo",
+    "current": {
+      "temperature_c": 27.0,
+      "feels_like_c": 29.5,
+      "humidity_percent": 82,
+      "wind_speed_kmh": 14.2,
+      "precipitation_mm": 3.5,
+      "condition": "Rain",
+      "description": "Rain showers",
+      "weather_code": 63,
+      "is_raining": true
+    },
+    "daily_forecast": [
+      {
+        "date": "2026-11-19",
+        "temp_min_c": 24.0,
+        "temp_max_c": 29.5,
+        "precipitation_mm": 8.0,
+        "rain_probability_percent": 75,
+        "condition": "Rain",
+        "description": "Rain showers",
+        "is_rainy_day": true
+      }
+    ],
+    "alert": {
+      "rain_alert": true,
+      "severity": "HIGH",
+      "suggest_indoor_swap": true,
+      "advisory_message": "Heavy rain or storm expected (rain chance 75%). Strongly recommend swapping outdoor stops to indoor backup options."
+    },
+    "is_live_data": true
+  }
+  ```
+- **Error Responses**:
+  - `422 Unprocessable Entity`: Invalid `lat`, `lng`, or `days` query parameter.
+  - `503 Service Unavailable`: `Weather provider temporarily unavailable: ...` (circuit breaker open or upstream timeout/HTTP error).
