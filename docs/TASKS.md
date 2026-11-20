@@ -205,7 +205,7 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #25
   - **Target Files**: `backend/app/services/external_travel_service.py`
   - **Acceptance Criteria**: Cung cấp link và thông tin chỗ ở, vé trải nghiệm Klook.
-- [ ] **TASK-207** `[BE-B]` **OpenWeatherMap Integration Service**
+- [x] **TASK-207** `[BE-B]` **OpenWeatherMap Integration Service**
   - **Feature**: #26
   - **Target Files**: `backend/app/api/v1/utils.py`, `backend/app/services/weather_service.py`
   - **Acceptance Criteria**: `GET /weather?lat=&lng=` trả về thông tin nhiệt độ và cảnh báo mưa; cache 3 giờ trên Redis.
