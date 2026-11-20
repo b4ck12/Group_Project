@@ -28,7 +28,7 @@ Với mô hình **Contract-First**:
 ## 🚀 3. Sprint 0: Contract Session (Ngày 1–2, Bắt buộc cả 6 người)
 
 1. **Tạ Quang Huy (Backend Core)**: Trình bày đề xuất schema Supabase (`core.events`, `core.plans`, `core.plan_stops`, `core.plan_votes`) và cấu hình Supavisor connection pooler port 6543. Cả nhóm thảo luận và chốt cấu trúc.
-2. **Phạm Đình Ánh Dương (Backend Services)**: Thống nhất các endpoint Auth, Invitations qua link, Quỹ nhóm & Optimal Settlement (TASK-002).
+2. **Phạm Đình Ánh Dương (Backend Services)**: Thống nhất các endpoint Auth, Invitations qua link, Input Filter & Multi-Stage Plan History (TASK-002).
 3. **Nguyễn Tùng Dương (AI Lead)**: Chốt schema `AgentState` cho 2 pha trạng thái (Phase 1 Macro State & Phase 2 Micro State), thống nhất các trường của Four-Tier Grounding (TASK-003).
 4. **Hà Đăng Huy & Nguyễn Minh Đức (Frontend)**: Chốt danh sách mock handlers trong `frontend/src/mocks/` để giả lập REST APIs và token streaming qua WebSockets (TASK-004, TASK-005).
 5. **Đinh Tiến Luân (DevOps/Sec)**: Chốt Docker compose local, CI workflow, và cấu hình biến môi trường `.env.example` (TASK-006..008).

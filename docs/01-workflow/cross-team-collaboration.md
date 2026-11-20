@@ -124,9 +124,8 @@ backend/app/
 │   ├── places.py            ← Hà Đăng Huy (BE-Platform)
 │   ├── utils.py             ← Hà Đăng Huy (BE-Platform)
 │   ├── export.py            ← Phạm Đình Ánh Dương (BE-Services)
-│   ├── funds.py             ← Phạm Đình Ánh Dương (BE-Services)
-│   ├── expenses.py          ← Phạm Đình Ánh Dương (BE-Services)
-│   ├── settlements.py       ← Phạm Đình Ánh Dương (BE-Services)
+│   ├── filter.py            ← Phạm Đình Ánh Dương (BE-Services)
+│   ├── plan_history.py      ← Phạm Đình Ánh Dương (BE-Services)
 │   ├── admin.py             ← Phạm Đình Ánh Dương (BE-Services)
 │   └── ai.py                ← Nhóm AI Agent (Nguyễn Tùng Dương & Tạ Quang Huy)
 ├── services/                ← Service layer (auth_service, event_service, places_service...)
@@ -175,7 +174,7 @@ Khi Person B muốn giúp Person A (VD: BE Dev B giúp BE Dev A làm Vote module
 |---|---|---|
 | BE Dev A (Core) | BE Dev B (Platform) | Cùng backend Python FastAPI, hiểu SQLAlchemy |
 | BE Dev B (Platform) | BE Dev A (Core) | Ngược lại |
-| BE Dev C (Services & Settlement) | BE Dev A (Core) | Cùng backend Python FastAPI, Dương xử lý Auth/Expense, Tạ hiểu schema rõ nhất |
+| BE Dev C (Services & Platform) | BE Dev A (Core) | Cùng backend Python FastAPI, Dương xử lý Auth/Filter/Plan History, Tạ hiểu schema rõ nhất |
 | AI Engineer | BE Dev A (Core) | AI cần hiểu schema, BE-A hiểu schema rõ nhất |
 | FE Dev A (Core) | FE Dev B (Growth) | Cùng frontend, cùng React |
 | FE Dev B (Growth) | FE Dev A (Core) | Ngược lại |

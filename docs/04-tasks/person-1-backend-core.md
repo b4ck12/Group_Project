@@ -25,8 +25,8 @@
 ### Sprint 0 — Contract Session & Database Architecture Design
 - [x] **`TASK-001`** **Thiết kế Schemas DB Supabase PostgreSQL 16 & Supavisor Pooler**
   - **Mục tiêu**: Chuẩn hóa mô hình dữ liệu cho Supabase PostgreSQL 16 phân tách 3 schema (`core`, `checkpoints`, `vectors`).
-  - **Target Files**: `backend/app/models/` (`user.py`, `event.py`, `plan.py`, `stop.py`, `vote.py`, `chat.py`, `expense.py`, `settlement.py`), `backend/app/schemas/`
-  - **Acceptance Criteria**: Hỗ trợ đầy đủ `scope` (DAY_HANGOUT | VACATION), `macro_locked`, `final_locked`, `plan_stops` với `place_ref_id` và `backup_options` JSONB, 3 bảng tài chính (`expenses`, `expense_splits`, `settlements`). Cấu hình Supavisor Pooler port 6543. Migration Alembic sạch.
+  - **Target Files**: `backend/app/models/` (`user.py`, `event.py`, `plan.py`, `stop.py`, `vote.py`, `chat_message.py`), `backend/app/schemas/`
+  - **Acceptance Criteria**: Hỗ trợ đầy đủ `scope` (DAY_HANGOUT | VACATION), `macro_locked`, `final_locked`, quan hệ `Event` - `Plan` 1-to-N, `plan_stops` với `place_ref_id`, `transport_mode`, `recommended_dishes`, `backup_options` JSONB và lưu vết 4 giai đoạn không ghi đè. Cấu hình Supavisor Pooler port 6543. Migration Alembic sạch.
   - **Docs & Tracking**: Cập nhật `docs/03-architecture/database-schema.md` + tick `[x]` task board.
 
 ### Sprint 1 — Supabase Core Models & Initial Migration

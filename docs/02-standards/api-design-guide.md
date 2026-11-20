@@ -7,7 +7,7 @@
 
 ## 📐 1. Nguyên Tắc Thiết Kế RESTful
 
-1. **Resource là danh từ số nhiều**: Sử dụng `/events`, `/plans`, `/stops`, `/expenses`.
+1. **Resource là danh từ số nhiều**: Sử dụng `/events`, `/plans`, `/stops`, `/votes`.
 2. **Phiên bản hóa (Versioning)**: Mọi endpoint đều có prefix `/api/v1/...`
 3. **HTTP Method thể hiện rõ ngữ nghĩa**:
    - `GET`: Đọc dữ liệu (Idempotent).
@@ -61,11 +61,22 @@
   POST   /events/{id}/invitations                    # Sinh link mời thành viên vào phòng
   GET    /events/{id}/members                        # Danh sách thành viên và phân quyền (Host vs Member)
 
-/api/v1/events/{id}/plans (Quản lý Phiên bản Lịch trình 1-to-N & 4 Giai đoạn)
-  GET    /events/{id}/plans                          # Danh sách các phiên bản lịch trình (v1, v2, v3...)
-  GET    /events/{id}/plans/{version}                # Chi tiết lịch trình theo giai đoạn (INITIAL, VOTING, FINALIZED, ONGOING)
-  POST   /events/{id}/plans/generate                 # Kích hoạt sinh lịch trình (Bắt buộc qua Input Filter: Location & Date)
+/api/v1/events/{id}/plans (Plan Management & Versioning - Items 2.2, 2.4, 2.5)
+  GET    /events/{id}/plans                          # Danh sách các phiên bản Plan của phòng (v1, v2...)
+  POST   /events/{id}/plans                          # Tạo phiên bản Plan mới (version_number, macro_roadmap)
+  POST   /events/{id}/plans/generate                 # Kích hoạt sinh lịch trình qua AI (Bắt buộc qua Input Filter: Location & Date)
+  GET    /events/{id}/plans/{planId}                 # Chi tiết Plan và danh sách điểm dừng (stops)
+  PATCH  /events/{id}/plans/{planId}                 # Cập nhật thông tin Plan (tiêu đề, macro_roadmap, budget)
+  PATCH  /events/{id}/plans/{planId}/status          # Chuyển trạng thái Plan (INITIAL -> VOTING -> FINALIZED -> ONGOING)
+  PATCH  /events/{id}/plans/{planId}/stops           # Sắp xếp và cập nhật toàn bộ danh sách điểm dừng
+  POST   /events/{id}/plans/{planId}/stops           # Thêm 1 điểm dừng mới vào Plan
   GET    /events/{id}/stops/{stopId}/dishes          # Gợi ý món ăn trong quán theo sở thích/chế độ ăn của nhóm
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/swap # 1-Click Swap đổi điểm dự phòng (lưu vết REJECTED_IN_VOTE)
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/adapt # Thích ứng đổi điểm trời mưa (lưu vết SKIPPED_ON_TRIP)
+  GET    /events/{id}/plans/{planId}/history         # Xem lịch sử 4 giai đoạn: Initial vs Finalized vs Ongoing
+  DELETE /events/{id}/plans/{planId}                 # Xóa phiên bản Plan (chỉ Host)
+  POST   /events/{id}/plans/{planId}/votes           # Bình chọn điểm dừng trong Plan
+  GET    /events/{id}/plans/{planId}/votes           # Lấy danh sách phiếu bầu của Plan
 
 /api/v1/events/{id}/consensus (Two-Stage Consensus Engine & Voting)
   GET    /events/{id}/chat                           # Lịch sử tin nhắn phòng chat chung (Group Channel)
@@ -75,21 +86,6 @@
   POST   /events/{id}/stops/{stopId}/swap            # 1-Click Swap: Đổi điểm dừng sang phương án dự phòng (Non-destructive)
   POST   /events/{id}/final-lock                     # [Consensus 2] Host Chốt Kế Hoạch Chính Thức (Khóa is_finalized_stop)
   POST   /events/{id}/stops/{stopId}/adapt           # Thích ứng lúc đang đi (Trời mưa -> SKIPPED + Chèn điểm mới ADAPTED)
-
-/api/v1/events/{id}/plans (Plan Management & Versioning - Items 2.2, 2.4, 2.5)
-  GET    /events/{id}/plans                          # Danh sách các phiên bản Plan của phòng
-  POST   /events/{id}/plans                          # Tạo phiên bản Plan mới (version_number, macro_roadmap)
-  GET    /events/{id}/plans/{planId}                 # Chi tiết Plan và danh sách điểm dừng (stops)
-  PATCH  /events/{id}/plans/{planId}                 # Cập nhật thông tin Plan (tiêu đề, macro_roadmap, budget)
-  PATCH  /events/{id}/plans/{planId}/status          # Chuyển trạng thái Plan (INITIAL -> VOTING -> FINALIZED -> ONGOING)
-  PATCH  /events/{id}/plans/{planId}/stops           # Sắp xếp và cập nhật toàn bộ danh sách điểm dừng
-  POST   /events/{id}/plans/{planId}/stops           # Thêm 1 điểm dừng mới vào Plan
-  POST   /events/{id}/plans/{planId}/stops/{stopId}/swap # 1-Click Swap đổi điểm dự phòng (lưu vết REJECTED_IN_VOTE)
-  POST   /events/{id}/plans/{planId}/stops/{stopId}/adapt # Thích ứng đổi điểm trời mưa (lưu vết SKIPPED_ON_TRIP)
-  GET    /events/{id}/plans/{planId}/history         # Xem lịch sử 4 giai đoạn: Initial vs Finalized vs Ongoing
-  DELETE /events/{id}/plans/{planId}                 # Xóa phiên bản Plan (chỉ Host)
-  POST   /events/{id}/plans/{planId}/votes           # Bình chọn điểm dừng trong Plan
-  GET    /events/{id}/plans/{planId}/votes           # Lấy danh sách phiếu bầu của Plan
 
 /api/v1/places & Travel APIs (Adapter Pattern)
   GET    /places/search?category=&keyword=&lat=&lng=&open_now= # Tra cứu địa điểm qua Google Places API (New) + lọc danh mục/giờ mở cửa + Redis L2 Cache (TTL 24h)
