@@ -24,8 +24,8 @@
 ### Sprint 0 — MSW Mock Setup Cho Core APIs
 - [x] **`TASK-004`** **MSW Mock Handlers Setup Cho Core APIs**
   - **Mục tiêu**: Dựng Mock Service Worker chặn các request API core để code UI song song.
-  - **Target Files**: `frontend/src/mocks/handlers/` (`auth.ts`, `events.ts`, `plans.ts`, `consensus.ts`, `chat.ts`)
-  - **Acceptance Criteria**: MSW intercepts `/api/v1/auth/*`, `/api/v1/events/*`, và Two-Stage Consensus endpoints, trả về mock JSON chuẩn theo OpenAPI contract.
+  - **Target Files**: `frontend/src/mocks/handlers/` (`auth.ts`, `events.ts`, `plans.ts`, `consensus.ts`, `chat.ts`, `places.ts`), `frontend/src/types/place.ts`
+  - **Acceptance Criteria**: MSW intercepts `/api/v1/auth/*`, `/api/v1/events/*`, `/api/v1/places/*`, và Two-Stage Consensus/Plans endpoints (hỗ trợ non-destructive lifecycle và transit attributes), trả về mock JSON chuẩn theo OpenAPI contract.
   - **Docs & Tracking**: Cập nhật `frontend/src/mocks/` + tick `[x]`.
 
 ### Sprint 1 — Design System & Auth Screens

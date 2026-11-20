@@ -58,6 +58,18 @@ from .place import (
     POIItem,
     PlaceSearchResponse,
     PlaceDetailResponse,
+    TransitEstimate,
+    ProviderBookingLink,
+    HotelComparisonItem,
+    HotelCompareResponse,
+    TourActivityItem,
+    TourSearchResponse,
+)
+from .weather import (
+    CurrentWeather,
+    DailyForecastItem,
+    WeatherAlert,
+    WeatherResponse,
 )
 
 __all__ = [
@@ -110,8 +122,19 @@ __all__ = [
     # Chat
     "ChatMessageCreate",
     "ChatMessageResponse",
-    # Place (TASK-108)
+    # Place (TASK-108, TASK-205 & TASK-206)
     "POIItem",
     "PlaceSearchResponse",
     "PlaceDetailResponse",
+    "TransitEstimate",
+    "ProviderBookingLink",
+    "HotelComparisonItem",
+    "HotelCompareResponse",
+    "TourActivityItem",
+    "TourSearchResponse",
+    # Weather (TASK-207)
+    "CurrentWeather",
+    "DailyForecastItem",
+    "WeatherAlert",
+    "WeatherResponse",
 ]

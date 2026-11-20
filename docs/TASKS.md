@@ -65,7 +65,7 @@ feature/TASK-004-msw-core-mocks
   - **Acceptance Criteria**: `docker compose up -d` khởi chạy thành công toàn bộ service với health check pass.
 
 ### 0.2 CI/CD & Code Quality Rules
-- [ ] **TASK-007** `[SEC/DEVOPS]` **GitHub Actions CI Pipeline Setup**
+- [X] **TASK-007** `[SEC/DEVOPS]` **GitHub Actions CI Pipeline Setup**
   - **Mục tiêu**: Tự động hóa kiểm tra code quality khi mở PR.
   - **Target Files**: `.github/workflows/ci.yml`
   - **Acceptance Criteria**: Pipeline chạy: `ruff check backend`, `pytest backend`, `pnpm run lint frontend`, `pnpm run test frontend`.
@@ -191,21 +191,21 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #8
   - **Target Files**: `backend/app/models/invitation.py`, `backend/app/api/v1/invitations.py`
   - **Acceptance Criteria**: `POST /events/{id}/invitations` tạo token mời tức thì, người nhận join vào `event_members`.
-- [ ] **TASK-204** `[BE-A]` **RolesGuard Dependency (Host vs Member Permissions)**
+- [x] **TASK-204** `[BE-A]` **RolesGuard Dependency (Host vs Member Permissions)**
   - **Feature**: #9
   - **Target Files**: `backend/app/api/v1/dependencies.py`
   - **Acceptance Criteria**: Dependency `require_host` chặn các thao tác khóa kế hoạch nếu user không phải là Host (`403 Forbidden`).
 
 ### 2.2 External APIs & PyBreaker Resilience (Backend Platform)
-- [ ] **TASK-205** `[BE-B]` **Google Places Search with Category & Hours Filter**
+- [x] **TASK-205** `[BE-B]` **Google Places Search with Category & Hours Filter**
   - **Feature**: #24, #25
   - **Target Files**: `backend/app/api/v1/places.py`, `backend/app/services/places_service.py`
   - **Acceptance Criteria**: `GET /places/search?category=...` lọc địa điểm kèm cờ `open_now` và gán metadata.
-- [ ] **TASK-206** `[BE-B]` **Lodging & Tours Integration (Agoda, Booking.com, Klook)**
+- [x] **TASK-206** `[BE-B]` **Lodging & Tours Integration (Agoda, Booking.com, Klook)**
   - **Feature**: #25
   - **Target Files**: `backend/app/services/external_travel_service.py`
   - **Acceptance Criteria**: Cung cấp link và thông tin chỗ ở, vé trải nghiệm Klook.
-- [ ] **TASK-207** `[BE-B]` **OpenWeatherMap Integration Service**
+- [x] **TASK-207** `[BE-B]` **OpenWeatherMap Integration Service**
   - **Feature**: #26
   - **Target Files**: `backend/app/api/v1/utils.py`, `backend/app/services/weather_service.py`
   - **Acceptance Criteria**: `GET /weather?lat=&lng=` trả về thông tin nhiệt độ và cảnh báo mưa; cache 3 giờ trên Redis.

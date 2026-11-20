@@ -76,13 +76,28 @@
   POST   /events/{id}/final-lock                     # [Consensus 2] Host Chốt Kế Hoạch Chính Thức (Khóa is_finalized_stop)
   POST   /events/{id}/stops/{stopId}/adapt           # Thích ứng lúc đang đi (Trời mưa -> SKIPPED + Chèn điểm mới ADAPTED)
 
+/api/v1/events/{id}/plans (Plan Management & Versioning - Items 2.2, 2.4, 2.5)
+  GET    /events/{id}/plans                          # Danh sách các phiên bản Plan của phòng
+  POST   /events/{id}/plans                          # Tạo phiên bản Plan mới (version_number, macro_roadmap)
+  GET    /events/{id}/plans/{planId}                 # Chi tiết Plan và danh sách điểm dừng (stops)
+  PATCH  /events/{id}/plans/{planId}                 # Cập nhật thông tin Plan (tiêu đề, macro_roadmap, budget)
+  PATCH  /events/{id}/plans/{planId}/status          # Chuyển trạng thái Plan (INITIAL -> VOTING -> FINALIZED -> ONGOING)
+  PATCH  /events/{id}/plans/{planId}/stops           # Sắp xếp và cập nhật toàn bộ danh sách điểm dừng
+  POST   /events/{id}/plans/{planId}/stops           # Thêm 1 điểm dừng mới vào Plan
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/swap # 1-Click Swap đổi điểm dự phòng (lưu vết REJECTED_IN_VOTE)
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/adapt # Thích ứng đổi điểm trời mưa (lưu vết SKIPPED_ON_TRIP)
+  GET    /events/{id}/plans/{planId}/history         # Xem lịch sử 4 giai đoạn: Initial vs Finalized vs Ongoing
+  DELETE /events/{id}/plans/{planId}                 # Xóa phiên bản Plan (chỉ Host)
+  POST   /events/{id}/plans/{planId}/votes           # Bình chọn điểm dừng trong Plan
+  GET    /events/{id}/plans/{planId}/votes           # Lấy danh sách phiếu bầu của Plan
+
 /api/v1/places & Travel APIs (Adapter Pattern)
-  GET    /places/search?category=&keyword=&lat=&lng= # Tra cứu địa điểm qua Google Maps, Google Search, TripAdvisor + Redis Cache
-  GET    /places/{placeId}/details                   # Chi tiết địa điểm, giờ mở cửa, hình ảnh
-  GET    /accommodations/search                      # Tra cứu & so sánh khách sạn đa nguồn (Google Hotels, Airbnb, Trip.com, Hotels.com, Trivago, Expedia)
-  GET    /accommodations/{id}                        # Chi tiết phòng, xếp hạng, tiện ích và liên kết đặt phòng
-  GET    /weather?lat=&lng=                          # Dự báo thời tiết 3 ngày (OpenWeatherMap)
-  GET    /exchange-rate?from=USD&to=VND              # Tỷ giá ngoại tệ
+  GET    /places/search?category=&keyword=&lat=&lng=&open_now= # Tra cứu địa điểm qua Google Places API (New) + lọc danh mục/giờ mở cửa + Redis L2 Cache (TTL 24h)
+  GET    /places/{placeId}/details                   # Chi tiết địa điểm, giờ mở cửa, hình ảnh (POIItem)
+  GET    /places/hotels/compare?ids=id1,id2          # So sánh 1-5 khách sạn cạnh nhau (side-by-side) kèm 9 link OTA (TASK-206)
+  GET    /places/tours/search?destination=&keyword=  # Tìm kiếm tour & điểm vui chơi kèm link Klook, TripAdvisor, 12Go Asia (TASK-206)
+  GET    /weather?lat=&lng=                          # Dự báo thời tiết 3 ngày (OpenWeatherMap API)
+  GET    /exchange-rate?from=USD&to=VND              # Tỷ giá ngoại tệ cho các chuyến đi ASEAN
 
 /api/v1/export
   GET    /events/{id}/export/pdf                     # Xuất file PDF lịch trình chi tiết (WeasyPrint)
@@ -203,9 +218,9 @@
 
 ---
 
-### 3.5. `GET /api/v1/places/search` & `GET /api/v1/places/{placeId}/details` (Places Service & PyBreaker - TASK-108)
-- **Mô tả**: Tra cứu địa điểm và lấy thông tin chi tiết POI qua Google Places API (New) được bảo vệ bởi Circuit Breaker `PyBreaker` (`fail_max=3`, `reset_timeout=60s`, `timeout=2.5s`) và Redis L2 Cache 24 giờ.
-- **Query Params (`/places/search`)**: `keyword` (string), `category` (string), `lat` (float), `lng` (float), `radius` (int, default 5000m).
+### 3.5. `GET /api/v1/places/search` & `GET /api/v1/places/{placeId}/details` (Places Service & PyBreaker - TASK-108 & TASK-205)
+- **Mô tả**: Tra cứu địa điểm và lấy thông tin chi tiết POI qua Google Places API (New) được bảo vệ bởi Circuit Breaker `PyBreaker` (`fail_max=3`, `reset_timeout=60s`, `timeout=2.5s`) và Redis L2 Cache 24 giờ. Hỗ trợ chuẩn hóa `category` sang `StopCategory`/`includedType`, lọc theo cờ `open_now`, và làm giàu `metadata` (`stop_category`, `weekday_hours`, `types`).
+- **Query Params (`/places/search`)**: `keyword` (string), `category` (string, hỗ trợ `StopCategory` như `CAFE`, `RESTAURANT`, `HOTEL` hoặc Google `includedType`), `lat` (float), `lng` (float), `radius` (int, default 5000m), `open_now` (bool, optional — lọc địa điểm đang mở/đóng cửa).
 - **Response `200 OK` (`PlaceSearchResponse`)**:
   ```json
   {
@@ -224,7 +239,12 @@
         "photo_url": "places/ChIJN1t_tDeuEmsRUsoyG83frY4/photos/photo1",
         "website_uri": "https://example.com",
         "phone_number": "+84 24 3825 1234",
-        "metadata": { "raw_primary_type": "vietnamese_restaurant" }
+        "metadata": {
+          "raw_primary_type": "vietnamese_restaurant",
+          "stop_category": "RESTAURANT",
+          "weekday_hours": ["Monday: 6:00 AM – 9:00 PM"],
+          "types": ["vietnamese_restaurant", "restaurant", "food"]
+        }
       }
     ],
     "total": 1,
@@ -258,6 +278,87 @@
   ```json
   {
     "detail": "External Places provider temporarily unavailable: Circuit breaker is open"
+  }
+  ```
+
+---
+
+### 3.6. `PATCH /api/v1/events/{id}/plans/{planId}` (Cập nhật thông tin Plan & Macro Roadmap)
+- **Mô tả**: Cho phép chỉnh sửa thông tin Plan (tiêu đề, tổng ngân sách, và danh sách chủ đề từng ngày `macro_roadmap` chỉnh sửa bằng tay trên UI hoặc qua chat AI ở Pha 1).
+- **Quyền hạn (Auth)**: `Bearer JWT` (Role `HOST` hoặc `MEMBER`).
+- **Request Body (JSON)**:
+  ```json
+  {
+    "title": "Lịch trình Đà Nẵng 3N2Đ - Bản cập nhật",
+    "macro_roadmap": [
+      { "day": 1, "theme": "Khám phá trung tâm phố hoa & ngắm hoàng hôn biển Mỹ Khê" },
+      { "day": 2, "theme": "Khám phá Bán đảo Sơn Trà & lặn ngắm san hô Thọ Quang" },
+      { "day": 3, "theme": "Phố cổ Hội An & Thưởng thức ẩm thực đêm" }
+    ]
+  }
+  ```
+- **Response `200 OK`**: Trả về `PlanResponse` chứa `macro_roadmap` mới đã được lưu vào PostgreSQL.
+
+---
+
+### 3.7. `GET /api/v1/events/{id}/plans/{planId}/history` (Xem Lịch Sử 4 Giai Đoạn - Item 2.5)
+- **Mô tả**: Trả về đối tượng `PlanStageHistoryResponse` tổng hợp toàn bộ các điểm dừng được phân loại theo 4 giai đoạn vòng đời (`initial_stops`, `finalized_stops`, `ongoing_stops`, `rejected_or_skipped_stops`), cho phép UI hiển thị tab so sánh mà không mất dấu dữ liệu lịch sử.
+- **Quyền hạn (Auth)**: `Bearer JWT`.
+- **Response `200 OK` (`PlanStageHistoryResponse`)**:
+  ```json
+  {
+    "plan_id": "plan_001",
+    "event_id": "evt_001",
+    "version_number": 1,
+    "current_status": "ONGOING",
+    "initial_stops": [],
+    "finalized_stops": [],
+    "ongoing_stops": [],
+    "rejected_or_skipped_stops": [
+      {
+        "id": "stop_002",
+        "place_name": "Quán Bún Bò Huế Cũ",
+        "stop_status": "REJECTED_IN_VOTE",
+        "replaced_by_stop_id": "stop_005",
+        "change_reason": "Bị vote DOWN 3 phiếu"
+      }
+    ]
+  }
+  ```
+
+---
+
+### 3.8. `GET /api/v1/places/hotels/compare` & `GET /api/v1/places/tours/search` (Multi-OTA Lodging & Tours - TASK-206)
+- **Mô tả**:
+  - `GET /places/hotels/compare?ids=h1,h2&checkin=YYYY-MM-DD&checkout=YYYY-MM-DD&guests=2`: So sánh `1`–`5` khách sạn cạnh nhau (`HotelCompareResponse`), trả về giá ước tính VND, tiện nghi (`amenities`) và deep-link đặt phòng trên 9 OTA (`agoda`, `booking_com`, `airbnb`, `trip_com`, `hotels_com`, `expedia`, `trivago`, `google_hotels`, `tripadvisor`). Trả về `400` nếu `ids` rỗng hoặc `> 5` IDs; trả về `503` nếu circuit breaker mở.
+  - `GET /places/tours/search?destination=&keyword=&lat=&lng=`: Tìm kiếm tour/điểm tham quan (`TourSearchResponse`) kèm giá vé ước tính VND và deep-link trên `klook`, `tripadvisor`, `12go_asia`.
+- **Response `200 OK` (`HotelCompareResponse`)**:
+  ```json
+  {
+    "hotels": [
+      {
+        "place": {
+          "place_id": "h1",
+          "name": "Hotel Alpha",
+          "rating": 4.5,
+          "price_level": 2
+        },
+        "estimated_nightly_vnd": "850000",
+        "currency": "VND",
+        "amenities": ["Free Wi-Fi", "Breakfast Included", "Air Conditioning", "Airport Shuttle"],
+        "provider_links": [
+          {
+            "provider": "agoda",
+            "display_name": "Agoda",
+            "booking_url": "https://www.agoda.com/search?text=Hotel+Alpha&adults=2&checkin=2026-12-20&checkout=2026-12-22",
+            "estimated_price_vnd": "816000",
+            "currency": "VND",
+            "is_live_price": false
+          }
+        ]
+      }
+    ],
+    "total": 1
   }
   ```
 
@@ -299,3 +400,57 @@
     }
   }
   ```
+
+
+### 3.9. `GET /api/v1/weather` (Weather & Rain Alert Service - TASK-207)
+- **Endpoint**: `GET /api/v1/weather`
+- **Query Parameters**:
+  - `lat` (float, required, `-90.0` to `90.0`)
+  - `lng` (float, required, `-180.0` to `180.0`)
+  - `days` (int, optional, default `3`, `1` to `7`)
+- **Behavior**:
+  - Zero-cost 3-tier adapter: Tier 1 optional `custom_weather_fn` scraper hook (falls back on error), Tier 2 OpenWeatherMap 2.5 Forecast (when `OPENWEATHER_API_KEY` is configured), Tier 3 Open-Meteo Public API (free keyless live meteorological data default).
+  - Normalizes coordinates to 2 decimal places (`~1.1 km`) and caches responses for **3 hours (`10800s`)** in Upstash Redis (`weather_forecast` prefix).
+  - Protected by isolated `weather_circuit_breaker` (`PyBreaker`); returns `503 Service Unavailable` when upstream fails or circuit is open.
+- **Response `200 OK` (sample)**:
+  ```json
+  {
+    "lat": 16.05,
+    "lng": 108.2,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "provider": "open_meteo",
+    "current": {
+      "temperature_c": 27.0,
+      "feels_like_c": 29.5,
+      "humidity_percent": 82,
+      "wind_speed_kmh": 14.2,
+      "precipitation_mm": 3.5,
+      "condition": "Rain",
+      "description": "Rain showers",
+      "weather_code": 63,
+      "is_raining": true
+    },
+    "daily_forecast": [
+      {
+        "date": "2026-11-19",
+        "temp_min_c": 24.0,
+        "temp_max_c": 29.5,
+        "precipitation_mm": 8.0,
+        "rain_probability_percent": 75,
+        "condition": "Rain",
+        "description": "Rain showers",
+        "is_rainy_day": true
+      }
+    ],
+    "alert": {
+      "rain_alert": true,
+      "severity": "HIGH",
+      "suggest_indoor_swap": true,
+      "advisory_message": "Heavy rain or storm expected (rain chance 75%). Strongly recommend swapping outdoor stops to indoor backup options."
+    },
+    "is_live_data": true
+  }
+  ```
+- **Error Responses**:
+  - `422 Unprocessable Entity`: Invalid `lat`, `lng`, or `days` query parameter.
+  - `503 Service Unavailable`: `Weather provider temporarily unavailable: ...` (circuit breaker open or upstream timeout/HTTP error).

@@ -14,10 +14,10 @@
 |:---:|:---:|:---:|:---:|:---:|
 | **Sprint 0** | 1 Task | Phạm Đình Ánh Dương | 1/1 | ✅ Done (TASK-002) |
 | **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 3/7 | 🟡 Đang thực hiện |
-| **Sprint 2** | 5 Tasks | Hà Đăng Huy (4) + Phạm Đình Ánh Dương (1) | 0/5 | 🔲 To Do |
+| **Sprint 2** | 5 Tasks | Hà Đăng Huy (4) + Phạm Đình Ánh Dương (1) | 1/5 | 🟡 Đang thực hiện |
 | **Sprint 3** | 3 Tasks | Phạm Đình Ánh Dương | 0/3 | 🔲 To Do |
 | **Sprint 4** | 2 Tasks | Phạm Đình Ánh Dương | 0/2 | 🔲 To Do |
-| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 4/18 | 🟡 Đang thực hiện |
+| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 5/18 | 🟡 Đang thực hiện |
 
 ---
 
@@ -38,7 +38,7 @@
 - [x] **`TASK-108`** `[BE-Platform - Hà Đăng Huy]` **Google Places API Base Service & PyBreaker Wrapper** *(Branch: `feature/TASK-107-108-redis-cache-places-api`)*
   - **Feature**: #24, #27
   - **Target Files**: `backend/app/services/places_service.py`
-  - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s, tự động ngắt mạch khi lỗi).
+  - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s, tự động ngắt mạch khi lỗi). Đã bổ sung `POIItem.to_llm_compact_dict()` nén ~85% token cho AI Agent (Mục 3.2).
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
 - [X] **`TASK-102`** `[BE-Services - Phạm Đình Ánh Dương]` **User Registration & Password Hashing**
   - **Feature**: #2
@@ -67,17 +67,17 @@
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
 
 ### Sprint 2 — External Travel APIs & Link Invitations
-- [ ] **`TASK-205`** `[BE-Platform - Hà Đăng Huy]` **Google Places Search with Category & Hours Filter**
+- [x] **`TASK-205`** `[BE-Platform - Hà Đăng Huy]` **Google Places Search with Category & Hours Filter** *(Branch: `feature/TASK-205-places-category-hours-filter`)*
   - **Feature**: #24, #25
   - **Target Files**: `backend/app/api/v1/places.py`, `backend/app/services/places_service.py`
   - **Acceptance Criteria**: `GET /places/search?category=...` lọc địa điểm kèm cờ `open_now` và gán metadata.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-206`** `[BE-Platform - Hà Đăng Huy]` **Lodging & Tours Integration (Agoda, Booking.com, Klook)**
+- [x] **`TASK-206`** `[BE-Platform - Hà Đăng Huy]` **Lodging & Tours Integration (Agoda, Booking.com, Klook)** *(Branch: `feature/TASK-206-lodging-tours-integration`)*
   - **Feature**: #25
   - **Target Files**: `backend/app/services/external_travel_service.py`
   - **Acceptance Criteria**: Cung cấp link và thông tin chỗ ở, vé trải nghiệm Klook.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-207`** `[BE-Platform - Hà Đăng Huy]` **OpenWeatherMap Integration Service**
+- [x] **`TASK-207`** `[BE-Platform - Hà Đăng Huy]` **OpenWeatherMap Integration Service**
   - **Feature**: #26
   - **Target Files**: `backend/app/api/v1/utils.py`, `backend/app/services/weather_service.py`
   - **Acceptance Criteria**: `GET /weather?lat=&lng=` trả về thông tin nhiệt độ và cảnh báo mưa; cache 3 giờ trên Redis.

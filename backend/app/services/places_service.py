@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 import asyncio
+from decimal import Decimal
 import logging
+import math
 from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
 
 import httpx
@@ -8,7 +10,13 @@ import pybreaker
 
 from app.core.config import settings
 from app.core.http_client import get_http_client
-from app.schemas.place import POIItem, PlaceDetailResponse, PlaceSearchResponse
+from app.models.enums import TransportMode
+from app.schemas.place import (
+    POIItem,
+    PlaceDetailResponse,
+    PlaceSearchResponse,
+    TransitEstimate,
+)
 from app.services.cache_service import cache_response
 
 logger = logging.getLogger(__name__)
@@ -28,8 +36,9 @@ class BaseTravelProvider(ABC):
         lat: Optional[float] = None,
         lng: Optional[float] = None,
         radius: int = 5000,
+        open_now: Optional[bool] = None,
     ) -> PlaceSearchResponse:
-        """Search POIs with optional category, geo-location, and radius."""
+        """Search POIs with optional category, geo-location, radius, and open_now filter."""
         raise NotImplementedError
 
     @abstractmethod
@@ -64,14 +73,18 @@ async def call_with_breaker(
     Execute an async callable inside a PyBreaker CircuitBreaker with strict timeout.
     Guarantees state transitions and fast-fails with CircuitBreakerError when circuit is OPEN.
     """
+    # PyBreaker's native call() is sync-only (unless Tornado is used), so we drive its
+    # state machine manually around asyncio.wait_for():
+    # 1) Fast-fail with CircuitBreakerError if OPEN (or transition to HALF-OPEN after reset_timeout)
     if breaker.current_state == "open":
         breaker.call(lambda: None)
 
     try:
         result = await asyncio.wait_for(func(*args, **kwargs), timeout=timeout)
-        breaker.call(lambda: None)
+        breaker.call(lambda: None)  # Record success (resets failure count / closes HALF-OPEN)
         return result
     except Exception as exc:
+        # Re-raise inside breaker.call() so PyBreaker counts the failure and trips at fail_max
         def _fail() -> None:
             raise exc
 
@@ -96,9 +109,54 @@ def _map_price_level(raw_price: Optional[str]) -> Optional[int]:
     return mapping.get(raw_price)
 
 
+_CATEGORY_TO_INCLUDED_TYPE: Dict[str, str] = {
+    "RESTAURANT": "restaurant",
+    "CAFE": "cafe",
+    "HOTEL": "lodging",
+    "LODGING": "lodging",
+    "ATTRACTION": "tourist_attraction",
+    "ENTERTAINMENT": "amusement_park",
+    "SHOPPING": "shopping_mall",
+    "TRANSPORT": "transit_station",
+}
+
+
+def _map_to_google_included_type(category: Optional[str]) -> Optional[str]:
+    """Normalize a StopCategory or user category string to a Google Places includedType."""
+    if not category:
+        return None
+    cleaned = category.strip()
+    upper = cleaned.upper()
+    if upper in _CATEGORY_TO_INCLUDED_TYPE:
+        return _CATEGORY_TO_INCLUDED_TYPE[upper]
+    return cleaned.lower()
+
+
+def _map_to_stop_category(primary_type: Optional[str], types: Optional[List[str]] = None) -> str:
+    """Map Google Places primaryType/types to TripMate StopCategory enum string."""
+    candidates = [t.lower() for t in ([primary_type] if primary_type else []) + (types or []) if t]
+    for t in candidates:
+        if "cafe" in t or "coffee" in t or "bakery" in t:
+            return "CAFE"
+        if "restaurant" in t or "food" in t or "meal" in t or "bar" in t:
+            return "RESTAURANT"
+        if "lodging" in t or "hotel" in t or "resort" in t or "hostel" in t:
+            return "HOTEL"
+        if "tourist_attraction" in t or "museum" in t or "park" in t or "historical" in t:
+            return "ATTRACTION"
+        if "shopping" in t or "market" in t or "store" in t:
+            return "SHOPPING"
+        if "amusement" in t or "night_club" in t or "movie" in t or "spa" in t:
+            return "ENTERTAINMENT"
+        if "airport" in t or "station" in t or "transit" in t:
+            return "TRANSPORT"
+    return "OTHER"
+
+
 def _normalize_place(raw: Dict[str, Any]) -> POIItem:
     """Normalize a raw Google Places v1 dict into a POIItem schema."""
     loc = raw.get("location") or {}
+    # Google Places v1 wraps names in {"text": "...", "languageCode": "..."}
     display_name = raw.get("displayName")
     name = (
         display_name.get("text")
@@ -106,8 +164,10 @@ def _normalize_place(raw: Dict[str, Any]) -> POIItem:
         else (display_name or raw.get("name") or "")
     )
 
-    hours = raw.get("regularOpeningHours") or {}
+    hours = raw.get("regularOpeningHours") or raw.get("currentOpeningHours") or {}
     open_now = hours.get("openNow") if isinstance(hours, dict) else None
+    weekday_hours = hours.get("weekdayDescriptions", []) if isinstance(hours, dict) else []
+    raw_types = raw.get("types") if isinstance(raw.get("types"), list) else []
 
     photos = raw.get("photos") or []
     photo_url = None
@@ -118,9 +178,7 @@ def _normalize_place(raw: Dict[str, Any]) -> POIItem:
 
     rating = float(raw["rating"]) if raw.get("rating") is not None else None
     user_ratings_total = (
-        int(raw["userRatingCount"])
-        if raw.get("userRatingCount") is not None
-        else None
+        int(raw["userRatingCount"]) if raw.get("userRatingCount") is not None else None
     )
 
     return POIItem(
@@ -137,7 +195,12 @@ def _normalize_place(raw: Dict[str, Any]) -> POIItem:
         photo_url=photo_url,
         website_uri=raw.get("websiteUri"),
         phone_number=raw.get("nationalPhoneNumber") or raw.get("internationalPhoneNumber"),
-        metadata={"raw_primary_type": raw.get("primaryType")},
+        metadata={
+            "raw_primary_type": raw.get("primaryType"),
+            "stop_category": _map_to_stop_category(raw.get("primaryType"), raw_types),
+            "weekday_hours": weekday_hours,
+            "types": raw_types,
+        },
     )
 
 
@@ -157,6 +220,7 @@ class GooglePlacesService(BaseTravelProvider):
         self.breaker = breaker or places_circuit_breaker
 
     def __repr__(self) -> str:
+        # Must stay constant (no memory address or api_key) because @cache_response uses str(self) in cache keys
         return f"GooglePlacesService(provider={self.provider_name})"
 
     def __str__(self) -> str:
@@ -170,23 +234,28 @@ class GooglePlacesService(BaseTravelProvider):
         lat: Optional[float] = None,
         lng: Optional[float] = None,
         radius: int = 5000,
+        open_now: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """Internal cached search query returning a serialized dictionary."""
         client = get_http_client()
         headers = {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": self.api_key,
+            # FieldMask limits Google response & billing tier to only the fields we actually normalize
             "X-Goog-FieldMask": (
                 "places.id,places.displayName,places.formattedAddress,"
-                "places.location,places.primaryType,places.rating,"
+                "places.location,places.primaryType,places.types,places.rating,"
                 "places.userRatingCount,places.priceLevel,places.regularOpeningHours"
             ),
         }
         body: Dict[str, Any] = {}
         query_text = " ".join(filter(None, [keyword, category])) or "point of interest"
         body["textQuery"] = query_text
-        if category:
-            body["includedType"] = category
+        included_type = _map_to_google_included_type(category)
+        if included_type:
+            body["includedType"] = included_type
+        if open_now is True:
+            body["openNow"] = True
         if lat is not None and lng is not None:
             body["locationBias"] = {
                 "circle": {
@@ -208,11 +277,14 @@ class GooglePlacesService(BaseTravelProvider):
         data = resp.json()
         raw_places = data.get("places") or []
         items = [_normalize_place(p) for p in raw_places]
+        if open_now is not None:
+            items = [item for item in items if item.open_now is open_now]
         result = PlaceSearchResponse(
             results=items,
             total=len(items),
             provider=self.provider_name,
         )
+        # Return plain JSON-safe dict so @cache_response can store it in Redis cleanly
         return result.model_dump(mode="json")
 
     async def search_places(
@@ -222,6 +294,7 @@ class GooglePlacesService(BaseTravelProvider):
         lat: Optional[float] = None,
         lng: Optional[float] = None,
         radius: int = 5000,
+        open_now: Optional[bool] = None,
     ) -> PlaceSearchResponse:
         """Search places via Google Places API (New) with 24h cache & PyBreaker."""
         data = await self._search_places_cached(
@@ -230,6 +303,7 @@ class GooglePlacesService(BaseTravelProvider):
             lat=lat,
             lng=lng,
             radius=radius,
+            open_now=open_now,
         )
         return PlaceSearchResponse.model_validate(data)
 
@@ -240,6 +314,7 @@ class GooglePlacesService(BaseTravelProvider):
         headers = {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": self.api_key,
+            # Single-object endpoint omits the "places." prefix used in searchText FieldMask
             "X-Goog-FieldMask": (
                 "id,displayName,formattedAddress,location,primaryType,"
                 "rating,userRatingCount,priceLevel,regularOpeningHours,"
@@ -264,3 +339,54 @@ class GooglePlacesService(BaseTravelProvider):
         """Get place details via Google Places API (New) with 24h cache & PyBreaker."""
         data = await self._get_place_details_cached(place_id=place_id)
         return PlaceDetailResponse.model_validate(data)
+
+
+def estimate_transit_between_coords(
+    lat1: float,
+    lng1: float,
+    lat2: float,
+    lng2: float,
+) -> TransitEstimate:
+    """
+    Calculate Haversine distance and estimate transport mode, duration, and cost (VND)
+    between two coordinates for PlanStop (Supervisor Item 2.4).
+    """
+    earth_radius_km = 6371.0
+    d_lat = math.radians(lat2 - lat1)
+    d_lng = math.radians(lng2 - lng1)
+    a = (
+        math.sin(d_lat / 2) ** 2
+        + math.cos(math.radians(lat1))
+        * math.cos(math.radians(lat2))
+        * math.sin(d_lng / 2) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    # Multiply straight-line Haversine by 1.25 road winding factor
+    distance_km = round(earth_radius_km * c * 1.25, 2)
+
+    if distance_km <= 0.8:
+        duration = max(2, round(distance_km * 12))
+        return TransitEstimate(
+            transport_mode=TransportMode.WALKING,
+            transit_distance_km=distance_km,
+            transit_duration_minutes=duration,
+            transit_cost=Decimal("0"),
+        )
+    if distance_km <= 5.0:
+        duration = max(5, round((distance_km / 25.0) * 60) + 3)
+        raw_cost = max(15000, int(round(distance_km * 12000, -3)))
+        return TransitEstimate(
+            transport_mode=TransportMode.MOTORBIKE,
+            transit_distance_km=distance_km,
+            transit_duration_minutes=duration,
+            transit_cost=Decimal(str(raw_cost)),
+        )
+
+    duration = max(10, round((distance_km / 30.0) * 60) + 5)
+    raw_cost = max(30000, int(round(distance_km * 15000, -3)))
+    return TransitEstimate(
+        transport_mode=TransportMode.TAXI_GRAB,
+        transit_distance_km=distance_km,
+        transit_duration_minutes=duration,
+        transit_cost=Decimal(str(raw_cost)),
+    )

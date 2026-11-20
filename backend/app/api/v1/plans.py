@@ -14,7 +14,6 @@ from app.schemas.consensus import (
     StopAdaptationRequest,
     StopAdaptationResponse,
 )
-from app.models.enums import PlanStatus
 
 router = APIRouter(tags=["plans"])
 
@@ -49,14 +48,21 @@ async def update_plan_status(event_id: str, plan_id: str, transition: PlanStatus
     raise HTTPException(status_code=501, detail="Not Implemented")
 
 
-@router.post("/events/{event_id}/plans/{plan_id}/stops/{stop_id}/swap", response_model=StopSwapResponse)
+@router.post(
+    "/events/{event_id}/plans/{plan_id}/stops/{stop_id}/swap", response_model=StopSwapResponse
+)
 async def swap_plan_stop(event_id: str, plan_id: str, stop_id: str, request: StopSwapRequest):
     """Non-destructively swap a stop with backup POI, marking old stop REJECTED_IN_VOTE (501 skeleton)."""
     raise HTTPException(status_code=501, detail="Not Implemented")
 
 
-@router.post("/events/{event_id}/plans/{plan_id}/stops/{stop_id}/adapt", response_model=StopAdaptationResponse)
-async def adapt_plan_stop(event_id: str, plan_id: str, stop_id: str, request: StopAdaptationRequest):
+@router.post(
+    "/events/{event_id}/plans/{plan_id}/stops/{stop_id}/adapt",
+    response_model=StopAdaptationResponse,
+)
+async def adapt_plan_stop(
+    event_id: str, plan_id: str, stop_id: str, request: StopAdaptationRequest
+):
     """Non-destructively adapt a stop on-the-go (rainy day), marking old stop SKIPPED_ON_TRIP (501 skeleton)."""
     raise HTTPException(status_code=501, detail="Not Implemented")
 
@@ -65,4 +71,3 @@ async def adapt_plan_stop(event_id: str, plan_id: str, stop_id: str, request: St
 async def get_plan_stage_history(event_id: str, plan_id: str):
     """Retrieve 4-stage non-destructive history: Initial vs Finalized vs Ongoing vs Rejected (501 skeleton)."""
     raise HTTPException(status_code=501, detail="Not Implemented")
-

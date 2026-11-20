@@ -13,10 +13,10 @@
 |:---:|:---:|:---:|:---:|
 | **Sprint 0** | 1 Task | 1/1 | ✅ Done (TASK-001) |
 | **Sprint 1** | 1 Task | 1/1 | ✅ Done (TASK-101) |
-| **Sprint 2** | 3 Tasks | 2/3 | 🟡 In Progress (TASK-201, 202) |
+| **Sprint 2** | 3 Tasks | 3/3 | ✅ Done (TASK-201, 202, 204) |
 | **Sprint 3** | 7 Tasks | 0/7 | 🔲 To Do |
 | **Sprint 4** | 3 Tasks | 0/3 | 🔲 To Do |
-| **Tổng cộng** | **15 Tasks** | 4/15 | 🟡 Đang thực hiện (4/15 hoàn thành) |
+| **Tổng cộng** | **15 Tasks** | 5/15 | 🟡 Đang thực hiện (5/15 hoàn thành) |
 
 ---
 
@@ -47,7 +47,7 @@
   - **Target Files**: `backend/app/api/v1/events.py`, `backend/app/services/event_service.py`
   - **Acceptance Criteria**: `POST /events` tạo phòng và tự động gán creator làm `HOST`. `GET /events` lấy danh sách phòng của user. `PATCH /events/{id}` cập nhật thông tin phòng.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-204`** **RolesGuard Dependency (Host vs Member Permissions)**
+- [x] **`TASK-204`** **RolesGuard Dependency (Host vs Member Permissions)**
   - **Mục tiêu**: Phân định rạch ròi quyền Host (khóa kế hoạch) và Member (chat, vote).
   - **Target Files**: `backend/app/api/v1/dependencies.py`
   - **Acceptance Criteria**: Dependency `require_host` chặn các thao tác khóa kế hoạch nếu người dùng không phải là Host (`403 Forbidden`).
