@@ -221,7 +221,7 @@ CREATE TABLE core.plan_stops (
 
     up_votes INT DEFAULT 0,
     down_votes INT DEFAULT 0,
-    backup_options JSONB, -- 2 phương án dự phòng cho 1-Click Swap
+    backup_options JSONB, -- Danh sách các phương án thay thế phù hợp (Phương án 2, Phương án 3,...) phục vụ đổi điểm đa cấp
     note TEXT,
     metadata JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -271,7 +271,7 @@ Hệ thống **tuyệt đối không ghi đè dữ liệu** khi nhóm bình ch�
 | Giai đoạn | Trạng thái `Plan` | Trạng thái `PlanStop` | Cơ chế lưu dữ liệu không mất dấu |
 | :--- | :---: | :---: | :--- |
 | **1. Khởi tạo (Initial Plan)** | `INITIAL` | `INITIAL_PROPOSED` | AI tạo bản kế hoạch đầu tiên (`v1`). Mọi điểm dừng ban đầu được gắn `is_initial_stop = TRUE`. |
-| **2. Bình chọn (Voting)** | `VOTING` | `VOTING_OPEN` | Thành viên vote UP/DOWN. Điểm bị loại **không bị xóa/ghi đè** mà chuyển `stop_status = 'REJECTED_IN_VOTE'`. Điểm dự phòng thay thế được chèn với `stop_status = 'SELECTED_AFTER_VOTE'` và điểm cũ trỏ `replaced_by_stop_id` tới điểm mới kèm `change_reason`. |
+| **2. Bình chọn (Voting)** | `VOTING` | `VOTING_OPEN` | Thành viên vote UP/DOWN. Điểm bị loại **không bị xóa/ghi đè** mà chuyển `stop_status = 'REJECTED_IN_VOTE'`. Nhóm chọn đổi sang Phương án 2 từ danh sách ứng viên (hoặc tiếp tục đổi sang Phương án 3 nếu nhóm vẫn chưa đồng thuận). Điểm mới được chèn với `stop_status = 'SELECTED_AFTER_VOTE'`, điểm cũ trỏ `replaced_by_stop_id` tới điểm mới kèm `change_reason`. Chuỗi thay đổi `PA 1 ➔ PA 2 ➔ PA 3` được lưu vết trọn vẹn 100%. |
 | **3. Chốt lịch trình (Finalized)** | `FINALIZED` | `FINALIZED_LOCKED` | Host chốt kế hoạch: các điểm đang được chọn được khóa (`locked_at = NOW()`) và gắn `is_finalized_stop = TRUE`. |
 | **4. Thực hiện thực tế (Ongoing)** | `ONGOING` | `ONGOING_ACTIVE` / `ADAPTED_ON_TRIP` / `SKIPPED_ON_TRIP` | Khi trời mưa, điểm ngoài trời cũ chuyển sang `stop_status = 'SKIPPED_ON_TRIP'` (lý do: *"Trời mưa lớn"*), điểm trong nhà mới chèn với `stop_status = 'ADAPTED_ON_TRIP'`, trỏ `replaced_by_stop_id`. |
 

@@ -111,7 +111,14 @@ flowchart LR
    - Sử dụng công thức khoảng cách Haversine:
      $$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta \phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right)}\right)$$
    - Kết hợp Mapbox Matrix API: Các điểm dừng trong cùng nửa ngày bắt buộc phải nằm trong bán kính **$2.0$--$2.5$\,km** và thời gian di chuyển **$\le 20$\,phút**. Loại bỏ hoàn toàn lộ trình ziczac qua lại giữa các quận xa nhau.
-4. **Tier 4 (Member Votes & 1-Click Swap)**: Đặt quyền quyết định vào tay người dùng. Từng thành viên trong phòng vote UP/DOWN cho điểm dừng; điểm dừng bị từ chối lập tức được thay thế bằng 1 trong 2 địa điểm dự phòng đã được xác thực sẵn thông qua nút bấm **1-Click Swap** (thời gian đổi chỉ $3$--$6$\,giây).
+4. **Tier 4 (Member Votes & Multi-Option Swap — Luân Chuyển Đa Phương Án)**:
+   - **Đặt quyền quyết định vào tay người dùng**: Từng thành viên trong phòng vote UP/DOWN cho điểm dừng được đề xuất.
+   - **Không phải chỉ swap một lần duy nhất**: Với mỗi điểm dừng, AI nạp sẵn một **Pool danh sách các địa điểm ứng viên phù hợp (Ranked Candidate Pool)** gồm **Phương án 1 (Điểm chính)**, **Phương án 2 (Dự phòng 1)**, **Phương án 3 (Dự phòng 2)**,... được xếp hạng theo điểm đánh giá và khoảng cách.
+   - **Cơ chế luân chuyển linh hoạt (Multi-Stage Swap)**:
+     - Khi Phương án 1 bị nhóm vote DOWN, giao diện hiển thị danh sách các phương án thay thế để nhóm chọn trực tiếp Phương án 2 hoặc Phương án 3, HOẶC bấm nút **1-Click Swap** để tự động luân chuyển tuần tự (`PA 1 ➔ PA 2 ➔ PA 3`).
+     - Nếu nhóm không đồng ý với Phương án 2, hệ thống tiếp tục cho phép đổi sang Phương án 3.
+     - **Mở rộng không giới hạn (On-Demand AI Fallback)**: Trường hợp cả Phương án 2 và Phương án 3 đều không làm cả nhóm ưng ý, người dùng chỉ cần bấm nút *"Gợi ý thêm phương án mới"* $\rightarrow$ AI Agent truy vấn lại live API (Google Places, TripAdvisor) qua PyBreaker để lấy thêm $3$--$5$ ứng viên mới (Phương án 4, 5, 6...) nạp tiếp vào danh sách.
+   - **Lưu vết chuỗi thay đổi không ghi đè**: Mỗi lần đổi phương án, điểm cũ chuyển sang `stop_status = 'REJECTED_IN_VOTE'` và điểm mới được chèn với `stop_status = 'SELECTED_AFTER_VOTE'`, liên kết qua `replaced_by_stop_id` tạo thành chuỗi truy vết rõ ràng: `PA 1 (REJECTED) ➔ PA 2 (REJECTED) ➔ PA 3 (SELECTED)`.
 
 ---
 
@@ -459,9 +466,10 @@ Nếu tổng chi phí các điểm dừng được chọn vượt quá trần ch
    - Từ phân bổ ngân sách cho bữa ăn cụ thể (ví dụ: Bữa trưa Ngày 1 được cấp tối đa $120.000$\,đ/người), Agent truy vấn Adapter với bộ lọc `price_levels = [1, 2]`.
 2. **Bước 2 — Xác thực thực tế qua Grounding (Menu & Review Extraction)**:
    - Trích xuất dữ liệu thẻ giá thực tế từ Google Search snippets và bài đánh giá TripAdvisor để xác nhận mức chi tiêu trung bình thực tế tại quán, loại trừ các quán tuy gắn mác bình dân nhưng có hiện tượng chặt chém khách du lịch.
-3. **Bước 3 — Nạp 2 phương án dự phòng đồng giá (Backup Parity for 1-Click Swap)**:
-   - Với mỗi quán ăn chính được chọn, Agent luôn tìm kiếm thêm **2 quán ăn thay thế nằm trong bán kính $\le 1$\,km và có cùng phân khúc giá (Price Parity)**.
-   - Khi thành viên trong nhóm không thích món ăn đó và bấm **1-Click Swap**, địa điểm mới thay thế ngay lập tức mà **hoàn toàn không làm xáo trộn ngân sách chung** của cả chuyến đi.
+3. **Bước 3 — Nạp danh sách ứng viên dự phòng đồng giá (Candidate Pool for Multi-Option Swap)**:
+   - Với mỗi quán ăn chính (Phương án 1), Agent luôn tìm kiếm và xếp hạng sẵn một **danh sách các phương án thay thế (Phương án 2, Phương án 3,...) nằm trong bán kính $\le 1$\,km và có cùng phân khúc giá (Price Parity)**.
+   - **Luân chuyển đa cấp**: Khi thành viên không thích Phương án 1, nhóm có thể đổi sang Phương án 2. Nếu tiếp tục không hài lòng với Phương án 2, nhóm tiếp tục đổi sang Phương án 3 mà **hoàn toàn không làm xáo trộn ngân sách chung** của cả chuyến đi.
+   - **Cơ chế nạp thêm khi cần**: Nếu nhóm không ưng ý bất kỳ phương án nào trong danh sách có sẵn, hệ thống hỗ trợ gọi AI Agent truy vấn thêm các quán ăn mới để bổ sung vào danh sách.
 
 ---
 
@@ -514,6 +522,35 @@ flowchart LR
      - **`Date / Date Range` (Thời gian đi)**: Xác định rõ ngày bắt đầu, ngày kết thúc hoặc số ngày cụ thể (ví dụ: *3 ngày 2 đêm, từ ngày 15/10 đến 17/10*).
    - Nếu người dùng nhắn: *"Lên giúp mình lịch trình đi chơi với"* (thiếu địa điểm và ngày), Gateway sẽ không gọi LLM sinh bừa bãi mà phản hồi lại ngay: *"Bạn muốn đi du lịch ở đâu và trong khoảng thời gian nào (mấy ngày) để TripMate AI lên lịch giúp bạn nhé?"*.
    - Cách làm đơn giản này ngăn ngừa hoàn toàn tình trạng AI bị ảo giác hoặc sinh lịch trình chung chung không thể lưu vào cơ sở dữ liệu quan hệ SQL.
+
+---
+
+## 💬 8. Cơ Chế Chủ Động Hỏi Lại Khi Cần & Đảm Bảo Ràng Buộc Cốt Lõi (Proactive Clarification & Strict Constraint Invariance)
+
+Để trả lời câu hỏi: *"Khi mở rộng gợi ý thêm phương án mới (PA 4, 5, 6...), Agent có hỏi lại người dùng nếu cần không, và có bắt buộc phải tuân thủ đúng yêu cầu/ràng buộc ban đầu không?"*, TripMate AI chuẩn hóa cơ chế **Tương tác làm rõ có kiểm soát (Human-in-the-Loop Clarification Loop)**:
+
+### 8.1. Khi nào Agent Chủ Động Hỏi Lại (Interactive Clarification Trigger)?
+Agent không bao giờ "đoán mò trong bóng tối" khi các phương án liên tục bị từ chối:
+1. **Thu thập lý do từ chối tự động**:
+   - Mỗi khi thành viên vote DOWN một điểm dừng, hệ thống cho phép nhập lý do ngắn (trường `comment` trong bảng `core.plan_votes`, ví dụ: *"Quán này ồn ào quá"*, *"Không thích ăn hải sản"*).
+   - Khi người dùng bấm nút **"Gợi ý thêm phương án mới" (Fetch More Alternatives)**, hệ thống tự động tổng hợp các comment này gửi cho AI Agent.
+2. **Chủ động gửi câu hỏi gợi mở vào Group Chat**:
+   - Nếu nhóm không để lại comment hoặc lý do từ chối chưa rõ ràng, Agent **tự động gửi một tin nhắn hội thoại vào kênh chat chung của phòng**:
+     > 🤖 **TripMate AI**: *"Mình thấy nhóm mình chưa ưng ý cả 3 quán vừa rồi ở điểm dừng này. Các bạn có mong muốn cụ thể nào mới không (ví dụ: muốn đổi từ hải sản sang đồ nướng/lẩu, cần quán có phòng riêng yên tĩnh, hay muốn tầm giá bình dân hơn) để mình tìm chính xác nhất cho nhóm nhé?"*
+   - Sau khi thành viên trả lời trong chat, Agent bóc tách ý định mới (Intent & Constraints Extraction) để đưa vào lượt truy vấn tiếp theo.
+
+### 8.2. Nguyên Tắc Bất Biến: 100% Phương Án Mới Vẫn Phải Thỏa Mãn Ràng Buộc Cốt Lõi (Strict Constraint Invariance)
+Dù tìm kiếm thêm phương án mới dựa trên câu trả lời làm rõ của nhóm, **Agent BẮT BUỘC PHẢI TUÂN THỦ TUYỆT ĐỐI 5 RÀNG BUỘC KỸ THUẬT**:
+
+| Tiêu chuẩn ràng buộc | Quy tắc kiểm định bắt buộc của Agent | Hậu quả nếu vi phạm |
+|---|---|---|
+| **1. Bán kính Gom Cụm Địa Lý (Distance Guard)** | Điểm mới bắt buộc phải nằm trong bán kính **$\le 2.5$\,km** (Haversine) và thời gian di chuyển **$\le 20$\,phút** so với điểm dừng trước đó trong nửa ngày. | **LOẠI BỎ NGAY LẬP TỨC** (tránh lộ trình chạy ziczac xuyên thành phố). |
+| **2. Trần Ngân Sách Phân Bổ (Budget Parity)** | Mức giá ước tính (`estimated_cost`, `price_level`) phải tương thích với ngân sách phân bổ cho bữa ăn/hoạt động đó trong `BudgetBreakdownDTO`. | **CẢNH BÁO / TỰ ĐỘNG BÙ TRỪ** nếu vượt trần $> 5\%$. |
+| **3. Giờ Mở Cửa Thực Tế (Opening Hours Guard)** | Bắt buộc kiểm tra giờ đóng/mở cửa thực tế từ Google Places API (`open_now`, `weekday_hours`) phải bao trùm khung giờ dự kiến ghé thăm. | **LOẠI BỎ NGAY LẬP TỨC** nếu điểm đóng cửa vào giờ đó. |
+| **4. An Toàn Dị Ứng & Khẩu Vị (Dietary Safety)** | Đối chiếu thực đơn quán mới với `dietary_preferences` của cả phòng (không gợi ý quán hải sản nếu có thành viên dị ứng nặng; phải có món chay nếu có người ăn chay). | **CHẶN VÀ CHỌN QUÁN KHÁC**. |
+| **5. Ép Khuôn Structured Output (Strict Schema)** | 100% thuộc tính bắt buộc (Place ID thật, GPS, giá, phương thức di chuyển, món ăn gợi ý) phải tuân thủ nghiêm ngặt Pydantic schema `PlaceStopDTO` cho CSDL quan hệ SQL. | **Pydantic v2 ép LLM format lại ngay lập tức**. |
+
+$\implies$ **Kết luận**: Nhóm hoàn toàn có thể đổi sang Phương án 2, Phương án 3, Phương án 4... không giới hạn, Agent sẽ chủ động hỏi lại khi cần để hiểu đúng mong muốn, nhưng **tuyệt đối không bao giờ phá vỡ khung lịch trình, bán kính di chuyển và ngân sách chung** của cả chuyến đi!
 
 
 

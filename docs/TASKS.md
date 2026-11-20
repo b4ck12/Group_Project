@@ -319,10 +319,10 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #33
   - **Target Files**: `frontend/src/features/plan/components/InteractiveTimeline.tsx`
   - **Acceptance Criteria**: Kéo thả sắp xếp thứ tự điểm dừng, hiển thị thời lượng ghé thăm và khoảng cách di chuyển.
-- [ ] **TASK-315** `[FE-B]` **Granular Stop Voting Cards & 1-Click Swap UI**
+- [ ] **TASK-315** `[FE-B]` **Granular Stop Voting Cards & Multi-Option Swap UI**
   - **Feature**: #35
-  - **Target Files**: `frontend/src/features/plan/components/StopVotingCard.tsx`
-  - **Acceptance Criteria**: Thẻ điểm dừng hiển thị hình ảnh thật, nút vote UP/DOWN, progress bar đồng thuận và nút 1-Click Swap.
+  - **Target Files**: `frontend/src/features/plan/components/StopVotingCard.tsx`, `frontend/src/features/plan/components/AlternativeOptionsModal.tsx`
+  - **Acceptance Criteria**: Thẻ điểm dừng hiển thị hình ảnh thật, nút vote UP/DOWN, progress bar đồng thuận, modal/dropdown hiển thị danh sách các phương án thay thế (Phương án 2, Phương án 3...) cho phép chọn trực tiếp hoặc luân chuyển tuần tự, kèm nút 'Gợi ý thêm phương án mới' từ AI.
 - [ ] **TASK-316** `[FE-A]` **Macro Lock & Final Confirmation Header UI**
   - **Feature**: #12, #15
   - **Target Files**: `frontend/src/features/plan/components/ConsensusHeader.tsx`
