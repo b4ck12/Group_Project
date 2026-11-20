@@ -55,10 +55,12 @@ async def get_event(
 async def update_event(
     event_id: str,
     event_update: EventUpdate,
+    _host: EventMember = Depends(require_host),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Cập nhật thông tin phòng chuyến đi (tên, ngày đi, ngân sách,...) (TASK-202).
+    RolesGuard: Chỉ Trưởng nhóm (HOST) mới có quyền cập nhật (TASK-204).
     """
     return await EventService.update_event(db, event_id, event_update)
 
