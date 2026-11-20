@@ -2,10 +2,11 @@
 API v1 Dependencies and RolesGuard (TASK-204).
 Author: Ta Quang Huy (Person 1 - Backend Core Dev A).
 
-Contains:
-- get_current_user_id: Identifies current user (Header X-User-Id with dev fallback).
-- get_event_membership: Verifies user membership within an event room.
-- require_host: RolesGuard enforcing HOST privileges (403 Forbidden otherwise).
+Bao gồm:
+- get_current_user_id: Xác định ID người dùng hiện tại (hỗ trợ Header X-User-Id và dev fallback).
+- get_event_membership: Xác thực tư cách thành viên trong một phòng chuyến đi.
+- require_host: RolesGuard bắt buộc quyền Trưởng nhóm (Host), chặn 403 Forbidden nếu không phải.
+- require_member: Bắt buộc quyền thành viên (Host hoặc Member), chặn người xem (Viewer) hoặc người ngoài.
 """
 
 from typing import Optional
@@ -30,16 +31,17 @@ async def get_current_user_id(
     if x_user_id:
         return x_user_id
 
-    # Fallback for dev environment when testing via Swagger UI (/docs)
+    # TẦNG 2: Kích hoạt khi KHÔNG có Header (Dành riêng cho Dev test Swagger UI)
     stmt = select(User).limit(1)
     res = await db.execute(stmt)
     user = res.scalar_one_or_none()
     if user:
         return user.id
 
+    # TẦNG 3: Khi Database hoàn toàn trống rỗng (vừa cài mới DB)
     dev_user = User(
         email="huytq@tripmate.ai",
-        full_name="Ta Quang Huy (Dev)",
+        full_name="Ta Quang Huy",
     )
     db.add(dev_user)
     await db.commit()
@@ -79,11 +81,11 @@ async def require_host(
     """
     RolesGuard: Enforce that caller holds the HOST role.
 
-    Protects critical actions:
-    - Update room details (PATCH /api/v1/events/{id})
-    - Delete room (DELETE /api/v1/events/{id})
-    - Macro consensus lock (POST /api/v1/events/{id}/macro-lock)
-    - Final itinerary confirmation (POST /api/v1/events/{id}/final-lock)
+    Áp dụng cho các thao tác nhạy cảm:
+    - Sửa thông tin chuyến đi (PATCH /api/v1/events/{id})
+    - Xóa phòng chuyến đi (DELETE /api/v1/events/{id})
+    - Khóa lộ trình vĩ mô (POST /api/v1/events/{id}/macro-lock)
+    - Chốt kế hoạch chính thức (POST /api/v1/events/{id}/final-lock)
 
     Raises:
         HTTPException 403: If member is not a HOST.
@@ -92,5 +94,22 @@ async def require_host(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="This action requires Host privileges.",
+        )
+    return member
+
+
+async def require_member(
+    member: EventMember = Depends(get_event_membership),
+) -> EventMember:
+    """
+    RolesGuard: Enforce that caller is an active participant (HOST or MEMBER).
+
+    Raises:
+        HTTPException 403: If member has VIEWER (read-only) role.
+    """
+    if member.role not in (EventRole.HOST, EventRole.MEMBER):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Viewers cannot perform this action.",
         )
     return member
