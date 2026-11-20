@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripMate — Không Gian Lập Kế Hoạch 3 Cột Thời Gian Thực</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans (Modern Geometric Display & UI) & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+
+  <!-- Design System CSS Modules (Modern Minimalist System) -->
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/chat.css">
+  <link rel="stylesheet" href="assets/css/timeline.css">
+  <link rel="stylesheet" href="assets/css/map.css">
+
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background-color: var(--color-warm-canvas); overflow: hidden;">
+
+  <!-- Global Sticky Top Bar -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      <a href="index.html" class="nav-logo" title="Về trang chủ">
+        <i data-lucide="compass" style="width:22px;height:22px;color:var(--color-primary-navy);"></i>
+        <span>TripMate</span>
+      </a>
+      <span style="color:var(--color-ash-border-dark);">|</span>
+      <div class="nav-trip-meta">
+        <h2 class="nav-trip-title">Đà Nẵng & Hội An (3N2Đ)</h2>
+        <span class="tag-editorial tag-ochre" style="font-size:11px;">
+          <i data-lucide="palmtree" style="width:11px;height:11px;"></i>
+          Kỳ nghỉ bạn bè
+        </span>
+      </div>
+    </div>
+
+    <!-- Center: Warm Agreement Status -->
+    <div class="nav-center">
+      <div class="agreement-pill" title="Mức độ đồng thuận của cả nhóm">
+        <div class="agreement-dot"></div>
+        <span class="agreement-text" id="consensus-agreed-count">4 bạn đã đồng thuận lịch trình</span>
+      </div>
+    </div>
+
+    <!-- Right: Member Avatars, Luggage Checklist & Final Lock -->
+    <div class="nav-actions">
+      <div class="avatar-stack" title="5 Thành viên đang online trong phòng">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" class="avatar" alt="Huy (Host)" title="Tạ Quang Huy (Host)" />
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="avatar" alt="Đức" title="Nguyễn Minh Đức (Bạn)" />
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" class="avatar" alt="Huy H." title="Hà Đăng Huy" />
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" class="avatar" alt="Dương" title="Phạm Đình Ánh Dương" />
+        <div class="avatar-more" title="Đinh Tiến Luân">+1</div>
+      </div>
+
+      <a href="checklist.html" class="btn btn-sm btn-ghost" title="Mở Checklist Hành Lý Cần Chuẩn Bị">
+        <i data-lucide="check-square" style="width:14px;height:14px;"></i>
+        <span>Checklist (3/5)</span>
+      </a>
+
+      <a href="auth.html" class="btn btn-sm btn-ghost" title="Tài khoản cá nhân">
+        <i data-lucide="user" style="width:14px;height:14px;"></i>
+        <span>Đức</span>
+      </a>
+
+      <button id="final-lock-btn" class="btn btn-sm btn-navy" onclick="TimelineModule.lockFinalPlan()" title="Host chốt lịch trình chính thức">
+        <i data-lucide="check" style="width:14px;height:14px;"></i>
+        <span>Chốt Lịch Trình</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Flagship 3-Pane Split Screen Layout -->
+  <div class="app-workspace">
+    
+    <!-- ================= PANE 1: GROUP NOTES & LOCAL CONCIERGE (LEFT) ================= -->
+    <aside class="pane-chat">
+      <div class="chat-header">
+        <div class="chat-header-title">
+          <div class="chat-title-main">
+            <i data-lucide="messages-square" style="width:16px;height:16px;color:var(--color-primary-navy);"></i>
+            <span>Nhật Ký & Cố Vấn Bản Địa</span>
+          </div>
+          <div class="chat-subtitle">5 bạn đang online</div>
+        </div>
+        <button class="btn btn-sm btn-ghost" onclick="AppModule.showToast('Đã sao chép link mời: https://tripmate.vn/join/889214')" title="Sao chép link mời bạn bè vào phòng">
+          <i data-lucide="user-plus" style="width:13px;height:13px;"></i>
+          <span>Mời</span>
+        </button>
+      </div>
+
+      <!-- Messages Stream List -->
+      <div class="chat-messages" id="chat-messages-container">
+        <!-- Rendered dynamically by ChatModule -->
+      </div>
+
+      <!-- Quick Action Prompt Chips -->
+      <div class="chat-suggestions">
+        <button class="suggestion-chip" onclick="ChatModule.useSuggestion('Trời đang mưa to, đổi quán cafe trong nhà gần đây')">
+          🌧️ Quán cafe trú mưa
+        </button>
+        <button class="suggestion-chip" onclick="ChatModule.useSuggestion('Tầm mấy giờ chụp ảnh hoàng hôn đẹp nhất?')">
+          📸 Giờ vàng chụp ảnh
+        </button>
+        <button class="suggestion-chip" onclick="ChatModule.useSuggestion('Kiểm tra giá vé thả đèn hoa đăng sông Hoài')">
+          🏮 Thuyền hoa đăng
+        </button>
+      </div>
+
+      <!-- Chat Input Bar -->
+      <div class="chat-input-bar">
+        <input type="text" id="chat-input-field" class="chat-input" placeholder="Nhắn cho nhóm hoặc hỏi mẹo bản địa..." />
+        <button id="chat-send-btn" class="chat-send-btn" title="Gửi tin nhắn">
+          <i data-lucide="send" style="width:15px;height:15px;"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ================= PANE 2: EDITORIAL LIVING ITINERARY (CENTER) ================= -->
+    <section class="pane-timeline">
+      
+      <!-- Unified Sticky Top Bar (Journal Header + Day Tabs) -->
+      <div class="timeline-sticky-header">
+        <div class="itinerary-journal-header">
+          <div class="itinerary-title-box">
+            <div class="itinerary-title">
+              <span>Lịch Trình Tuyển Chọn — Hội An & Đà Nẵng</span>
+              <span class="tag-editorial tag-pine" style="font-size:11px;">Đang Tinh Chỉnh</span>
+            </div>
+            <div class="itinerary-subtitle">
+              Cùng thả tim điểm yêu thích, hoặc đổi phương án dự phòng chỉ với một nút Swap.
+            </div>
+          </div>
+
+          <button class="btn btn-sm btn-swap" onclick="TimelineModule.adaptForRain()" title="Mô phỏng tự động đổi quán cafe trong nhà khi gặp mưa">
+            <i data-lucide="cloud-rain" style="width:13px;height:13px;"></i>
+            <span>Demo Trời Mưa</span>
+          </button>
+        </div>
+
+        <!-- Day Selector Tabs Bar -->
+        <div class="day-nav" id="day-tabs-container">
+          <!-- Rendered dynamically by TimelineModule.renderDayTabs() -->
+        </div>
+      </div>
+
+      <!-- Timeline Stops Container -->
+      <div class="timeline-content" id="timeline-stops-container">
+        <!-- Rendered dynamically by TimelineModule -->
+      </div>
+    </section>
+
+    <!-- ================= PANE 3: VISUAL ROUTE MAP (RIGHT) ================= -->
+    <aside class="pane-map">
+      <!-- Map Header Overlay -->
+      <div class="map-header-overlay">
+        <div class="map-meta-title">
+          <i data-lucide="map-pin" style="width:15px;height:15px;color:var(--color-primary-navy);"></i>
+          <span>Bản Đồ Tuyến Điểm — Ngày 1 (Phố Cổ Hội An & An Bàng)</span>
+        </div>
+        <div class="map-tools">
+          <button class="map-tool-btn" onclick="MapModule.fitAll()" title="Thu phóng vừa vặn toàn bộ tuyến đường">
+            <i data-lucide="maximize-2" style="width:12px;height:12px;"></i>
+            <span>Toàn Cảnh</span>
+          </button>
+          <span class="tag-editorial tag-pine" style="font-size:11px;">
+            <i data-lucide="check" style="width:11px;height:11px;"></i>
+            Đã Định Tuyến
+          </span>
+        </div>
+      </div>
+
+      <!-- Leaflet Map Canvas Container -->
+      <div id="map-container"></div>
+    </aside>
+
+  </div>
+
+  <!-- Mobile Bottom Action Bar -->
+  <div class="mobile-consensus-bar">
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--color-ink-black);">4 bạn đã duyệt lịch trình</div>
+      <div style="font-size:11px;color:var(--color-green-approved);font-weight:600;">Sẵn sàng khởi hành</div>
+    </div>
+    <button class="btn btn-sm btn-navy" onclick="TimelineModule.lockFinalPlan()">
+      <i data-lucide="check" style="width:14px;height:14px;"></i>
+      <span>Chốt Kế Hoạch</span>
+    </button>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/map.js"></script>
+  <script src="assets/js/timeline.js"></script>
+  <script src="assets/js/chat.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      TimelineModule.init();
+      MapModule.init();
+      ChatModule.init();
+    });
+  </script>
+</body>
+</html>

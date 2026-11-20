@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripMate — Đăng Nhập & Đăng Ký Tài Khoản</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans (Modern Geometric Display & UI) & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+
+  <!-- Design System CSS Modules -->
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background-color: var(--color-warm-canvas);">
+
+  <div class="auth-split-wrapper">
+    
+    <!-- Left Hero Pane (Stunning Travel Scenery) -->
+    <div class="auth-hero-pane" style="background-image: url('https://thumb.wikimedia.org/wikipedia/commons/thumb/2/29/V%E1%BB%8Bnh_H%E1%BA%A1_Long_-_NKS.jpg/1280px-V%E1%BB%8Bnh_H%E1%BA%A1_Long_-_NKS.jpg');">
+      <div style="position:relative; z-index:2;">
+        <a href="index.html" class="nav-logo" style="color:#ffffff; font-size:22px;">
+          <i data-lucide="compass" style="width:26px;height:26px;color:var(--color-ochre-gold);"></i>
+          <span>TripMate</span>
+        </a>
+      </div>
+
+      <div style="position:relative; z-index:2; max-width:440px;">
+        <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.18); backdrop-filter:blur(6px); padding:5px 14px; border-radius:var(--radius-pill); margin-bottom:16px;">
+          <i data-lucide="heart" style="width:14px;height:14px;color:#fca5a5;fill:#fca5a5;"></i>
+          <span style="font-size:12.5px; font-weight:600;">Lập Kế Hoạch Cùng Nhau Thảnh Thơi</span>
+        </div>
+        <h2 style="font-size:30px; font-weight:800; line-height:1.25; margin-bottom:12px; letter-spacing:-0.025em; font-family:var(--font-heading);">
+          "Đi đâu không quan trọng, quan trọng là đi cùng nhau mà không cãi nhau."
+        </h2>
+        <p style="font-size:15px; color:rgba(255,255,255,0.88); line-height:1.6;">
+          Tự động tối ưu cung đường, cùng thả tim điểm dừng yêu thích và hoán đổi phương án dự phòng bằng nút Swap.
+        </p>
+      </div>
+
+      <div style="position:relative; z-index:2; font-size:13px; color:rgba(255,255,255,0.65);">
+        © 2026 TripMate Platform · All rights reserved.
+      </div>
+    </div>
+
+    <!-- Right Form Pane -->
+    <div class="auth-form-pane">
+      <div style="margin-bottom:28px;">
+        <a href="index.html" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--color-steel-muted); margin-bottom:16px;">
+          <i data-lucide="arrow-left" style="width:14px;height:14px;"></i>
+          Quay lại trang chủ
+        </a>
+        <h1 id="auth-title" style="font-size:26px; font-weight:800; color:var(--color-primary-navy); letter-spacing:-0.02em; margin-bottom:6px;">
+          Chào Mừng Trở Lại 👋
+        </h1>
+        <p id="auth-subtitle" style="font-size:14px; color:var(--color-graphite);">
+          Đăng nhập để vào phòng chuyến đi và tiếp tục lên lịch cùng nhóm bạn.
+        </p>
+      </div>
+
+      <!-- Auth Tab Toggle -->
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tab-login" onclick="switchAuthTab('login')">Đăng Nhập</button>
+        <button class="auth-tab-btn" id="tab-register" onclick="switchAuthTab('register')">Đăng Ký Tài Khoản</button>
+      </div>
+
+      <!-- Social Logins (Google & Facebook) -->
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+        <button class="btn-social" onclick="simulateOAuthLogin('Google')">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          Tiếp tục với Google
+        </button>
+
+        <button class="btn-social" onclick="simulateOAuthLogin('Facebook')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          Tiếp tục với Facebook
+        </button>
+      </div>
+
+      <div class="auth-divider">
+        <span>Hoặc tiếp tục với email</span>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" style="display:flex; flex-direction:column; gap:16px;">
+        
+        <div id="field-fullname" style="display:none;">
+          <label style="font-size:13px; font-weight:600; color:var(--color-ink-black); display:block; margin-bottom:6px;">Họ và Tên</label>
+          <input type="text" id="input-fullname" placeholder="Nguyễn Minh Đức" style="width:100%; padding:10px 14px; border:1px solid var(--color-ash-border); border-radius:var(--radius-control); outline:none;" />
+        </div>
+
+        <div>
+          <label style="font-size:13px; font-weight:600; color:var(--color-ink-black); display:block; margin-bottom:6px;">Địa chỉ Email</label>
+          <input type="email" id="input-email" required placeholder="name@example.com" value="duc.nguyen@example.com" style="width:100%; padding:10px 14px; border:1px solid var(--color-ash-border); border-radius:var(--radius-control); outline:none;" />
+        </div>
+
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-size:13px; font-weight:600; color:var(--color-ink-black);">Mật khẩu</label>
+            <a href="#" onclick="AppModule.showToast('Link đặt lại mật khẩu đã được gửi về email của bạn!', 'green')" style="font-size:12px; font-weight:600; color:var(--color-sky-action);">Quên mật khẩu?</a>
+          </div>
+          <div style="position:relative;">
+            <input type="password" id="input-password" required placeholder="••••••••" value="MatKhauBaoMat2026!" style="width:100%; padding:10px 38px 10px 14px; border:1px solid var(--color-ash-border); border-radius:var(--radius-control); outline:none;" />
+            <button type="button" onclick="togglePasswordVisibility()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--color-steel-muted);">
+              <i data-lucide="eye" id="eye-icon" style="width:16px;height:16px;"></i>
+            </button>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="remember-me" checked style="accent-color:var(--color-primary-navy); width:16px; height:16px; cursor:pointer;" />
+          <label for="remember-me" style="font-size:13px; color:var(--color-graphite); cursor:pointer;">Ghi nhớ đăng nhập trên thiết bị này</label>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="btn btn-navy btn-lg" style="width:100%; margin-top:8px;">
+          Đăng Nhập Vào Hệ Thống
+        </button>
+
+      </form>
+
+      <p style="text-align:center; font-size:12px; color:var(--color-steel-muted); margin-top:24px;">
+        Bằng cách tiếp tục, bạn đồng ý với <a href="#" style="text-decoration:underline;">Điều khoản dịch vụ</a> và <a href="#" style="text-decoration:underline;">Chính sách quyền riêng tư</a> của TripMate.
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/app.js"></script>
+
+  <script>
+    let currentAuthMode = 'login';
+
+    function switchAuthTab(mode) {
+      currentAuthMode = mode;
+      const tabLogin = document.getElementById('tab-login');
+      const tabRegister = document.getElementById('tab-register');
+      const title = document.getElementById('auth-title');
+      const subtitle = document.getElementById('auth-subtitle');
+      const fieldFullname = document.getElementById('field-fullname');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      if (mode === 'login') {
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        title.innerText = 'Chào Mừng Trở Lại 👋';
+        subtitle.innerText = 'Đăng nhập để vào phòng chuyến đi và tiếp tục lên lịch cùng nhóm bạn.';
+        fieldFullname.style.display = 'none';
+        submitBtn.innerText = 'Đăng Nhập Vào Hệ Thống';
+      } else {
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        title.innerText = 'Tạo Tài Khoản Mới ✨';
+        subtitle.innerText = 'Chỉ mất 30 giây để bắt đầu lập kế hoạch thông minh cùng hội bạn.';
+        fieldFullname.style.display = 'block';
+        submitBtn.innerText = 'Đăng Ký & Bắt Đầu Ngay';
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('input-password');
+      const eyeIcon = document.getElementById('eye-icon');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        eyeIcon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        pwdInput.type = 'password';
+        eyeIcon.setAttribute('data-lucide', 'eye');
+      }
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('auth-submit-btn');
+      submitBtn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Đang xác thực...`;
+      submitBtn.disabled = true;
+
+      setTimeout(() => {
+        AppModule.showToast('🎉 Đăng nhập thành công! Đang chuyển hướng vào phòng...', 'green');
+        setTimeout(() => {
+          window.location.href = 'room.html';
+        }, 1000);
+      }, 800);
+    }
+
+    function simulateOAuthLogin(provider) {
+      AppModule.showToast(`Đang kết nối xác thực qua ${provider}...`);
+      setTimeout(() => {
+        AppModule.showToast(`🎉 Xác thực ${provider} thành công!`, 'green');
+        setTimeout(() => {
+          window.location.href = 'room.html';
+        }, 900);
+      }, 700);
+    }
+  </script>
+</body>
+</html>

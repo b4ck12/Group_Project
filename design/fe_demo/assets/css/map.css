@@ -1,0 +1,163 @@
+/* ==========================================================================
+   TripMate AI — Mapbox/Leaflet Map Styling (design/fe_demo)
+   Bespoke Editorial Travel Journal System (Kinfolk & Airbnb Luxe)
+   ========================================================================== */
+
+#map-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.map-header-overlay {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  background-color: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-ash-border);
+  border-radius: var(--radius-card-sm);
+  padding: 10px 16px;
+  box-shadow: 0 4px 16px rgba(14, 34, 56, 0.06);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.map-meta-title {
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.map-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-tool-btn {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-ash-border);
+  background-color: #ffffff;
+  color: var(--color-graphite);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+.map-tool-btn:hover {
+  border-color: var(--color-primary-navy);
+  color: var(--color-primary-navy);
+}
+
+/* Custom Leaflet Map Pin (Deep Midnight Indigo Pill with gold hover) */
+.custom-map-pin {
+  width: 30px;
+  height: 30px;
+  background-color: var(--color-primary-navy);
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(14, 34, 56, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s;
+  cursor: pointer;
+}
+
+.custom-map-pin:hover, .custom-map-pin.active {
+  transform: scale(1.3);
+  background-color: var(--color-ochre-gold);
+  box-shadow: 0 0 0 4px rgba(217, 151, 38, 0.28);
+}
+
+/* Map Popup Styling (Editorial Mini Preview Card) */
+.leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  box-shadow: 0 12px 32px rgba(14, 34, 56, 0.15) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid var(--color-ash-border);
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip-container {
+  display: none !important;
+}
+
+.map-popup-card {
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-popup-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+}
+
+.map-popup-info {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: #ffffff;
+}
+
+.map-popup-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.map-popup-name {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-primary-navy);
+  line-height: 1.3;
+}
+
+.map-popup-meta {
+  font-size: 11px;
+  color: var(--color-steel-muted);
+}
+
+.map-popup-cost {
+  color: var(--color-coastal-blue);
+  font-weight: 700;
+}
+
+.map-popup-address {
+  font-size: 11px;
+  color: var(--color-steel-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

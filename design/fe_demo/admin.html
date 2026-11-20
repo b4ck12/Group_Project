@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripMate — Admin & Observability Dashboard</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans (Modern Geometric Display & UI) & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+
+  <!-- Design System CSS Modules -->
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background-color: var(--color-warm-canvas);">
+
+  <!-- Global Sticky Top Bar -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      <a href="room.html" class="nav-logo" title="Quay lại phòng">
+        <i data-lucide="arrow-left" style="width:20px;height:20px;color:var(--color-primary-navy);"></i>
+        <span>Quay lại phòng</span>
+      </a>
+      <span style="color:var(--color-ash-border-dark);">|</span>
+      <h2 style="font-size:15px;font-weight:700;color:var(--color-ink-black);">Admin & Observability Dashboard</h2>
+    </div>
+
+    <div class="nav-actions">
+      <span class="badge badge-green">
+        <i data-lucide="activity" style="width:12px;height:12px;"></i>
+        All Systems Normal
+      </span>
+      <a href="room.html" class="btn btn-sm btn-navy">
+        <i data-lucide="layout" style="width:14px;height:14px;"></i>
+        Vào Lại Phòng
+      </a>
+    </div>
+  </header>
+
+  <main style="max-width: 1200px; margin: 32px auto; padding: 0 20px;">
+    
+    <!-- KPI Metrics Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 28px;">
+      
+      <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:20px; box-shadow:var(--shadow-card);">
+        <div style="font-size:12px; font-weight:600; color:var(--color-steel-muted); text-transform:uppercase; margin-bottom:6px;">Phòng Hoạt Động (CCU)</div>
+        <div style="font-size:28px; font-weight:800; color:var(--color-primary-navy); font-family:var(--font-mono);">24</div>
+        <div style="font-size:12px; color:var(--color-quorum-green); margin-top:4px;">▲ +12% so với hôm qua</div>
+      </div>
+
+      <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:20px; box-shadow:var(--shadow-card);">
+        <div style="font-size:12px; font-weight:600; color:var(--color-steel-muted); text-transform:uppercase; margin-bottom:6px;">Tokens AI Tiêu Thụ (24h)</div>
+        <div style="font-size:28px; font-weight:800; color:var(--color-sky-action-hover); font-family:var(--font-mono);">1.240.500</div>
+        <div style="font-size:12px; color:var(--color-graphite); margin-top:4px;">Chi phí ước tính: $0.18</div>
+      </div>
+
+      <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:20px; box-shadow:var(--shadow-card);">
+        <div style="font-size:12px; font-weight:600; color:var(--color-steel-muted); text-transform:uppercase; margin-bottom:6px;">Upstash Redis Cache Hit</div>
+        <div style="font-size:28px; font-weight:800; color:var(--color-quorum-green); font-family:var(--font-mono);">94.2%</div>
+        <div style="font-size:12px; color:var(--color-graphite); margin-top:4px;">Tiết kiệm 4.200 API calls</div>
+      </div>
+
+      <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:20px; box-shadow:var(--shadow-card);">
+        <div style="font-size:12px; font-weight:600; color:var(--color-steel-muted); text-transform:uppercase; margin-bottom:6px;">Thời Gian Phản Hồi API (P95)</div>
+        <div style="font-size:28px; font-weight:800; color:var(--color-accent-teal); font-family:var(--font-mono);">185 ms</div>
+        <div style="font-size:12px; color:var(--color-quorum-green); margin-top:4px;">TTFT AI: 640 ms (Đạt chuẩn)</div>
+      </div>
+
+    </div>
+
+    <!-- Charts Row -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 28px;">
+      
+      <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:20px; box-shadow:var(--shadow-card);">
+        <h4 style="font-size:15px; font-weight:700; color:var(--color-ink-black); margin-bottom:16px;">Biểu Đồ Tiêu Thụ Token AI Theo Giờ</h4>
+        <canvas id="tokenChart" height="120"></canvas>
+      </div>
+
+      <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:20px; box-shadow:var(--shadow-card);">
+        <h4 style="font-size:15px; font-weight:700; color:var(--color-ink-black); margin-bottom:16px;">Tỷ Lệ Cache Hit Google Places</h4>
+        <canvas id="cacheChart" height="180"></canvas>
+      </div>
+
+    </div>
+
+    <!-- Active Rooms Table -->
+    <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:20px; box-shadow:var(--shadow-card);">
+      <h4 style="font-size:15px; font-weight:700; color:var(--color-ink-black); margin-bottom:16px;">Danh Sách Phòng Đang Hoạt Động</h4>
+      
+      <div style="overflow-x: auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--color-ash-border); color:var(--color-steel-muted); text-transform:uppercase; font-size:11px;">
+              <th style="padding:10px 12px;">ID Phòng</th>
+              <th style="padding:10px 12px;">Tên Chuyến Đi</th>
+              <th style="padding:10px 12px;">Phạm Vi</th>
+              <th style="padding:10px 12px;">Thành Viên</th>
+              <th style="padding:10px 12px;">Giai Đoạn Đồng Thuận</th>
+              <th style="padding:10px 12px; text-align:right;">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--color-ash-border);">
+              <td style="padding:12px; font-family:var(--font-mono); font-weight:600;">evt_danang_hoian_2026</td>
+              <td style="padding:12px; font-weight:600; color:var(--color-primary-navy);">Đà Nẵng & Hội An 3N2Đ</td>
+              <td style="padding:12px;"><span class="badge badge-neutral">VACATION</span></td>
+              <td style="padding:12px;">5 người</td>
+              <td style="padding:12px;"><span class="badge badge-amber">CURATED_MICRO (80%)</span></td>
+              <td style="padding:12px; text-align:right;"><a href="room.html" class="btn btn-sm btn-ghost">Mở Phòng</a></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--color-ash-border);">
+              <td style="padding:12px; font-family:var(--font-mono); font-weight:600;">evt_saigon_weekend_99</td>
+              <td style="padding:12px; font-weight:600; color:var(--color-primary-navy);">Cafe Rooftop & Board Game Q1</td>
+              <td style="padding:12px;"><span class="badge badge-transit">DAY_HANGOUT</span></td>
+              <td style="padding:12px;">4 người</td>
+              <td style="padding:12px;"><span class="badge badge-green">FINAL_LOCKED</span></td>
+              <td style="padding:12px; text-align:right;"><a href="room.html" class="btn btn-sm btn-ghost">Mở Phòng</a></td>
+            </tr>
+            <tr>
+              <td style="padding:12px; font-family:var(--font-mono); font-weight:600;">evt_dalat_cloud_44</td>
+              <td style="padding:12px; font-weight:600; color:var(--color-primary-navy);">Săn Mây Đà Lạt Cuối Tuần</td>
+              <td style="padding:12px;"><span class="badge badge-neutral">VACATION</span></td>
+              <td style="padding:12px;">6 người</td>
+              <td style="padding:12px;"><span class="badge badge-neutral">DRAFT_MACRO</span></td>
+              <td style="padding:12px; text-align:right;"><a href="room.html" class="btn btn-sm btn-ghost">Mở Phòng</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/app.js"></script>
+  
+  <script>
+    // Initialize Chart.js
+    document.addEventListener("DOMContentLoaded", () => {
+      // Token Usage Line Chart
+      const ctxToken = document.getElementById('tokenChart').getContext('2d');
+      new Chart(ctxToken, {
+        type: 'line',
+        data: {
+          labels: ['00h', '03h', '06h', '09h', '12h', '15h', '18h', '21h'],
+          datasets: [{
+            label: 'Tokens / Giờ',
+            data: [25000, 12000, 48000, 210000, 340000, 280000, 410000, 190000],
+            borderColor: '#0ea5e9',
+            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+            fill: true,
+            tension: 0.35
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // Cache Hit Doughnut Chart
+      const ctxCache = document.getElementById('cacheChart').getContext('2d');
+      new Chart(ctxCache, {
+        type: 'doughnut',
+        data: {
+          labels: ['Upstash Redis Hit (94.2%)', 'Google Places API Miss (5.8%)'],
+          datasets: [{
+            data: [94.2, 5.8],
+            backgroundColor: ['#10b981', '#cbd5e1'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+          },
+          cutout: '72%'
+        }
+      });
+    });
+  </script>
+</body>
+</html>
