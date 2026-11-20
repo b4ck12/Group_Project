@@ -4,6 +4,7 @@ Author: Ta Quang Huy (Person 1 - Backend Core Dev A).
 
 Contains:
 - get_current_user_id: Identifies current user (Header X-User-Id with dev fallback).
+- get_event_membership: Verifies user membership within an event room.
 """
 
 from typing import Optional
@@ -43,3 +44,29 @@ async def get_current_user_id(
     await db.commit()
     await db.refresh(dev_user)
     return dev_user.id
+
+
+async def get_event_membership(
+    event_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> EventMember:
+    """
+    Validate that the current user belongs to the specified event room.
+
+    Raises:
+        HTTPException 403: If user is not an enrolled member of the event.
+    """
+    stmt = select(EventMember).where(
+        EventMember.event_id == event_id,
+        EventMember.user_id == user_id,
+    )
+    res = await db.execute(stmt)
+    member = res.scalar_one_or_none()
+
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not a member of this trip room.",
+        )
+    return member
