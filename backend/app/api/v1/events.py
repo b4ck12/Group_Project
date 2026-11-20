@@ -68,10 +68,12 @@ async def update_event(
 @router.delete("/{event_id}")
 async def delete_event(
     event_id: str,
+    _host: EventMember = Depends(require_host),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Xóa phòng kế hoạch (TASK-202).
+    RolesGuard: Chỉ Trưởng nhóm (HOST) mới có quyền xóa phòng (TASK-204).
     """
     await EventService.delete_event(db, event_id)
     return {"message": "Đã xóa phòng thành công", "event_id": event_id}
