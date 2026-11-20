@@ -191,7 +191,7 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #8
   - **Target Files**: `backend/app/models/invitation.py`, `backend/app/api/v1/invitations.py`
   - **Acceptance Criteria**: `POST /events/{id}/invitations` tạo token mời tức thì, người nhận join vào `event_members`.
-- [ ] **TASK-204** `[BE-A]` **RolesGuard Dependency (Host vs Member Permissions)**
+- [x] **TASK-204** `[BE-A]` **RolesGuard Dependency (Host vs Member Permissions)**
   - **Feature**: #9
   - **Target Files**: `backend/app/api/v1/dependencies.py`
   - **Acceptance Criteria**: Dependency `require_host` chặn các thao tác khóa kế hoạch nếu user không phải là Host (`403 Forbidden`).
