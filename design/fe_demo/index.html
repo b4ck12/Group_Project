@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripMate — Khám Phá Điểm Đến & Lập Kế Hoạch Du Lịch Nhóm</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans (Modern Geometric Display & UI) & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+
+  <!-- Design System CSS Modules (Modern Minimalist System) -->
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background-color: var(--color-warm-canvas);">
+
+  <!-- Global Sticky Top Nav -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      <a href="index.html" class="nav-logo" title="Trang chủ TripMate">
+        <i data-lucide="compass" style="width:22px;height:22px;color:var(--color-primary-navy);"></i>
+        <span>TripMate</span>
+      </a>
+    </div>
+
+    <nav class="nav-center" style="display:none; @media(min-width:768px){display:flex;}">
+      <a href="#destinations" style="font-size:13.5px;font-weight:600;color:var(--color-graphite);">Bộ Sưu Tập Điểm Đến</a>
+      <a href="#interactive-preview" style="font-size:13.5px;font-weight:600;color:var(--color-graphite);">Trải Nghiệm Live</a>
+      <a href="#how-it-works" style="font-size:13.5px;font-weight:600;color:var(--color-graphite);">Quy Trình 3 Bước</a>
+      <a href="checklist.html" style="font-size:13.5px;font-weight:600;color:var(--color-graphite);">Checklist Hành Lý</a>
+      <a href="admin.html" style="font-size:13.5px;font-weight:600;color:var(--color-graphite);">Admin Dashboard</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="btn btn-sm btn-ghost btn-pill" onclick="AppModule.openModal('join-modal')">
+        <i data-lucide="key" style="width:14px;height:14px;"></i>
+        Nhập PIN Phòng
+      </button>
+      
+      <a href="auth.html" class="btn btn-sm btn-ghost btn-pill" style="font-weight:600;">
+        <i data-lucide="log-in" style="width:14px;height:14px;"></i>
+        Đăng Nhập
+      </a>
+
+      <a href="room.html" class="btn btn-sm btn-navy btn-pill">
+        <i data-lucide="compass" style="width:14px;height:14px;"></i>
+        Mở Phòng Demo
+      </a>
+    </div>
+  </header>
+
+  <!-- Modern Hero Section (Sunlit Warm Paper Canvas) -->
+  <section style="background: linear-gradient(180deg, #fbf8f3 0%, #faf7f2 100%); padding: 68px 20px 68px; border-bottom: 1px solid var(--color-ash-border); position: relative; overflow: visible; z-index: 20;">
+    
+    <div style="max-width: 1080px; margin: 0 auto; text-align: center; position: relative; z-index: 2;">
+      
+      <!-- Aesthetic Modern Tag Pill -->
+      <div class="tag-editorial tag-ochre" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px; padding:6px 18px; font-size:13px; font-weight:600;">
+        <i data-lucide="heart" style="width:14px;height:14px;fill:var(--color-ochre-gold);"></i>
+        <span>Dành cho nhóm bạn & gia đình thích đi thảnh thơi</span>
+      </div>
+
+      <h1 style="font-family: var(--font-heading); font-size: clamp(34px, 5.2vw, 56px); font-weight: 800; line-height: 1.16; letter-spacing: -0.03em; color: var(--color-primary-navy); margin-bottom: 18px;">
+        Lên Kế Hoạch Chuyến Đi.<br>
+        <span style="color: var(--color-ochre-gold);">Thảnh Thơi Cùng Nhau.</span>
+      </h1>
+
+      <p style="font-size: 17px; line-height: 1.6; color: var(--color-graphite); max-width: 660px; margin: 0 auto 36px; font-weight: 400;">
+        Tổng hợp sở thích từng người, tối ưu cung đường di chuyển thảnh thơi, cùng thả tim điểm dừng yêu thích và đổi phương án dự phòng chỉ trong một nút Swap.
+      </p>
+
+      <!-- Universal Search & Plan Bar (Airbnb / Wanderlog flagship style) -->
+      <div class="universal-search-bar">
+        
+        <!-- Field 1: Destination with Popover Suggestions -->
+        <div class="search-field" style="flex:1.4;">
+          <label class="search-label">Điểm đến mơ ước</label>
+          <div class="custom-dropdown" id="dropdown-dest">
+            <input 
+              type="text" 
+              id="main-search-input" 
+              class="search-input" 
+              placeholder="Hội An, Đà Nẵng, Phú Quốc..." 
+              autocomplete="off"
+              onclick="toggleCustomDropdown('dropdown-dest', event)"
+              oninput="handleSearchFilter(this.value)" 
+            />
+            <div class="dropdown-menu dropdown-menu-left">
+              <div style="font-size:11px;font-weight:700;color:var(--color-steel-muted);text-transform:uppercase;letter-spacing:0.06em;padding:4px 12px 8px;">Điểm Đến Thịnh Hành</div>
+              <div class="dropdown-item" onclick="selectDestination('Hội An')">
+                <div class="dropdown-item-icon"><i data-lucide="map-pin" style="width:15px;height:15px;color:var(--color-ochre-gold);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Phố Cổ Hội An</strong>
+                  <div class="dropdown-item-sub">Quảng Nam · Phố đèn lồng & Biển An Bàng</div>
+                </div>
+              </div>
+              <div class="dropdown-item" onclick="selectDestination('Đà Nẵng')">
+                <div class="dropdown-item-icon"><i data-lucide="map-pin" style="width:15px;height:15px;color:var(--color-primary-navy);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Đà Nẵng</strong>
+                  <div class="dropdown-item-sub">Cầu Rồng, Bán đảo Sơn Trà & Biển Mỹ Khê</div>
+                </div>
+              </div>
+              <div class="dropdown-item" onclick="selectDestination('Phú Quốc')">
+                <div class="dropdown-item-icon"><i data-lucide="palmtree" style="width:15px;height:15px;color:var(--color-moss-pine);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Đảo Ngọc Phú Quốc</strong>
+                  <div class="dropdown-item-sub">Kiên Giang · Bãi Sao & Hoàng hôn Grand World</div>
+                </div>
+              </div>
+              <div class="dropdown-item" onclick="selectDestination('Đà Lạt')">
+                <div class="dropdown-item-icon"><i data-lucide="cloud-sun" style="width:15px;height:15px;color:var(--color-ochre-gold);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Đà Lạt Mộng Mơ</strong>
+                  <div class="dropdown-item-sub">Lâm Đồng · Săn mây đồi chè & Cà phê chill</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-divider"></div>
+
+        <!-- Field 2: Duration Dropdown -->
+        <div class="search-field" style="flex:1;">
+          <label class="search-label">Thời gian</label>
+          <div class="custom-dropdown" id="dropdown-duration">
+            <div class="search-trigger" onclick="toggleCustomDropdown('dropdown-duration', event)">
+              <span id="selected-duration-label">3 Ngày 2 Đêm</span>
+              <i data-lucide="chevron-down" class="dropdown-chevron"></i>
+            </div>
+            <div class="dropdown-menu dropdown-menu-center">
+              <div style="font-size:11px;font-weight:700;color:var(--color-steel-muted);text-transform:uppercase;letter-spacing:0.06em;padding:4px 12px 8px;">Thời Lượng Chuyến Đi</div>
+              <div class="dropdown-item" onclick="selectDuration(this, '2 Ngày 1 Đêm')">
+                <div class="dropdown-item-icon"><i data-lucide="calendar" style="width:15px;height:15px;color:var(--color-primary-navy);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Cuối tuần gọn nhẹ</strong>
+                  <div class="dropdown-item-sub">2 Ngày 1 Đêm (Tối T6 - CN)</div>
+                </div>
+              </div>
+              <div class="dropdown-item active" onclick="selectDuration(this, '3 Ngày 2 Đêm')">
+                <div class="dropdown-item-icon"><i data-lucide="calendar-days" style="width:15px;height:15px;color:var(--color-ochre-gold);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Kỳ nghỉ vừa vặn</strong>
+                  <div class="dropdown-item-sub">3 Ngày 2 Đêm (Phổ biến nhất)</div>
+                </div>
+                <i data-lucide="check" class="item-check-icon"></i>
+              </div>
+              <div class="dropdown-item" onclick="selectDuration(this, '4 Ngày 3 Đêm')">
+                <div class="dropdown-item-icon"><i data-lucide="sun" style="width:15px;height:15px;color:var(--color-terracotta);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Nghỉ dưỡng trọn vẹn</strong>
+                  <div class="dropdown-item-sub">4 Ngày 3 Đêm (Biển đảo/Trekking)</div>
+                </div>
+              </div>
+              <div class="dropdown-item" onclick="selectDuration(this, '5 Ngày 4 Đêm')">
+                <div class="dropdown-item-icon"><i data-lucide="compass" style="width:15px;height:15px;color:var(--color-moss-pine);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Khám phá sâu</strong>
+                  <div class="dropdown-item-sub">5 Ngày 4 Đêm (Thong thả chill)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-divider"></div>
+
+        <!-- Field 3: Group Size Dropdown -->
+        <div class="search-field" style="flex:1;">
+          <label class="search-label">Số thành viên</label>
+          <div class="custom-dropdown" id="dropdown-members">
+            <div class="search-trigger" onclick="toggleCustomDropdown('dropdown-members', event)">
+              <span id="selected-members-label">Nhóm 4 - 6 người</span>
+              <i data-lucide="chevron-down" class="dropdown-chevron"></i>
+            </div>
+            <div class="dropdown-menu dropdown-menu-right">
+              <div style="font-size:11px;font-weight:700;color:var(--color-steel-muted);text-transform:uppercase;letter-spacing:0.06em;padding:4px 12px 8px;">Quy Mô Nhóm Bạn</div>
+              <div class="dropdown-item" onclick="selectMembers(this, 'Cặp đôi (2 người)')">
+                <div class="dropdown-item-icon"><i data-lucide="heart" style="width:15px;height:15px;color:var(--color-heart-rose);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Cặp đôi lãng mạn</strong>
+                  <div class="dropdown-item-sub">2 người riêng tư & chill</div>
+                </div>
+              </div>
+              <div class="dropdown-item active" onclick="selectMembers(this, 'Nhóm 4 - 6 người')">
+                <div class="dropdown-item-icon"><i data-lucide="users" style="width:15px;height:15px;color:var(--color-primary-navy);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Nhóm bạn thân</strong>
+                  <div class="dropdown-item-sub">4 - 6 người (Chia bill lý tưởng)</div>
+                </div>
+                <i data-lucide="check" class="item-check-icon"></i>
+              </div>
+              <div class="dropdown-item" onclick="selectMembers(this, 'Đoàn 7 - 12 người')">
+                <div class="dropdown-item-icon"><i data-lucide="building" style="width:15px;height:15px;color:var(--color-moss-pine);"></i></div>
+                <div class="dropdown-item-text">
+                  <strong>Gia đình / Đoàn lớn</strong>
+                  <div class="dropdown-item-sub">7 - 12 người (Lịch trình thong thả)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button class="btn-search-cta" onclick="AppModule.openModal('create-modal')">
+          <i data-lucide="compass" style="width:16px;height:16px;"></i>
+          <span>Lên Lịch Ngay</span>
+        </button>
+
+      </div>
+
+      <!-- Quick Category Filter Pills -->
+      <div style="display:flex; justify-content:center; gap:8px; margin-top:28px; flex-wrap:wrap;">
+        <button class="category-chip active" onclick="filterCategory('all', this)">
+          <i data-lucide="compass" style="width:14px;height:14px;"></i>
+          Tất cả điểm đến
+        </button>
+        <button class="category-chip" onclick="filterCategory('beach', this)">
+          <i data-lucide="waves" style="width:14px;height:14px;"></i>
+          Bãi biển & Đảo ngọc
+        </button>
+        <button class="category-chip" onclick="filterCategory('mountain', this)">
+          <i data-lucide="mountain" style="width:14px;height:14px;"></i>
+          Núi & Săn mây
+        </button>
+        <button class="category-chip" onclick="filterCategory('food', this)">
+          <i data-lucide="utensils" style="width:14px;height:14px;"></i>
+          Ẩm thực & Phố cổ
+        </button>
+        <button class="category-chip" onclick="filterCategory('resort', this)">
+          <i data-lucide="hotel" style="width:14px;height:14px;"></i>
+          Nghỉ dưỡng sang xịn
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Editorial Magazine Story Spread (Bộ Sưu Tập Tuyển Chọn) -->
+  <section id="destinations" style="max-width: 1140px; margin: 0 auto; padding: 72px 20px 84px;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:32px; flex-wrap:wrap; gap:16px;">
+      <div>
+        <div style="font-size:12px; font-weight:700; color:var(--color-ochre-gold); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
+          Bộ Sưu Tập Tuyển Chọn
+        </div>
+        <h2 style="font-family:var(--font-heading); font-size:34px; font-weight:700; color:var(--color-primary-navy); letter-spacing:-0.02em;">
+          Những Vùng Đất Chờ Bạn Đặt Chân Đến
+        </h2>
+      </div>
+      <p style="font-size:14.5px; color:var(--color-graphite); max-width:460px; line-height:1.6;">
+        Mỗi hành trình là một câu chuyện được gợi ý tinh tế. Nhấp vào bất kỳ điểm đến nào để mở không gian lập lịch cùng hội bạn.
+      </p>
+    </div>
+
+    <!-- Editorial Story Spread Grid: Spread 1 (Hội An Hero + Đà Lạt & Phú Quốc Stack) -->
+    <div class="story-spread-grid" id="destinations-spread-1">
+      
+      <!-- Hero Story Card: Hội An & Đà Nẵng -->
+      <div 
+        class="story-card-large destination-card" 
+        data-category="food beach" 
+        style="background-image: url('https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/H%E1%BB%99i_An%2C_Ancient_Town%2C_2020-01_CN-06.jpg/1280px-H%E1%BB%99i_An%2C_Ancient_Town%2C_2020-01_CN-06.jpg');"
+        onclick="quickStartTrip('Đà Nẵng & Hội An 3N2Đ')"
+      >
+        <div style="position:absolute; top:24px; left:24px; z-index:2; display:flex; gap:8px; flex-wrap:wrap;">
+          <span class="tag-editorial tag-ochre" style="background:rgba(255,255,255,0.92); backdrop-filter:blur(6px);">Di Sản & Biển Cả · 3N2Đ</span>
+          <span class="tag-editorial tag-green" style="background:rgba(255,255,255,0.92); backdrop-filter:blur(6px);">★ 4.9 Yêu Thích Nhất</span>
+        </div>
+
+        <div class="story-card-content">
+          <div style="font-size:12.5px; font-weight:600; color:var(--color-ochre-gold); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">
+            Đà Nẵng & Hội An
+          </div>
+          <h3 style="font-family:var(--font-heading); font-size:27px; font-weight:700; line-height:1.25; margin-bottom:10px;">
+            Mái Ngói Rêu Phong, Bánh Mì Phượng & Gió Biển An Bàng
+          </h3>
+          <p style="font-size:14px; color:rgba(255,255,255,0.9); line-height:1.6; max-width:540px; margin-bottom:16px;">
+            Nhâm nhi cafe ngắm sông Hoài êm đềm, đạp xe qua đồng lúa Cẩm Thanh và thưởng thức hải sản tươi ngon bên bờ biển chỉ cách phố cổ 10 phút.
+          </p>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-top:1px solid rgba(255,255,255,0.2); padding-top:14px;">
+            <div style="font-size:13.5px; color:rgba(255,255,255,0.9);">
+              Chi phí ước tính: <strong style="font-size:16px; color:#ffffff;">~2.800.000đ</strong>/người
+            </div>
+            <button class="btn btn-sm btn-ochre btn-pill" onclick="event.stopPropagation(); quickStartTrip('Đà Nẵng & Hội An 3N2Đ')">
+              Lên Lịch Đi Ngay
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Đà Lạt & Phú Quốc -->
+      <div class="story-stack-column">
+        
+        <!-- Đà Lạt Card -->
+        <div 
+          class="story-card-medium destination-card" 
+          data-category="mountain" 
+          style="background-image: url('https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e2/Da_Lat_-_Viet_Nam.jpg/1280px-Da_Lat_-_Viet_Nam.jpg');"
+          onclick="quickStartTrip('Săn Mây & Chill Cà Phê Đà Lạt 3N2Đ')"
+        >
+          <div style="position:absolute; top:18px; left:20px; z-index:2; display:flex; gap:8px;">
+            <span class="tag-editorial tag-ochre" style="background:rgba(255,255,255,0.92); backdrop-filter:blur(6px);">Cao Nguyên · 3N2Đ</span>
+            <span class="tag-editorial tag-green" style="background:rgba(255,255,255,0.92); backdrop-filter:blur(6px);">16°C Se Lạnh</span>
+          </div>
+
+          <div class="story-card-content">
+            <div style="font-size:11.5px; font-weight:600; color:var(--color-ochre-gold); text-transform:uppercase; letter-spacing:0.06em;">Đà Lạt</div>
+            <h3 style="font-family:var(--font-heading); font-size:20px; font-weight:700; line-height:1.3; margin-bottom:6px;">
+              Săn Mây Cầu Đất & Lẩu Ấm Nóng Đêm Se Lạnh
+            </h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+              <span style="font-size:13px; color:rgba(255,255,255,0.9);"><strong style="font-size:15px; color:#ffffff;">~2.200.000đ</strong>/người</span>
+              <button class="btn btn-sm btn-ghost btn-pill" style="color:#ffffff; border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.15);" onclick="event.stopPropagation(); quickStartTrip('Săn Mây & Chill Cà Phê Đà Lạt 3N2Đ')">Chọn</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phú Quốc Card -->
+        <div 
+          class="story-card-medium destination-card" 
+          data-category="beach resort" 
+          style="background-image: url('https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/Phu_Quoc%2C_Viet_Nam.jpg/1280px-Phu_Quoc%2C_Viet_Nam.jpg');"
+          onclick="quickStartTrip('Kỳ Nghỉ Biển Đảo Phú Quốc 4N3Đ')"
+        >
+          <div style="position:absolute; top:18px; left:20px; z-index:2; display:flex; gap:8px;">
+            <span class="tag-editorial tag-green" style="background:rgba(255,255,255,0.92); backdrop-filter:blur(6px);">Đảo Ngọc · 4N3Đ</span>
+          </div>
+
+          <div class="story-card-content">
+            <div style="font-size:11.5px; font-weight:600; color:var(--color-ochre-gold); text-transform:uppercase; letter-spacing:0.06em;">Phú Quốc</div>
+            <h3 style="font-family:var(--font-heading); font-size:20px; font-weight:700; line-height:1.3; margin-bottom:6px;">
+              Hoàng Hôn Bãi Sao & Tiệc Hải Sản Làng Chài
+            </h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+              <span style="font-size:13px; color:rgba(255,255,255,0.9);"><strong style="font-size:15px; color:#ffffff;">~4.500.000đ</strong>/người</span>
+              <button class="btn btn-sm btn-ghost btn-pill" style="color:#ffffff; border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.15);" onclick="event.stopPropagation(); quickStartTrip('Kỳ Nghỉ Biển Đảo Phú Quốc 4N3Đ')">Chọn</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Spread 2: Hà Giang & Ninh Bình (Asymmetric Dual Spreads) -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:24px; margin-top:24px;">
+      
+      <!-- Hà Giang Card -->
+      <div 
+        class="story-card-medium destination-card" 
+        data-category="mountain" 
+        style="height:250px; background-image: url('https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/M%C3%A3_P%C3%AD_L%C3%A8ng_Pass%2C_Vietnam.jpg/1280px-M%C3%A3_P%C3%AD_L%C3%A8ng_Pass%2C_Vietnam.jpg');"
+        onclick="quickStartTrip('Phượt Đèo Mã Pí Lèng Hà Giang 4N3Đ')"
+      >
+        <div style="position:absolute; top:18px; left:20px; z-index:2; display:flex; gap:8px;">
+          <span class="tag-editorial tag-terracotta" style="background:rgba(255,255,255,0.92); backdrop-filter:blur(6px);">Hùng Vĩ Miền Bắc · 4N3Đ</span>
+        </div>
+
+        <div class="story-card-content">
+          <div style="font-size:11.5px; font-weight:600; color:var(--color-ochre-gold); text-transform:uppercase; letter-spacing:0.06em;">Hà Giang</div>
+          <h3 style="font-family:var(--font-heading); font-size:21px; font-weight:700; line-height:1.3; margin-bottom:6px;">
+            Hẻm Tu Sản, Đèo Mã Pí Lèng & Mùa Tam Giác Mạch
+          </h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <span style="font-size:13px; color:rgba(255,255,255,0.9);"><strong style="font-size:15px; color:#ffffff;">~2.900.000đ</strong>/người</span>
+            <button class="btn btn-sm btn-ghost btn-pill" style="color:#ffffff; border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.15);" onclick="event.stopPropagation(); quickStartTrip('Phượt Đèo Mã Pí Lèng Hà Giang 4N3Đ')">Chọn</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ninh Bình Card -->
+      <div 
+        class="story-card-medium destination-card" 
+        data-category="resort food" 
+        style="height:250px; background-image: url('https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/Trang_An_Landscape_Complex%2C_Ninh_Binh_Province%2C_Vietnam%2C_20240202_1447_5310.jpg/1280px-Trang_An_Landscape_Complex%2C_Ninh_Binh_Province%2C_Vietnam%2C_20240202_1447_5310.jpg');"
+        onclick="quickStartTrip('Khám Phá Di Sản Ninh Bình 2N1Đ')"
+      >
+        <div style="position:absolute; top:18px; left:20px; z-index:2; display:flex; gap:8px;">
+          <span class="tag-editorial tag-green" style="background:rgba(255,255,255,0.92); backdrop-filter:blur(6px);">Di Sản UNESCO · 2N1Đ</span>
+        </div>
+
+        <div class="story-card-content">
+          <div style="font-size:11.5px; font-weight:600; color:var(--color-ochre-gold); text-transform:uppercase; letter-spacing:0.06em;">Ninh Bình</div>
+          <h3 style="font-family:var(--font-heading); font-size:21px; font-weight:700; line-height:1.3; margin-bottom:6px;">
+            Thuyền Chèo Non Nước Tràng An & Đỉnh Hang Múa
+          </h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <span style="font-size:13px; color:rgba(255,255,255,0.9);"><strong style="font-size:15px; color:#ffffff;">~1.500.000đ</strong>/người</span>
+            <button class="btn btn-sm btn-ghost btn-pill" style="color:#ffffff; border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.15);" onclick="event.stopPropagation(); quickStartTrip('Khám Phá Di Sản Ninh Bình 2N1Đ')">Chọn</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Interactive Live Experience Preview (Trải Nghiệm Thử Cơ Chế Thả Tim & Nút Swap) -->
+  <section id="interactive-preview" style="background-color: var(--color-surface-soft); border-top: 1px solid var(--color-ash-border); border-bottom: 1px solid var(--color-ash-border); padding: 76px 20px;">
+    <div style="max-width: 960px; margin: 0 auto; text-align: center;">
+      
+      <div class="tag-editorial tag-terracotta" style="display:inline-flex; align-items:center; gap:6px; margin-bottom:16px;">
+        <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+        <span>Trải Nghiệm Trực Tiếp</span>
+      </div>
+
+      <h2 style="font-size:32px; font-weight:700; color:var(--color-primary-navy); letter-spacing:-0.02em; margin-bottom:12px; font-family:var(--font-heading);">
+        Thả Tim Điểm Yêu Thích & Đổi Bằng Nút Swap
+      </h2>
+      <p style="font-size:15px; color:var(--color-graphite); max-width:640px; margin:0 auto 36px; line-height:1.65;">
+        Không còn tranh cãi xem đi ăn quán nào. Cả nhóm cùng thả tim điểm dừng yêu thích. Nếu muốn đổi quán, chỉ cần bấm <strong>Swap</strong> — phương án dự phòng kế cận đã được tính cự ly hợp lý sẽ thay thế tức thì!
+      </p>
+
+      <!-- Bespoke Living Sample Card (Mirroring room.html's Hero Stop Card) -->
+      <div style="max-width:500px; margin:0 auto; background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); box-shadow:var(--shadow-card); overflow:hidden; text-align:left;">
+        
+        <!-- Cinema Photography Banner (16:9) -->
+        <div style="position:relative; height:200px; overflow:hidden;">
+          <img id="sample-card-img" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/B%C3%A1nh_M%C3%AC_Ph%C6%B0%E1%BB%A3ng_%282024%29_-_img_01.jpg/1280px-B%C3%A1nh_M%C3%AC_Ph%C6%B0%E1%BB%A3ng_%282024%29_-_img_01.jpg" style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;" alt="Sample Stop Food" />
+          <div style="position:absolute; top:12px; left:12px; display:flex; gap:6px;">
+            <span class="tag-editorial tag-green" style="background:rgba(255,255,255,0.95); backdrop-filter:blur(6px); font-size:11px;">★ 4.8 Bản Địa Tuyển Chọn</span>
+            <span class="tag-editorial tag-ochre" style="background:rgba(255,255,255,0.95); backdrop-filter:blur(6px); font-size:11px;">Ăn Sáng & Cafe</span>
+          </div>
+        </div>
+
+        <div style="padding:22px;">
+          
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+            <h4 id="sample-card-title" style="font-family:var(--font-heading); font-size:20px; font-weight:700; color:var(--color-primary-navy);">
+              Bánh Mì Phượng Hội An
+            </h4>
+            <span id="sample-card-price" style="font-size:14px; font-weight:600; color:var(--color-moss-pine); font-family:var(--font-mono);">
+              35.000đ/người
+            </span>
+          </div>
+
+          <p id="sample-card-address" style="font-size:13px; color:var(--color-steel-muted); margin-bottom:14px; display:flex; align-items:center; gap:5px;">
+            <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--color-ochre-gold);flex-shrink:0;"></i>
+            <span>2B Phan Chu Trinh, Phố Cổ Hội An · Cách điểm tiếp theo 450m</span>
+          </p>
+
+          <!-- Friend Sticky Note -->
+          <div class="friend-sticky-note" id="sample-sticky-note" style="margin-bottom:16px;">
+            <i data-lucide="message-circle" style="width:14px;height:14px;flex-shrink:0;color:var(--color-ochre-gold);"></i>
+            <span id="sample-sticky-text"><strong>Huy ghi chú:</strong> "Pate béo ngậy giòn rụm! Nên ghé tầm 8:30 sáng đỡ phải xếp hàng lâu nhé cả nhóm."</span>
+          </div>
+
+          <!-- Pre-fetched Backup Box -->
+          <div style="background:var(--color-warm-canvas); border:1px dashed var(--color-ash-border-dark); border-radius:var(--radius-control); padding:10px 14px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:12.5px; color:var(--color-graphite);">
+              <span style="color:var(--color-steel-muted);">Phương án dự phòng:</span> <strong id="sample-backup-title">Bánh Mì Madam Khánh (cách 420m)</strong>
+            </div>
+            <span class="tag-editorial tag-ochre" style="font-size:11px;">Sẵn Sàng</span>
+          </div>
+
+          <!-- Card Actions: Heart Button + Avatars & Swap Button -->
+          <div style="display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid var(--color-ash-border);">
+            
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="btn-heart active" id="sample-heart-btn" onclick="sampleHeartToggle()" title="Thả tim yêu thích điểm này">
+                <i data-lucide="heart" style="width:14px;height:14px;"></i>
+                <span id="sample-heart-count">4</span>
+              </button>
+              <span id="sample-heart-text" style="font-size:12px; color:var(--color-steel-muted);">
+                Đức, Huy & 2 bạn đã thích
+              </span>
+            </div>
+
+            <button class="btn-swap" onclick="sampleSwapDemo()" title="Đổi ngay sang phương án dự phòng kế cận">
+              <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+              <span>Swap</span>
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div style="margin-top:32px;">
+        <a href="room.html" class="btn btn-navy btn-pill btn-lg">
+          Vào Trải Nghiệm Toàn Bộ Phòng 3 Cột
+          <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- How It Works (Quy Trình 3 Bước Tự Nhiên & Dễ Dàng) -->
+  <section id="how-it-works" style="padding: 76px 20px; max-width: 1080px; margin: 0 auto; text-align: center;">
+    <div style="font-size:12px; font-weight:700; color:var(--color-ochre-gold); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
+      Quy Trình Lập Kế Hoạch
+    </div>
+    <h2 style="font-family: var(--font-heading); font-size: 32px; font-weight: 700; color: var(--color-primary-navy); letter-spacing: -0.02em; margin-bottom: 12px;">
+      Đồng Thuận Thảnh Thơi Hoạt Động Thế Nào?
+    </h2>
+    <p style="font-size: 15px; color: var(--color-steel-muted); margin-bottom: 48px; max-width: 620px; margin-left: auto; margin-right: auto;">
+      Thiết kế dựa trên thói quen du lịch thực tế của các nhóm bạn: Dứt khoát, tự do bày tỏ sở thích và linh hoạt thay đổi khi thời tiết bất ngờ.
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px; text-align: left;">
+      
+      <!-- Step 1 -->
+      <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:32px; box-shadow:var(--shadow-card);">
+        <div style="width:44px; height:44px; border-radius:50%; background:var(--color-ochre-gold-light); display:flex; align-items:center; justify-content:center; color:var(--color-ochre-gold); font-size:18px; font-weight:800; margin-bottom:18px; font-family:var(--font-heading);">
+          1
+        </div>
+        <h3 style="font-family:var(--font-heading); font-size:19px; font-weight:700; color:var(--color-primary-navy); margin-bottom:10px;">
+          Lắng Nghe & Lên Khung Hành Trình
+        </h3>
+        <p style="font-size:14px; color:var(--color-graphite); line-height:1.65;">
+          Cả nhóm cùng trao đổi ngày đi, thời lượng và sở thích (nghỉ ngơi chill hay trải nghiệm ẩm thực). Hệ thống tự động phác thảo khung hành trình thong thả và hợp lý nhất.
+        </p>
+      </div>
+
+      <!-- Step 2 -->
+      <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:32px; box-shadow:var(--shadow-card);">
+        <div style="width:44px; height:44px; border-radius:50%; background:var(--color-moss-pine-pale); display:flex; align-items:center; justify-content:center; color:var(--color-moss-pine); font-size:18px; font-weight:800; margin-bottom:18px; font-family:var(--font-heading);">
+          2
+        </div>
+        <h3 style="font-family:var(--font-heading); font-size:19px; font-weight:700; color:var(--color-primary-navy); margin-bottom:10px;">
+          Thả Tim Sở Thích & Swap Linh Hoạt
+        </h3>
+        <p style="font-size:14px; color:var(--color-graphite); line-height:1.65;">
+          Từng thành viên xem qua các điểm dừng, thả tim những nơi mình muốn ghé. Nếu có điểm chưa ưng ý, chỉ 1 chạm nút <strong>Swap</strong> để hoán đổi ngay phương án dự phòng kế cận.
+        </p>
+      </div>
+
+      <!-- Step 3 -->
+      <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:32px; box-shadow:var(--shadow-card);">
+        <div style="width:44px; height:44px; border-radius:50%; background:var(--color-surface-soft); display:flex; align-items:center; justify-content:center; color:var(--color-primary-navy); font-size:18px; font-weight:800; margin-bottom:18px; font-family:var(--font-heading);">
+          3
+        </div>
+        <h3 style="font-family:var(--font-heading); font-size:19px; font-weight:700; color:var(--color-primary-navy); margin-bottom:10px;">
+          Chốt Lịch Trình & Thảnh Thơi Khi Đi
+        </h3>
+        <p style="font-size:14px; color:var(--color-graphite); line-height:1.65;">
+          Host bấm <strong>Chốt Lịch Trình</strong> khi cả nhóm đã đồng thuận. Trong suốt chuyến đi, nếu gặp trời mưa to, trợ lý bản địa gợi ý ngay quán cafe ấm cúng gần nhất để cả nhóm tiếp tục vui.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Comprehensive Editorial Footer -->
+  <footer class="editorial-footer">
+    
+    <div class="footer-top-grid">
+      
+      <!-- Brand Col -->
+      <div>
+        <div class="nav-logo" style="margin-bottom:14px; font-size:20px;">
+          <i data-lucide="compass" style="width:22px;height:22px;color:var(--color-primary-navy);"></i>
+          <span>TripMate</span>
+        </div>
+        <p style="font-size:14px; color:var(--color-graphite); line-height:1.65; max-width:320px; margin-bottom:20px;">
+          Nền tảng lập kế hoạch du lịch nhóm bằng sự đồng thuận, thảnh thơi và trọn vẹn từng khoảnh khắc bên bạn bè và gia đình.
+        </p>
+        <div style="display:flex; gap:10px;">
+          <a href="#" class="social-icon-btn" title="GitHub Project"><i data-lucide="github"></i></a>
+          <a href="#" class="social-icon-btn" title="Facebook Community"><i data-lucide="facebook"></i></a>
+          <a href="#" class="social-icon-btn" title="Email Hỗ Trợ"><i data-lucide="mail"></i></a>
+        </div>
+      </div>
+
+      <!-- Navigation Col 1: Khám Phá -->
+      <div>
+        <h4 class="footer-col-title">Khám Phá</h4>
+        <ul class="footer-links">
+          <li><a href="#destinations">Bộ Sưu Tập Điểm Đến</a></li>
+          <li><a href="room.html">Phòng Lập Kế Hoạch 3 Cột</a></li>
+          <li><a href="checklist.html">Checklist Hành Lý</a></li>
+          <li><a href="admin.html">Admin Thống Kê & Quan Sát</a></li>
+          <li><a href="auth.html">Đăng Ký Thành Viên</a></li>
+        </ul>
+      </div>
+
+      <!-- Navigation Col 2: Tính Năng -->
+      <div>
+        <h4 class="footer-col-title">Trải Nghiệm</h4>
+        <ul class="footer-links">
+          <li><a href="#how-it-works">Quy Trình 3 Bước Tự Nhiên</a></li>
+          <li><a href="#interactive-preview">Thả Tim Điểm Dừng Yêu Thích</a></li>
+          <li><a href="#interactive-preview">Đổi Điểm Dự Phòng (Swap)</a></li>
+          <li><a href="room.html">Lịch Trình Thích Ứng Khi Trời Mưa</a></li>
+          <li><a href="room.html">Bản Đồ Định Tuyến Thông Minh</a></li>
+        </ul>
+      </div>
+
+      <!-- Navigation Col 3: Hỗ Trợ & Cộng Đồng -->
+      <div>
+        <h4 class="footer-col-title">Cộng Đồng</h4>
+        <ul class="footer-links">
+          <li><a href="#">Trung Tâm Trợ Giúp</a></li>
+          <li><a href="#">Cẩm Nang Du Lịch Nhóm</a></li>
+          <li><a href="#">Gợi Ý Điểm Đến Theo Mùa</a></li>
+          <li><a href="#">Chia Sẻ Lịch Trình Thực Tế</a></li>
+          <li><a href="#">Liên Hệ & Góp Ý Ý Kiến</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Footer Bottom Strip -->
+    <div class="footer-bottom">
+      <div>
+        © 2026 TripMate Platform · Đồng hành cùng mọi chuyến đi của bạn.
+      </div>
+      <div style="display:flex; gap:16px;">
+        <a href="#" style="color:var(--color-steel-muted);">Điều khoản sử dụng</a>
+        <a href="#" style="color:var(--color-steel-muted);">Chính sách bảo mật</a>
+        <a href="#" style="color:var(--color-primary-navy); font-weight:600;">🇻🇳 Tiếng Việt</a>
+      </div>
+    </div>
+
+  </footer>
+
+  <!-- Modal: Khởi Tạo Chuyến Đi Mới (Bo Góc Mềm Mại var(--radius-modal)) -->
+  <div class="modal-overlay" id="create-modal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 style="font-family:var(--font-heading); font-size:21px; font-weight:700; color:var(--color-primary-navy);">Khởi Tạo Chuyến Đi Cùng Hội Bạn</h3>
+        <button onclick="AppModule.closeModal('create-modal')" style="color:var(--color-steel-muted); padding:4px;">
+          <i data-lucide="x" style="width:20px;height:20px;"></i>
+        </button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); window.location.href='room.html';" style="display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Tên chuyến đi / Cuộc hẹn:</label>
+          <input type="text" id="modal-trip-name" class="form-input" required placeholder="Ví dụ: Đà Nẵng & Hội An 3N2Đ" value="Đà Nẵng & Hội An 3N2Đ cùng Hội Bạn Thân">
+        </div>
+
+        <div>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Phạm vi chuyến đi:</label>
+          <select class="styled-select" style="width:100%;">
+            <option value="VACATION">Kỳ nghỉ nhiều ngày (Multi-day Vacation)</option>
+            <option value="DAY_HANGOUT">Đi chơi trong ngày (Day Hangout)</option>
+          </select>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div>
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Ngày khởi hành:</label>
+            <input type="date" class="form-input" value="2026-11-20">
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Ngày về:</label>
+            <input type="date" class="form-input" value="2026-11-22">
+          </div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-ghost btn-pill" onclick="AppModule.closeModal('create-modal')">Hủy</button>
+          <button type="submit" class="btn btn-navy btn-pill">Tạo Phòng & Mời Bạn Bè</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Nhập mã PIN tham gia (Bo Góc Mềm Mại) -->
+  <div class="modal-overlay" id="join-modal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 style="font-family:var(--font-heading); font-size:21px; font-weight:700; color:var(--color-primary-navy);">Tham Gia Bằng Mã PIN</h3>
+        <button onclick="AppModule.closeModal('join-modal')" style="color:var(--color-steel-muted); padding:4px;">
+          <i data-lucide="x" style="width:20px;height:20px;"></i>
+        </button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); window.location.href='room.html';" style="display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Nhập mã PIN phòng (6 chữ số):</label>
+          <input type="text" maxlength="6" class="form-input" style="text-align:center;font-size:24px;font-family:var(--font-mono);letter-spacing:0.25em;font-weight:700;" value="889214">
+        </div>
+
+        <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-ghost btn-pill" onclick="AppModule.closeModal('join-modal')">Hủy</button>
+          <button type="submit" class="btn btn-navy btn-pill">Vào Phòng Ngay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/app.js"></script>
+
+  <script>
+    // Flagship Custom Dropdown Controller (Zero-error, outside-click listener)
+    function toggleCustomDropdown(dropdownId, event) {
+      if (event) event.stopPropagation();
+      const el = document.getElementById(dropdownId);
+      if (!el) return;
+      const isOpen = el.classList.contains('open');
+      
+      // Close all dropdowns
+      document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('open'));
+      
+      if (!isOpen) {
+        el.classList.add('open');
+      }
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    // Close dropdowns when clicking anywhere outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-dropdown')) {
+        document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('open'));
+      }
+    });
+
+    function selectDuration(element, label) {
+      const labelEl = document.getElementById('selected-duration-label');
+      if (labelEl) labelEl.innerText = label;
+      
+      // Update active state
+      document.querySelectorAll('#dropdown-duration .dropdown-item').forEach(i => {
+        i.classList.remove('active');
+        const checkIcon = i.querySelector('.item-check-icon');
+        if (checkIcon) checkIcon.remove();
+      });
+
+      if (element) {
+        element.classList.add('active');
+        const checkEl = document.createElement('i');
+        checkEl.setAttribute('data-lucide', 'check');
+        checkEl.className = 'item-check-icon';
+        element.appendChild(checkEl);
+      }
+
+      const dropdown = document.getElementById('dropdown-duration');
+      if (dropdown) dropdown.classList.remove('open');
+      
+      if (window.lucide) window.lucide.createIcons();
+      AppModule.showToast(`Đã chọn thời lượng: ${label}`);
+    }
+
+    function selectMembers(element, label) {
+      const labelEl = document.getElementById('selected-members-label');
+      if (labelEl) labelEl.innerText = label;
+
+      // Update active state
+      document.querySelectorAll('#dropdown-members .dropdown-item').forEach(i => {
+        i.classList.remove('active');
+        const checkIcon = i.querySelector('.item-check-icon');
+        if (checkIcon) checkIcon.remove();
+      });
+
+      if (element) {
+        element.classList.add('active');
+        const checkEl = document.createElement('i');
+        checkEl.setAttribute('data-lucide', 'check');
+        checkEl.className = 'item-check-icon';
+        element.appendChild(checkEl);
+      }
+
+      const dropdown = document.getElementById('dropdown-members');
+      if (dropdown) dropdown.classList.remove('open');
+
+      if (window.lucide) window.lucide.createIcons();
+      AppModule.showToast(`Đã chọn quy mô: ${label}`);
+    }
+
+    function selectDestination(destName) {
+      const input = document.getElementById('main-search-input');
+      if (input) {
+        input.value = destName;
+        handleSearchFilter(destName);
+      }
+      const dropdown = document.getElementById('dropdown-dest');
+      if (dropdown) dropdown.classList.remove('open');
+
+      AppModule.showToast(`Đã chọn điểm đến: ${destName}`);
+    }
+
+    // Interactive Sample Swap on Landing Page
+    let sampleIsSwapped = false;
+    function sampleSwapDemo() {
+      sampleIsSwapped = !sampleIsSwapped;
+      const img = document.getElementById('sample-card-img');
+      const title = document.getElementById('sample-card-title');
+      const address = document.getElementById('sample-card-address');
+      const backup = document.getElementById('sample-backup-title');
+      const stickyText = document.getElementById('sample-sticky-text');
+
+      if (sampleIsSwapped) {
+        img.src = 'https://upload.wikimedia.org/wikipedia/commons/0/0c/B%C3%A1nh_m%C3%AC_th%E1%BB%8Bt_n%C6%B0%E1%BB%9Bng.png';
+        title.innerText = 'Bánh Mì Madam Khánh (The Banh Mi Queen)';
+        address.innerHTML = '<i data-lucide="map-pin" style="width:13px;height:13px;color:var(--color-ochre-gold);flex-shrink:0;"></i><span>115 Trần Cao Vân, Sơn Phong, Hội An · Cách 420m</span>';
+        backup.innerText = 'Bánh Mì Phượng (Phương án ban đầu)';
+        if (stickyText) {
+          stickyText.innerHTML = '<strong>Đức ghi chú:</strong> "Madam Khánh nước sốt đậm đà cay nồng hơn, không gian ngồi trong nhà thoải mái lắm!"';
+        }
+        AppModule.showToast('🔄 Đã Swap sang Bánh Mì Madam Khánh (cách 420m)!', 'green');
+      } else {
+        img.src = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/B%C3%A1nh_M%C3%AC_Ph%C6%B0%E1%BB%A3ng_%282024%29_-_img_01.jpg/1280px-B%C3%A1nh_M%C3%AC_Ph%C6%B0%E1%BB%A3ng_%282024%29_-_img_01.jpg';
+        title.innerText = 'Bánh Mì Phượng Hội An';
+        address.innerHTML = '<i data-lucide="map-pin" style="width:13px;height:13px;color:var(--color-ochre-gold);flex-shrink:0;"></i><span>2B Phan Chu Trinh, Phố Cổ Hội An · Cách điểm tiếp theo 450m</span>';
+        backup.innerText = 'Bánh Mì Madam Khánh (cách 420m)';
+        if (stickyText) {
+          stickyText.innerHTML = '<strong>Huy ghi chú:</strong> "Pate béo ngậy giòn rụm! Nên ghé tầm 8:30 sáng đỡ phải xếp hàng lâu nhé cả nhóm."';
+        }
+        AppModule.showToast('🔄 Đã quay lại Bánh Mì Phượng!');
+      }
+
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    // Heart Reaction Toggle on Sample Card
+    let sampleIsHearted = true;
+    let sampleHeartCount = 4;
+    function sampleHeartToggle() {
+      sampleIsHearted = !sampleIsHearted;
+      const btn = document.getElementById('sample-heart-btn');
+      const countEl = document.getElementById('sample-heart-count');
+      const textEl = document.getElementById('sample-heart-text');
+
+      if (sampleIsHearted) {
+        sampleHeartCount++;
+        btn.classList.add('active');
+        countEl.innerText = sampleHeartCount;
+        textEl.innerText = 'Bạn, Đức, Huy & 2 bạn đã thích';
+        AppModule.showToast('❤️ Bạn đã thả tim Bánh Mì Phượng!');
+      } else {
+        sampleHeartCount--;
+        btn.classList.remove('active');
+        countEl.innerText = sampleHeartCount;
+        textEl.innerText = 'Huy & 2 bạn đã thích';
+        AppModule.showToast('Đã bỏ thả tim');
+      }
+    }
+
+    // Search filter logic
+    function handleSearchFilter(keyword) {
+      const query = keyword.toLowerCase().trim();
+      const cards = document.querySelectorAll('.destination-card');
+      
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (!query || text.includes(query)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Category filter logic
+    function filterCategory(cat, el) {
+      document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+
+      const cards = document.querySelectorAll('.destination-card');
+      cards.forEach(card => {
+        const itemCats = card.getAttribute('data-category') || '';
+        if (cat === 'all' || itemCats.includes(cat)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Quick start trip from destination card
+    function quickStartTrip(destinationName) {
+      const nameInput = document.getElementById('modal-trip-name');
+      if (nameInput) nameInput.value = destinationName;
+      AppModule.openModal('create-modal');
+    }
+
+    // Initialize Lucide icons on window load
+    window.addEventListener('load', () => {
+      if (window.lucide) window.lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

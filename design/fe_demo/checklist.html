@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripMate — Smart Packing Checklist</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans (Modern Geometric Display & UI) & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+
+  <!-- Design System CSS Modules -->
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background-color: var(--color-warm-canvas);">
+
+  <!-- Global Sticky Top Bar -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      <a href="room.html" class="nav-logo" title="Quay lại phòng">
+        <i data-lucide="arrow-left" style="width:20px;height:20px;color:var(--color-primary-navy);"></i>
+        <span>Quay lại phòng</span>
+      </a>
+      <span style="color:var(--color-ash-border-dark);">|</span>
+      <h2 style="font-size:15px;font-weight:700;color:var(--color-ink-black);">Checklist Hành Lý Thông Minh</h2>
+    </div>
+
+    <div class="nav-actions">
+      <a href="room.html" class="btn btn-sm btn-navy">
+        <i data-lucide="layout" style="width:14px;height:14px;"></i>
+        Màn Hình Lịch Trình
+      </a>
+    </div>
+  </header>
+
+  <main style="max-width: 760px; margin: 40px auto; padding: 0 20px;">
+    
+    <!-- Progress Header Card -->
+    <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:20px; box-shadow:var(--shadow-card); margin-bottom:24px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div>
+          <h3 style="font-size:16px; font-weight:700; color:var(--color-primary-navy);">Tiến Độ Chuẩn Bị Đồ Dùng</h3>
+          <p style="font-size:13px; color:var(--color-graphite);">Được tự động gợi ý dựa trên địa điểm: Biển An Bàng & Phố Cổ Hội An</p>
+        </div>
+        <span class="badge badge-green" id="checklist-progress-count">3/5 đồ dùng (60%)</span>
+      </div>
+
+      <div class="progress-container" style="height:8px;">
+        <div class="progress-bar" id="checklist-progress-bar" style="width:60%;"></div>
+      </div>
+    </div>
+
+    <!-- Add Item Form -->
+    <div style="background:#ffffff; border:1px solid var(--color-ash-border); border-radius:var(--radius-card); padding:16px; box-shadow:var(--shadow-card); margin-bottom:24px;">
+      <form id="checklist-add-form" style="display:flex; gap:12px; align-items:center;">
+        <input type="text" id="checklist-new-label" class="form-input" placeholder="Thêm đồ dùng cần mang (ví dụ: máy sấy tóc)..." required style="flex:1;" />
+        
+        <select id="checklist-new-cat" class="styled-select" style="min-width:160px;">
+          <option value="Trang Phục">Trang Phục</option>
+          <option value="Công Nghệ">Công Nghệ</option>
+          <option value="Giấy Tờ & Tiền">Giấy Tờ & Tiền</option>
+          <option value="Y Tế">Y Tế</option>
+          <option value="Cá Nhân">Cá Nhân</option>
+        </select>
+
+        <button type="submit" class="btn btn-navy btn-pill" style="white-space:nowrap;">
+          <i data-lucide="plus" style="width:14px;height:14px;"></i>
+          Thêm
+        </button>
+      </form>
+    </div>
+
+    <!-- Items List Container -->
+    <div id="checklist-items-container">
+      <!-- Rendered dynamically by ChecklistModule -->
+    </div>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/checklist.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      ChecklistModule.init();
+    });
+  </script>
+</body>
+</html>

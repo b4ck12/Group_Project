@@ -1,0 +1,373 @@
+/* ==========================================================================
+   TripMate AI — Editorial Living Timeline & Itinerary Cards (design/fe_demo)
+   Bespoke Editorial Travel Journal System (Kinfolk & Airbnb Luxe)
+   Visual Rhythm: Featured Hero Stops vs Compact Stops + Warm Reactions
+   ========================================================================== */
+
+/* Timeline Sticky Header: Editorial Bar + Day Tabs */
+.timeline-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--color-ash-border);
+  box-shadow: 0 2px 8px rgba(14, 34, 56, 0.03);
+}
+
+.itinerary-journal-header {
+  padding: 16px 24px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--color-surface-soft);
+}
+
+.itinerary-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itinerary-title {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itinerary-subtitle {
+  font-size: 12.5px;
+  color: var(--color-steel-muted);
+}
+
+/* Day Selector Tabs Bar */
+.day-nav {
+  padding: 8px 24px 10px;
+  background-color: var(--color-warm-canvas);
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.day-tab {
+  padding: 7px 15px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #ffffff;
+  border: 1px solid var(--color-ash-border);
+  color: var(--color-graphite);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.day-tab:hover {
+  border-color: var(--color-ash-border-dark);
+  color: var(--color-primary-navy);
+}
+
+.day-tab.active {
+  background-color: var(--color-primary-navy);
+  color: #ffffff;
+  border-color: var(--color-primary-navy);
+  box-shadow: 0 2px 6px rgba(14, 34, 56, 0.18);
+}
+
+/* Timeline Content Container */
+.timeline-content {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Time Slot Section (Morning, Afternoon, Evening) */
+.time-slot-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-terracotta);
+  margin: 20px 0 12px 0;
+}
+
+.time-slot-label:first-child {
+  margin-top: 0;
+}
+
+.time-slot-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-ash-border);
+}
+
+/* ==========================================================================
+   STOP CARDS: Visual Rhythm & Editorial Storytelling
+   ========================================================================== */
+
+.stop-card {
+  background-color: #ffffff;
+  border: 1px solid var(--color-ash-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.stop-card:hover {
+  border-color: var(--color-ash-border-dark);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+/* Highlight pulse when clicked from Map Pin */
+.stop-card.highlighted-pulse {
+  border-color: var(--color-coastal-blue);
+  box-shadow: 0 0 0 4px rgba(27, 107, 128, 0.2);
+  animation: cardPulse 1.2s ease;
+}
+
+@keyframes cardPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+  100% { transform: scale(1); }
+}
+
+/* Hero Stop Card (Cinema 16:9 Aspect Ratio) */
+.stop-card-hero .stop-card-media {
+  height: 220px;
+}
+
+/* Compact Stop Card (For breakfast or quick coffee) */
+.stop-card-compact .stop-card-media {
+  height: 150px;
+}
+
+.stop-card-media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--color-mist-gray);
+}
+
+.stop-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.stop-card:hover .stop-card-image {
+  transform: scale(1.03);
+}
+
+.stop-card-badges {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+}
+
+.stop-card-body {
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stop-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.stop-name {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.stop-card-compact .stop-name {
+  font-size: 18px;
+}
+
+.stop-cost {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-coastal-blue);
+  font-family: var(--font-mono);
+  background-color: var(--color-coastal-blue-light);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid #d4ebf2;
+  white-space: nowrap;
+}
+
+.stop-address {
+  font-size: 12.5px;
+  color: var(--color-steel-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stop-desc {
+  font-size: 13.5px;
+  color: var(--color-graphite);
+  line-height: 1.55;
+}
+
+/* Friend's Handwritten-Style Sticky Note */
+.friend-sticky-note {
+  background-color: #fefcf3;
+  border-left: 3px solid var(--color-ochre-gold);
+  border-radius: 0 10px 10px 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--color-graphite);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.friend-sticky-note strong {
+  color: var(--color-primary-navy);
+}
+
+/* Backup Option Notice inside Card */
+.backup-preview-box {
+  background-color: var(--color-surface-soft);
+  border: 1px dashed var(--color-ash-border-dark);
+  border-radius: var(--radius-control);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--color-graphite);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.backup-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Stop Card Footer: Heart Reaction + Voter Stack + Swap Button */
+.stop-card-footer {
+  padding: 12px 22px;
+  border-top: 1px solid var(--color-ash-border);
+  background-color: #faf8f5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.voter-heart-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.voter-mini-stack {
+  display: flex;
+  align-items: center;
+}
+
+.voter-mini-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  margin-left: -6px;
+  object-fit: cover;
+}
+
+.voter-mini-avatar:first-child {
+  margin-left: 0;
+}
+
+/* Replaced Card State (Living Itinerary) */
+.stop-card.replaced {
+  opacity: 0.6;
+  background-color: var(--color-surface-soft);
+}
+
+.stop-card.replaced .stop-name {
+  text-decoration: line-through;
+}
+
+/* ==========================================================================
+   POETIC TRANSIT CONNECTORS — Clean, Human, Editorial Flow
+   ========================================================================== */
+.transit-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 6px 0;
+}
+
+.transit-line-segment {
+  width: 1px;
+  height: 18px;
+  background-color: var(--color-ash-border-dark);
+}
+
+.transit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-steel-muted);
+  background-color: #ffffff;
+  border: 1px solid var(--color-ash-border);
+  padding: 5px 16px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);
+  z-index: 2;
+  transition: all 0.15s ease;
+}
+
+.transit-badge:hover {
+  border-color: var(--color-coastal-blue);
+  color: var(--color-primary-navy);
+}
+
+.transit-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-coastal-blue);
+}
