@@ -160,11 +160,20 @@
       "recommend_swap": true,
       "backup_options": [
         {
+          "option_index": 2,
           "place_name": "The Espresso Station",
           "place_ref_id": "ChIJN1t_tDeuEmsRUsoyG83frY4",
           "category": "CAFE",
           "estimated_cost": 45000,
           "distance_km": 0.4
+        },
+        {
+          "option_index": 3,
+          "place_name": "Artisan Roastery & Bakery",
+          "place_ref_id": "ChIJb7c_tDeuEmsRUk98G83frY5",
+          "category": "CAFE",
+          "estimated_cost": 50000,
+          "distance_km": 0.7
         }
       ]
     }
@@ -173,44 +182,66 @@
 
 ---
 
-### 3.3. `POST /api/v1/events/{id}/stops/{stopId}/swap` (1-Click Swap Dự Phòng)
-- **Mô tả**: Thay thế điểm dừng hiện tại bằng phương án dự phòng đã được xác thực sẵn.
+### 3.3. `POST /api/v1/events/{id}/stops/{stopId}/swap` (Luân Chuyển Đa Phương Án / Multi-Option Swap)
+- **Mô tả**: Thay thế điểm dừng hiện tại bằng một phương án cụ thể trong danh sách ứng viên (`backup_options`), cho phép luân chuyển sang Phương án 2, Phương án 3,... mà không bị giới hạn chỉ swap 1 lần.
 - **Quyền hạn (Auth)**: `Bearer JWT` (Role `HOST` hoặc `MEMBER`).
 - **Request Body (JSON)**:
   ```json
   {
-    "target_backup_place_ref_id": "ChIJN1t_tDeuEmsRUsoyG83frY4"
+    "target_backup_place_ref_id": "ChIJN1t_tDeuEmsRUsoyG83frY4",
+    "cycle_next": false
   }
   ```
+  *(Truyền `target_backup_place_ref_id` để chọn chính xác Phương án 2 hoặc 3; hoặc truyền `"cycle_next": true` để tự động chuyển sang phương án kế tiếp trong danh sách).*
 - **Response `200 OK`**:
   ```json
   {
     "success": true,
     "data": {
-      "swapped_stop_id": "stop_cafe_001",
+      "previous_stop_id": "stop_cafe_001",
+      "new_stop_id": "stop_cafe_002",
       "new_place_name": "The Espresso Station",
+      "selected_option_index": 2,
       "category": "CAFE",
       "lat": 16.0682,
       "lng": 108.2235,
+      "stop_status": "SELECTED_AFTER_VOTE",
+      "replaced_by_stop_id": "stop_cafe_002",
       "updated_at": "2026-09-22T14:32:10Z"
     },
-    "message": "Đã đổi sang địa điểm dự phòng thành công trong 1 click."
+    "message": "Đã đổi sang Phương án 2 thành công. Điểm cũ được lưu vết REJECTED_IN_VOTE mà không bị xóa mất."
   }
   ```
 
 ---
 
-### 3.4. `PATCH /api/v1/events/{id}/stops/{stopId}` (Dynamic On-The-Go Adaptation)
-- **Mô tả**: Cập nhật khẩn cấp duy nhất 1 dòng bản ghi điểm dừng trong chuyến đi thực tế (ví dụ trời mưa).
+### 3.3.1. `POST /api/v1/events/{id}/stops/{stopId}/backup-options/fetch-more` (Gợi Ý Thêm Phương Án Mới Kèm Hỏi Lại / Clarification)
+- **Mô tả**: Khi nhóm đã xem qua cả Phương án 2 và Phương án 3 nhưng vẫn chưa ưng ý, endpoint này kích hoạt AI Agent truy vấn lại live API (Google Places, TripAdvisor) để lấy thêm $3$--$5$ ứng viên mới (Phương án 4, 5, 6...) bổ sung vào danh sách `backup_options`.
+- **Cơ chế Hỏi Lại & Đảm Bảo Ràng Buộc**:
+  - Request body nhận yêu cầu/lý do làm rõ từ nhóm. Nếu không truyền, Agent chủ động gửi tin nhắn hỏi lại vào group chat để hiểu lý do nhóm từ chối các phương án trước.
+  - **100% ứng viên mới bắt buộc phải tuân thủ nghiêm ngặt các ràng buộc cốt lõi**: Bán kính Haversine $\le 2.5$\,km, trần ngân sách phân bổ, giờ mở cửa thực tế và an toàn dị ứng thực phẩm của nhóm.
 - **Request Body (JSON)**:
   ```json
   {
-    "place_name": "Artisan Indoor Boardgame Cafe",
-    "place_ref_id": "ChIJsW8gV3SuEmsReD345g83frY4",
-    "note": "Đổi điểm ngẫu hứng do trời mưa to"
+    "clarification_notes": "Nhóm muốn đổi sang quán nướng hoặc lẩu, không gian yên tĩnh để trò chuyện",
+    "dietary_filter": "NON_SPICY"
   }
   ```
-- **Response `200 OK`**: Cập nhật thành công và phát sóng tức thì tới toàn phòng qua WebSockets.
+- **Response `200 OK`**: Trả về danh sách `backup_options` đã được mở rộng gồm các phương án mới đã qua 4-Tier Grounding.
+
+---
+
+### 3.4. `POST /api/v1/events/{id}/stops/{stopId}/adapt` (Thích Ứng Lịch Trình Động Lúc Đang Đi - Non-destructive)
+- **Mô tả**: Thích ứng linh hoạt khi xảy ra sự cố thực tế (ví dụ: trời mưa lớn, quán đóng cửa đột xuất). Hệ thống chuyển điểm cũ sang `SKIPPED_ON_TRIP` (kèm `change_reason`) và chèn điểm dừng trong nhà mới với `ADAPTED_ON_TRIP`, liên kết qua `replaced_by_stop_id`.
+- **Request Body (JSON)**:
+  ```json
+  {
+    "new_place_name": "Artisan Indoor Boardgame Cafe",
+    "new_place_ref_id": "ChIJsW8gV3SuEmsReD345g83frY4",
+    "change_reason": "Trời mưa lớn ngoài trời, đổi sang quán boardgame cafe trong nhà"
+  }
+  ```
+- **Response `200 OK`**: Chèn điểm thích ứng thành công và phát sóng tức thì tới toàn phòng qua WebSockets.
 
 ---
 

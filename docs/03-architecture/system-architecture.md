@@ -63,7 +63,7 @@ flowchart TD
 
 | Giao diện | Thành phần kết nối | Giao thức / Phương thức | Mục đích & Nghiệp vụ |
 |:---:|---|:---:|---|
-| **(1)** | **Frontend $\leftrightarrow$ Backend Gateway** | **WebSockets (`WSS`) / HTTPS REST** | Truyền tin nhắn phòng chat, gửi phiếu bình chọn điểm dừng (Vote UP/DOWN), gửi lệnh 1-Click Swap, và nhận luồng đồng bộ tức thì (<80ms ACK). |
+| **(1)** | **Frontend $\leftrightarrow$ Backend Gateway** | **WebSockets (`WSS`) / HTTPS REST** | Truyền tin nhắn phòng chat, gửi phiếu bình chọn điểm dừng (Vote UP/DOWN), gửi lệnh luân chuyển đa phương án (Multi-Option Swap: đổi sang Phương án 2, Phương án 3 hoặc yêu cầu AI nạp thêm), và nhận luồng đồng bộ tức thì (<80ms ACK). |
 | **(2)** | **Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker** | **Redis Streams (`XADD` / `XREADGROUP`)** | Hàng đợi tác vụ bất đồng bộ. Gateway đẩy task vào Redis Streams không chặn người dùng; LangGraph AI Worker kéo task về thực thi. |
 | **(3)** | **Gateway $\rightarrow$ Supabase Database** | **SQLAlchemy Async / PostgreSQL (core schema)** | Lưu vết tức thì lịch sử tin nhắn phòng chat, thông tin người dùng, quyền hạn thành viên và số lượt bình chọn. |
 | **(4)** | **AI Worker $\leftrightarrow$ External Travel & Lodging APIs** | **HTTPX Async qua PyBreaker Circuit Breaker & Adapter Pattern** | Truy vấn địa điểm và khách sạn thực tế từ Google Maps/Places, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook với cơ chế ngắt mạch tự động (timeout 2.5s). |
