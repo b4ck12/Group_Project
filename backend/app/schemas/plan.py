@@ -1,9 +1,10 @@
 from __future__ import annotations
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Optional, Any, Dict, List
 from datetime import datetime, date
 from decimal import Decimal
 from app.models.enums import (
+    BudgetTier,
     PlanStatus,
     StopCategory,
     TimeSlot,
@@ -11,6 +12,16 @@ from app.models.enums import (
     TransportMode,
 )
 from app.schemas.consensus import BackupOption
+
+
+class RecommendedDishItem(BaseModel):
+    dish_name: str = Field(..., min_length=1, max_length=255)
+    estimated_price: Decimal = Field(default=Decimal("0"), ge=0)
+    tags: List[str] = Field(default_factory=list)
+    dietary_match: bool = True
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 # --- PlanStop ---
 class PlanStopBase(BaseModel):
@@ -46,6 +57,9 @@ class PlanStopBase(BaseModel):
     replaced_by_stop_id: Optional[str] = None
     change_reason: Optional[str] = None
     locked_at: Optional[datetime] = None
+
+    # PR #28: In-venue dish recommendations
+    recommended_dishes: Optional[List[RecommendedDishItem]] = None
 
     # Re-maps the frontend 'metadata' to the backend 'metadata_'
     metadata_: Optional[Dict[str, Any]] = Field(None, alias="metadata")
@@ -93,17 +107,63 @@ class PlanResponse(PlanBase):
 
     model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
+class StopDishesResponse(BaseModel):
+    stop_id: str
+    place_name: str
+    recommended_dishes: List[RecommendedDishItem] = Field(default_factory=list)
+    dietary_notes_applied: List[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PlanCloneRequest(BaseModel):
+    target_status: PlanStatus = PlanStatus.VOTING
+    change_summary: Optional[str] = Field(default=None, max_length=500)
+    title: Optional[str] = None
+
+
+class PlanGenerateRequest(BaseModel):
+    destination: str = Field(..., min_length=1, max_length=255)
+    start_date: date
+    end_date: date
+    prompt: Optional[str] = None
+    budget_tier: Optional[BudgetTier] = None
+    dietary_preferences: Optional[Dict[str, Any]] = None
+
+    @model_validator(mode="after")
+    def validate_date_range(self) -> "PlanGenerateRequest":
+        if self.end_date < self.start_date:
+            raise ValueError("'end_date' must be on or after 'start_date'.")
+        return self
+
+
+class PlanVersionSummary(BaseModel):
+    id: str
+    version_number: int
+    parent_plan_id: Optional[str] = None
+    status: PlanStatus
+    is_active: bool
+    total_budget: Optional[Decimal] = None
+    change_summary: Optional[str] = None
+    locked_at: Optional[datetime] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PlanStatusTransitionRequest(BaseModel):
     status: PlanStatus
     change_summary: Optional[str] = None
 
     model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
+
 class PlanStageHistoryResponse(BaseModel):
     plan_id: str
     event_id: str
     version_number: int
     current_status: PlanStatus
+    version_chain: List[PlanVersionSummary] = Field(default_factory=list)
     initial_stops: List[PlanStopResponse] = []
     finalized_stops: List[PlanStopResponse] = []
     ongoing_stops: List[PlanStopResponse] = []
