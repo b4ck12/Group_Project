@@ -34,7 +34,7 @@ class Plan(Base):
     status: Mapped[PlanStatus] = mapped_column(Enum(PlanStatus), default=PlanStatus.INITIAL)
     is_ai_generated: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    total_budget: Mapped[Optional[float]] = mapped_column(Numeric(10, 2), nullable=True)
+    total_budget: Mapped[Optional[float]] = mapped_column(Numeric(12, 2), nullable=True)
     created_by_id: Mapped[Optional[str]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
@@ -78,6 +78,9 @@ class PlanStop(Base):
     transit_duration_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     transit_distance_km: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     transit_cost: Mapped[Optional[float]] = mapped_column(Numeric(10, 2), nullable=True)
+
+    # PR #28: In-venue dish recommendations tailored to group dietary preferences
+    recommended_dishes: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
 
     # Item 2.5: Non-destructive lifecycle & history tracking
     stop_status: Mapped[StopStatus] = mapped_column(
