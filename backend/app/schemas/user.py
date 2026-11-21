@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from typing import Optional
+from typing import Any, Dict, Optional
 from datetime import datetime
 from app.models.enums import SystemRole, AuthProvider
 
@@ -7,6 +7,7 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: str
     avatar_url: Optional[str] = None
+    dietary_preferences: Optional[Dict[str, Any]] = None
     role: SystemRole = SystemRole.USER
 
 class UserCreate(BaseModel):
@@ -35,11 +36,18 @@ class GoogleLoginRequest(BaseModel):
     code: Optional[str] = None
     id_token: Optional[str] = None
 
+class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    dietary_preferences: Optional[Dict[str, Any]] = None
+
+
 class UserResponse(BaseModel):
     id: str
     email: EmailStr
     full_name: str
     avatar_url: Optional[str] = None
+    dietary_preferences: Optional[Dict[str, Any]] = None
     role: SystemRole
     provider: AuthProvider = AuthProvider.LOCAL
     created_at: datetime
