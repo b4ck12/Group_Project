@@ -4,14 +4,20 @@ from .event import (
     EventUpdate,
     EventResponse,
     EventMemberResponse,
+    EventDetailResponse,
 )
 from .plan import (
+    RecommendedDishItem,
     PlanBase,
     PlanCreate,
     PlanResponse,
     PlanStopBase,
     PlanStopCreate,
     PlanStopResponse,
+    StopDishesResponse,
+    PlanCloneRequest,
+    PlanGenerateRequest,
+    PlanVersionSummary,
     PlanStatusTransitionRequest,
     PlanStageHistoryResponse,
 )
@@ -23,6 +29,7 @@ from .vote import (
 from .user import (
     UserBase,
     UserCreate,
+    UserProfileUpdate,
     UserResponse,
     LoginRequest,
     TokenResponse,
@@ -47,12 +54,15 @@ from .consensus import (
     StopVoteResponse,
     StopSwapRequest,
     StopSwapResponse,
+    FetchMoreBackupsRequest,
+    FetchMoreBackupsResponse,
     StopAdaptationRequest,
     StopAdaptationResponse,
 )
 from .chat import (
     ChatMessageCreate,
     ChatMessageResponse,
+    ChatMessageListResponse,
 )
 from .place import (
     POIItem,
@@ -79,13 +89,19 @@ __all__ = [
     "EventUpdate",
     "EventResponse",
     "EventMemberResponse",
+    "EventDetailResponse",
     # Plan
+    "RecommendedDishItem",
     "PlanBase",
     "PlanCreate",
     "PlanResponse",
     "PlanStopBase",
     "PlanStopCreate",
     "PlanStopResponse",
+    "StopDishesResponse",
+    "PlanCloneRequest",
+    "PlanGenerateRequest",
+    "PlanVersionSummary",
     "PlanStatusTransitionRequest",
     "PlanStageHistoryResponse",
     # Vote
@@ -95,6 +111,7 @@ __all__ = [
     # User / Auth
     "UserBase",
     "UserCreate",
+    "UserProfileUpdate",
     "UserResponse",
     "LoginRequest",
     "TokenResponse",
@@ -117,11 +134,14 @@ __all__ = [
     "StopVoteResponse",
     "StopSwapRequest",
     "StopSwapResponse",
+    "FetchMoreBackupsRequest",
+    "FetchMoreBackupsResponse",
     "StopAdaptationRequest",
     "StopAdaptationResponse",
     # Chat
     "ChatMessageCreate",
     "ChatMessageResponse",
+    "ChatMessageListResponse",
     # Place (TASK-108, TASK-205 & TASK-206)
     "POIItem",
     "PlaceSearchResponse",
