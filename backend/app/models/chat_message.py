@@ -1,8 +1,9 @@
-from typing import Optional
-from sqlalchemy import String, Text, ForeignKey, Index, Enum
+from typing import Any, Dict, Optional
+from sqlalchemy import Text, ForeignKey, Index, Enum, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from .base import Base
-from .enums import ChatRole
+from .enums import ChatRole, ChatMessageType
+
 
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
@@ -15,4 +16,8 @@ class ChatMessage(Base):
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     role: Mapped[ChatRole] = mapped_column(Enum(ChatRole), default=ChatRole.USER)
+    message_type: Mapped[ChatMessageType] = mapped_column(
+        Enum(ChatMessageType), default=ChatMessageType.CHAT, nullable=False
+    )
     content: Mapped[str] = mapped_column(Text)
+    metadata_: Mapped[Optional[Dict[str, Any]]] = mapped_column("metadata", JSON, nullable=True)

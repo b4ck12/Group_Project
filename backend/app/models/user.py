@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, List, Optional
-from sqlalchemy import String, Enum, DateTime
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from sqlalchemy import String, Enum, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 from .enums import SystemRole, AuthProvider
@@ -14,6 +14,7 @@ class User(Base):
     password_hash: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     full_name: Mapped[str] = mapped_column(String)
     avatar_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    dietary_preferences: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
     provider: Mapped[AuthProvider] = mapped_column(Enum(AuthProvider), default=AuthProvider.LOCAL)
     role: Mapped[SystemRole] = mapped_column(Enum(SystemRole), default=SystemRole.USER)
     updated_at: Mapped[datetime] = mapped_column(

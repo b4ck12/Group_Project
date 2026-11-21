@@ -100,3 +100,10 @@ class ChatRole(str, enum.Enum):
     AI = "AI"
     SYSTEM = "SYSTEM"
     ASSISTANT = "AI"
+
+
+class ChatMessageType(str, enum.Enum):
+    CHAT = "CHAT"
+    AGENT_QA = "AGENT_QA"
+    AGENT_TRIGGER = "AGENT_TRIGGER"
+    SYSTEM = "SYSTEM"

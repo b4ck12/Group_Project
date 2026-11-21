@@ -65,6 +65,8 @@ from app.schemas.consensus import (
     StopVoteResponse,
     StopSwapRequest,
     StopSwapResponse,
+    FetchMoreBackupsRequest,
+    FetchMoreBackupsResponse,
     StopAdaptationRequest,
     StopAdaptationResponse,
 )
@@ -223,32 +225,70 @@ def test_consensus_schemas():
 
     swap_req = StopSwapRequest(target_backup_place_ref_id="poi-456")
     assert swap_req.target_backup_place_ref_id == "poi-456"
+    assert swap_req.cycle_next is False
+
+    swap_cycle_req = StopSwapRequest(cycle_next=True, change_reason="Too crowded")
+    assert swap_cycle_req.cycle_next is True
+
+    with pytest.raises(ValidationError):
+        StopSwapRequest()
 
     swap_resp = StopSwapResponse(
-        swapped_stop_id="stop-1",
+        previous_stop_id="stop-1",
+        new_stop_id="stop-2",
         new_place_name="Beach Cafe",
+        selected_option_index=2,
         category=StopCategory.CAFE,
         lat=16.05,
         lng=108.20,
+        replaced_by_stop_id="stop-2",
         updated_at=now,
     )
-    assert swap_resp.swapped_stop_id == "stop-1"
+    assert swap_resp.previous_stop_id == "stop-1"
+    assert swap_resp.new_stop_id == "stop-2"
+    assert swap_resp.selected_option_index == 2
+
+    fetch_more_req = FetchMoreBackupsRequest(
+        clarification_notes="Prefer quiet BBQ",
+        dietary_filter="NON_SPICY",
+        exclude_place_ref_ids=["poi-1", "poi-456"],
+    )
+    assert fetch_more_req.dietary_filter == "NON_SPICY"
+
+    fetch_more_resp = FetchMoreBackupsResponse(
+        stop_id="stop-2",
+        backup_options=[
+            BackupOption(
+                option_index=4,
+                place_name="Quiet BBQ Garden",
+                place_ref_id="poi-999",
+                category=StopCategory.RESTAURANT,
+                estimated_cost=180000.0,
+                distance_km=0.9,
+            )
+        ],
+    )
+    assert fetch_more_resp.backup_options[0].option_index == 4
 
     adapt_req = StopAdaptationRequest(
-        place_name="Indoor Museum",
-        place_ref_id="poi-789",
-        note="Rain forecast adaptation",
+        new_place_name="Indoor Museum",
+        new_place_ref_id="poi-789",
+        change_reason="Rain forecast adaptation",
     )
-    assert adapt_req.note == "Rain forecast adaptation"
+    assert adapt_req.change_reason == "Rain forecast adaptation"
 
     adapt_resp = StopAdaptationResponse(
-        stop_id="stop-1",
-        place_name="Indoor Museum",
-        place_ref_id="poi-789",
-        note="Rain forecast adaptation",
+        previous_stop_id="stop-1",
+        new_stop_id="stop-2",
+        new_place_name="Indoor Museum",
+        new_place_ref_id="poi-789",
+        replaced_by_stop_id="stop-2",
+        change_reason="Rain forecast adaptation",
+        cloned_plan_id="plan-v3",
         updated_at=now,
     )
-    assert adapt_resp.place_name == "Indoor Museum"
+    assert adapt_resp.new_place_name == "Indoor Museum"
+    assert adapt_resp.cloned_plan_id == "plan-v3"
 
 
 def test_chat_schemas():
@@ -369,11 +409,130 @@ async def test_plan_endpoints_501_skeletons():
 
         r7 = await client.post(
             "/api/v1/events/ev-1/plans/p-1/stops/s-1/adapt",
-            json={"place_name": "Cafe", "place_ref_id": "ref-2", "note": "rain"},
+            json={
+                "new_place_name": "Cafe",
+                "new_place_ref_id": "ref-2",
+                "change_reason": "rain",
+            },
         )
         assert r7.status_code == 501
 
         r8 = await client.get("/api/v1/events/ev-1/plans/p-1/history")
         assert r8.status_code == 501
+
+
+def test_pr28_pr30_extended_schemas():
+    from datetime import date
+    from app.models.enums import ChatMessageType
+    import app.schemas as schemas_pkg
+    from app.schemas import (
+        ChatMessageListResponse,
+        PlanCloneRequest,
+        PlanGenerateRequest,
+        PlanVersionSummary,
+        RecommendedDishItem,
+        StopDishesResponse,
+        UserProfileUpdate,
+    )
+
+    now = datetime.now(timezone.utc)
+
+    # Dish recommendations & plan generation/cloning
+    dish = RecommendedDishItem(
+        dish_name="Mi Quang Ech",
+        estimated_price=Decimal("55000"),
+        tags=["Local Specialty", "Non-spicy"],
+        dietary_match=True,
+    )
+    dishes_resp = StopDishesResponse(
+        stop_id="stop-1",
+        place_name="Bep Cuon",
+        recommended_dishes=[dish],
+        dietary_notes_applied=["Nam: Vegetarian"],
+    )
+    assert dishes_resp.recommended_dishes[0].dish_name == "Mi Quang Ech"
+
+    clone_req = PlanCloneRequest(
+        target_status=PlanStatus.FINALIZED,
+        change_summary="Lock final itinerary v2",
+        title="Da Nang v2",
+    )
+    assert clone_req.target_status == PlanStatus.FINALIZED
+
+    gen_req = PlanGenerateRequest(
+        destination="Da Nang",
+        start_date=date(2026, 12, 20),
+        end_date=date(2026, 12, 22),
+        budget_tier=BudgetTier.MODERATE,
+    )
+    assert gen_req.destination == "Da Nang"
+
+    with pytest.raises(ValidationError):
+        PlanGenerateRequest(
+            destination="Da Nang",
+            start_date=date(2026, 12, 22),
+            end_date=date(2026, 12, 20),
+        )
+
+    ver_summary = PlanVersionSummary(
+        id="plan-v2",
+        version_number=2,
+        parent_plan_id="plan-v1",
+        status=PlanStatus.FINALIZED,
+        is_active=True,
+        total_budget=Decimal("5000000"),
+        change_summary="Finalized",
+        locked_at=now,
+        created_at=now,
+    )
+    assert ver_summary.version_number == 2
+
+    # Chat message_type, metadata alias, and pagination list
+    chat_in = ChatMessageCreate(
+        content="Suggest vegetarian food",
+        message_type=ChatMessageType.AGENT_QA,
+        metadata={"intent": "dish_qa"},
+    )
+    assert chat_in.message_type == ChatMessageType.AGENT_QA
+    assert chat_in.metadata_ == {"intent": "dish_qa"}
+
+    chat_out = ChatMessageResponse(
+        id="msg-2",
+        event_id="ev-1",
+        role=ChatRole.AI,
+        message_type=ChatMessageType.AGENT_QA,
+        content="Try mushroom rolls.",
+        metadata={"dishes_count": 2},
+        created_at=now,
+    )
+    assert chat_out.model_dump(by_alias=True)["metadata"] == {"dishes_count": 2}
+    chat_list = ChatMessageListResponse(messages=[chat_out], total=1, has_more=False)
+    assert chat_list.total == 1
+
+    # User profile & Event budget / dietary notes
+    profile_upd = UserProfileUpdate(
+        full_name="Ha Dang Huy",
+        dietary_preferences={"no_spicy": True},
+    )
+    assert profile_upd.dietary_preferences == {"no_spicy": True}
+
+    ev_with_budget = EventBase(
+        name="Da Nang",
+        start_date=now,
+        end_date=now,
+        total_budget=Decimal("10000000"),
+    )
+    assert ev_with_budget.total_budget == Decimal("10000000")
+
+    member = EventMemberResponse(
+        id="mem-1",
+        event_id="ev-1",
+        user_id="u-1",
+        role=EventRole.MEMBER,
+        dietary_notes="No seafood",
+    )
+    assert member.dietary_notes == "No seafood"
+    assert hasattr(schemas_pkg, "FetchMoreBackupsRequest")
+
 
 
