@@ -188,4 +188,18 @@ def test_pr28_pr30_supervisor_model_columns():
     assert "metadata" in chat_cols
 
 
+def test_pr35_candidate_voting_model_columns():
+    from app.models.stop import PlanStop as NormalizedPlanStop
+
+    stop_cols = NormalizedPlanStop.__table__.columns
+    assert "candidate_options" in stop_cols
+    assert "selected_candidate_id" in stop_cols
+
+    vote_cols = PlanVote.__table__.columns
+    assert "candidate_id" in vote_cols
+    assert "candidate_name" in vote_cols
+    assert vote_cols["value"].nullable is True
+
+
+
 
