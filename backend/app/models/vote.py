@@ -14,7 +14,10 @@ class PlanVote(Base):
 
     stop_id: Mapped[str] = mapped_column(ForeignKey("plan_stops.id", ondelete="CASCADE"))
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    value: Mapped[VoteValue] = mapped_column(Enum(VoteValue))
+    # PR #35: Candidate Multi-Choice Voting (replaces legacy UP/DOWN vote_value)
+    candidate_id: Mapped[str] = mapped_column(String(100), nullable=False, default="")
+    candidate_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    value: Mapped[Optional[VoteValue]] = mapped_column(Enum(VoteValue), nullable=True)
     comment: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     stop: Mapped["PlanStop"] = relationship("PlanStop", back_populates="votes")

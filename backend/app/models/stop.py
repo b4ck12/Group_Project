@@ -73,8 +73,12 @@ class PlanStop(Base):
     change_reason: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     locked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Deprecated by PR #35 candidate voting; kept for backward compatibility with TASK-301 tests
     up_votes: Mapped[int] = mapped_column(Integer, default=0)
     down_votes: Mapped[int] = mapped_column(Integer, default=0)
+    # PR #35: Candidate Venues Multi-Choice Voting & Progressive Unlock
+    candidate_options: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
+    selected_candidate_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     backup_options: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
     note: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     metadata_: Mapped[Optional[Dict[str, Any]]] = mapped_column("metadata", JSON, nullable=True)
