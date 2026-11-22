@@ -57,7 +57,7 @@ flowchart TD
 
     subgraph Row2 ["Pha 2: Tuyển Chọn Chi Tiết & Tích Hợp (Micro Curation)"]
         STATE["PostgreSQL Checkpoints<br/>• Typed AgentState qua DAL<br/>• AsyncPostgresSaver"]
-        MICRO["Phase 2: Micro Curation State<br/>• Tra cứu Maps, Search & Khách sạn đa nguồn<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Nạp sẵn 2 backup stops cho 1-Click Swap<br/>• Gợi ý món ăn trong quán theo sở thích nhóm"]
+        MICRO["Phase 2: Micro Curation State<br/>• Tra cứu Maps, Search & Khách sạn đa nguồn<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Tuyển chọn pool ứng viên đạt chuẩn cho từng trạm<br/>• Gợi ý món ăn trong quán theo sở thích nhóm"]
         TOOLS["Resilient Travel APIs & DB (PyBreaker 2.5s)<br/>• Google Maps, Google Search, Google Hotels<br/>• TripAdvisor, Airbnb, Trip.com, Hotels.com<br/>• Trivago, Expedia, Klook, 12Go Asia"]
     end
 
@@ -78,7 +78,7 @@ flowchart TD
 
 #### Chi tiết 2 pha:
 - **Phase 1 — Macro Planning State (Trạng Thái Lập Kế Hoạch Vĩ Mô)**: Đề xuất ngày đi, nhịp độ và chủ đề cho từng buổi sáng/chiều/tối dựa trên mong muốn của nhóm. Tuyệt đối không gọi các API du lịch bên ngoài, tiết kiệm token và chi phí. Độ trễ: $6$--$12$\,giây.
-- **Phase 2 — Micro Curation State (Trạng Thái Tuyển Chọn Chi Tiết & Món Ăn)**: Kích hoạt sau khi Host bấm Khóa Lộ Trình Vĩ Mô (Macro Consensus). Thực thi các lệnh gọi công cụ ngoài qua PyBreaker, áp dụng thuật toán gom cụm Haversine ($\le 2.5$\,km), chuẩn bị sẵn 2 địa điểm dự phòng cho 1-Click Swap, và sinh danh sách gợi ý món ăn cụ thể tại quán (`recommended_dishes`). Độ trễ: $10$--$20$\,giây.
+- **Phase 2 — Micro Curation State (Trạng Thái Tuyển Chọn Chi Tiết & Món Ăn)**: Kích hoạt sau khi Host bấm Khóa Lộ Trình Vĩ Mô (Macro Consensus). Thực thi các lệnh gọi công cụ ngoài qua PyBreaker, áp dụng thuật toán gom cụm Haversine ($\le 2.5$\,km), chuẩn bị sẵn danh sách **các ứng viên có mức độ phù hợp đạt chuẩn** cùng lúc cho mỗi trạm dừng, và sinh danh sách gợi ý món ăn cụ thể tại quán (`recommended_dishes`). Độ trễ: $10$--$20$\,giây.
 
 ---
 
@@ -90,10 +90,10 @@ flowchart TD
 flowchart LR
     T1["Tier 1: Strict Schema<br/>• Pydantic Schema cố định<br/>• Loại bỏ text tự do lan man"] --> T2["Tier 2: Live Map & Hotel Check<br/>• Maps, Search, Hotels & Stays<br/>• Xác thực Place ID, giá & giờ mở cửa"]
     T2 --> T3["Tier 3: Distance Guard<br/>• Gom cụm Haversine + Mapbox<br/>• Bán kính <= 2.5km, di chuyển <= 20p"]
-    T3 --> T4["Tier 4: Member Votes<br/>• Vote UP / DOWN<br/>• 1-Click Swap backup đã pre-fetch"]
+    T3 --> T4["Tier 4: Candidate Venues Voting<br/>• Hiện các ứng viên đạt chuẩn<br/>• Vote chọn & Mở khóa tuần tự"]
 
     style T1 fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
-    style T2 fill:#f7f9fc,stroke:#186c8e,stroke-width:1.5px;
+    style T2 fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
     style T3 fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
     style T4 fill:#e2f4f4,stroke:#186c8e,stroke-width:2px;
 ```
@@ -111,14 +111,15 @@ flowchart LR
    - Sử dụng công thức khoảng cách Haversine:
      $$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta \phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right)}\right)$$
    - Kết hợp Mapbox Matrix API: Các điểm dừng trong cùng nửa ngày bắt buộc phải nằm trong bán kính **$2.0$--$2.5$\,km** và thời gian di chuyển **$\le 20$\,phút**. Loại bỏ hoàn toàn lộ trình ziczac qua lại giữa các quận xa nhau.
-4. **Tier 4 (Member Votes & Multi-Option Swap — Luân Chuyển Đa Phương Án)**:
-   - **Đặt quyền quyết định vào tay người dùng**: Từng thành viên trong phòng vote UP/DOWN cho điểm dừng được đề xuất.
-   - **Không phải chỉ swap một lần duy nhất**: Với mỗi điểm dừng, AI nạp sẵn một **Pool danh sách các địa điểm ứng viên phù hợp (Ranked Candidate Pool)** gồm **Phương án 1 (Điểm chính)**, **Phương án 2 (Dự phòng 1)**, **Phương án 3 (Dự phòng 2)**,... được xếp hạng theo điểm đánh giá và khoảng cách.
-   - **Cơ chế luân chuyển linh hoạt (Multi-Stage Swap)**:
-     - Khi Phương án 1 bị nhóm vote DOWN, giao diện hiển thị danh sách các phương án thay thế để nhóm chọn trực tiếp Phương án 2 hoặc Phương án 3, HOẶC bấm nút **1-Click Swap** để tự động luân chuyển tuần tự (`PA 1 ➔ PA 2 ➔ PA 3`).
-     - Nếu nhóm không đồng ý với Phương án 2, hệ thống tiếp tục cho phép đổi sang Phương án 3.
-     - **Mở rộng không giới hạn (On-Demand AI Fallback)**: Trường hợp cả Phương án 2 và Phương án 3 đều không làm cả nhóm ưng ý, người dùng chỉ cần bấm nút *"Gợi ý thêm phương án mới"* $\rightarrow$ AI Agent truy vấn lại live API (Google Places, TripAdvisor) qua PyBreaker để lấy thêm $3$--$5$ ứng viên mới (Phương án 4, 5, 6...) nạp tiếp vào danh sách.
-   - **Lưu vết chuỗi thay đổi không ghi đè**: Mỗi lần đổi phương án, điểm cũ chuyển sang `stop_status = 'REJECTED_IN_VOTE'` và điểm mới được chèn với `stop_status = 'SELECTED_AFTER_VOTE'`, liên kết qua `replaced_by_stop_id` tạo thành chuỗi truy vết rõ ràng: `PA 1 (REJECTED) ➔ PA 2 (REJECTED) ➔ PA 3 (SELECTED)`.
+4. **Tier 4 (Candidate Venues Multi-Choice Voting & Progressive Unlock — Mở Thẻ Trạm Hiện Đồng Thời Ứng Viên & Vote Trực Tiếp)**:
+   - **Đặt quyền quyết định vào tay người dùng**: Khi mở thẻ trạm, hệ thống không chỉ đưa ra 1 điểm duy nhất mà **hiển thị trực tiếp danh sách tất cả các ứng viên có mức độ phù hợp đạt chuẩn** cùng lúc (vượt qua bộ lọc: cùng phân khúc ngân sách, đúng phong cách/khẩu vị và cự ly $\le 2.5\text{km}$). Số lượng ứng viên mang tính động theo thực tế các địa điểm đạt chuẩn matching score.
+   - **Biểu quyết trực tiếp và minh bạch**:
+     - Từng thành viên trong phòng có thể xem chi tiết từng ứng viên (hình ảnh thật, giá phòng/món ăn, đánh giá thực tế) và bấm **[Bỏ Phiếu]** cho ứng viên mình thích nhất, hoặc tự do chuyển đổi lá phiếu sang ứng viên khác.
+     - Số phiếu bầu và avatar của từng thành viên được hiển thị realtime ngay trên thẻ của mỗi ứng viên.
+   - **Tự động chốt trạm khi đạt Quorum & Mở khóa tuần tự (Progressive Unlock)**:
+     - Khi một ứng viên đạt đủ số phiếu đồng thuận của nhóm (Quorum $\ge 60\% - 70\%$, ví dụ 2/3 thành viên), hệ thống tự động xác nhận ứng viên đó là điểm dừng chính thức (`stop_status = 'SELECTED_AFTER_VOTE'`).
+     - Hệ thống lập tức tự động mở khóa trạm dừng kế tiếp kèm danh sách ứng viên mới để nhóm tiếp tục biểu quyết tuần tự từng trạm cho đến khi hoàn thiện toàn bộ lịch trình.
+   - **Thích ứng linh hoạt khi đi thực tế**: Trường hợp gặp biến cố (trời mưa, quán đóng cửa), hệ thống dễ dàng kích hoạt ứng viên trong nhà thay thế với `stop_status = 'ADAPTED_ON_TRIP'`, trỏ `replaced_by_stop_id` bảo tồn trọn vẹn lịch sử.
 
 ---
 

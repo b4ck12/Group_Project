@@ -82,8 +82,8 @@
   GET    /events/{id}/chat                           # Lịch sử tin nhắn phòng chat chung (Group Channel)
   POST   /events/{id}/chat                           # Gửi tin nhắn (thường, hỏi đáp Q&A, hoặc gọi agent)
   POST   /events/{id}/macro-lock                     # [Consensus 1] Host bấm Khóa Roadmap Vĩ mô
-  POST   /events/{id}/stops/{stopId}/vote            # Thành viên vote UP / DOWN cho từng điểm dừng
-  POST   /events/{id}/stops/{stopId}/swap            # 1-Click Swap: Đổi điểm dừng sang phương án dự phòng (Non-destructive)
+  POST   /events/{id}/stops/{stopId}/vote            # Thành viên vote chọn ứng viên trong danh sách candidate_options
+  POST   /events/{id}/stops/{stopId}/swap            # Đổi sang ứng viên dự phòng khác khi cần (Non-destructive)
   POST   /events/{id}/final-lock                     # [Consensus 2] Host Chốt Kế Hoạch Chính Thức (Khóa is_finalized_stop)
   POST   /events/{id}/stops/{stopId}/adapt           # Thích ứng lúc đang đi (Trời mưa -> SKIPPED + Chèn điểm mới ADAPTED)
 
@@ -139,14 +139,14 @@
 
 ---
 
-### 3.2. `POST /api/v1/events/{id}/stops/{stopId}/vote` (Bình chọn Điểm dừng)
-- **Mô tả**: Thành viên vote UP hoặc DOWN cho một điểm dừng cụ thể.
+### 3.2. `POST /api/v1/events/{id}/stops/{stopId}/vote` (Bình chọn Ứng viên Điểm dừng & Mở khóa Tuần tự)
+- **Mô tả**: Thành viên bỏ phiếu cho một ứng viên cụ thể trong danh sách `candidate_options` hiển thị đồng thời tại trạm. Khi 1 ứng viên đạt Quorum ($\ge 60\%-70\%$), hệ thống chốt trạm và tự động mở khóa trạm kế tiếp (`next_unlocked_stop_id`).
 - **Quyền hạn (Auth)**: `Bearer JWT` (Role `HOST` hoặc `MEMBER`).
 - **Request Body (JSON)**:
   ```json
   {
-    "vote_value": "DOWN",
-    "comment": "Quán này đông và ồn quá, muốn đổi quán yên tĩnh hơn"
+    "candidate_id": "cand_hotel_001",
+    "comment": "Khách sạn phong cách Indochine đẹp và tiện đi lại"
   }
   ```
 - **Response `200 OK`**:
@@ -154,30 +154,34 @@
   {
     "success": true,
     "data": {
-      "stop_id": "stop_cafe_001",
-      "up_votes": 2,
-      "down_votes": 3,
-      "recommend_swap": true,
-      "backup_options": [
+      "stop_id": "stop_hotel_001",
+      "selected_candidate_id": "cand_hotel_001",
+      "quorum_reached": true,
+      "stop_status": "SELECTED_AFTER_VOTE",
+      "next_unlocked_stop_id": "stop_food_002",
+      "candidates": [
         {
-          "option_index": 2,
-          "place_name": "The Espresso Station",
-          "place_ref_id": "ChIJN1t_tDeuEmsRUsoyG83frY4",
-          "category": "CAFE",
-          "estimated_cost": 45000,
-          "distance_km": 0.4
+          "candidate_id": "cand_hotel_001",
+          "place_name": "Anio Boutique Hotel Hội An",
+          "votes_count": 2,
+          "voters": ["Lan Vy", "Minh Đức"]
         },
         {
-          "option_index": 3,
-          "place_name": "Artisan Roastery & Bakery",
-          "place_ref_id": "ChIJb7c_tDeuEmsRUk98G83frY5",
-          "category": "CAFE",
-          "estimated_cost": 50000,
-          "distance_km": 0.7
+          "candidate_id": "cand_hotel_002",
+          "place_name": "La Siesta Hoi An Resort & Spa",
+          "votes_count": 1,
+          "voters": ["Hoàng Anh"]
+        },
+        {
+          "candidate_id": "cand_hotel_003",
+          "place_name": "Allegro Hoi An Little Luxury Hotel",
+          "votes_count": 0,
+          "voters": []
         }
       ]
     }
   }
+  ```
   ```
 
 ---
