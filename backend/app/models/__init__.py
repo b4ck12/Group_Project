@@ -1,7 +1,8 @@
 from .base import Base
 from .user import User
 from .event import Event, EventMember
-from .plan import Plan, PlanStop
+from .plan import Plan
+from .stop import PlanStop
 from .vote import PlanVote
 from .invitation import Invitation
 from .log import AgentLog

@@ -14,9 +14,9 @@
 | **Sprint 0** | 1 Task | 1/1 | ✅ Done (TASK-001) |
 | **Sprint 1** | 1 Task | 1/1 | ✅ Done (TASK-101) |
 | **Sprint 2** | 3 Tasks | 3/3 | ✅ Done (TASK-201, 202, 204) |
-| **Sprint 3** | 7 Tasks | 0/7 | 🔲 To Do |
+| **Sprint 3** | 7 Tasks | 1/7 | 🟡 In Progress |
 | **Sprint 4** | 3 Tasks | 0/3 | 🔲 To Do |
-| **Tổng cộng** | **15 Tasks** | 5/15 | 🟡 Đang thực hiện (5/15 hoàn thành) |
+| **Tổng cộng** | **15 Tasks** | 6/15 | 🟡 Đang thực hiện (6/15 hoàn thành) |
 
 ---
 
@@ -54,7 +54,7 @@
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
 
 ### Sprint 3 — Two-Stage Consensus Engine & Living Itinerary
-- [ ] **`TASK-301`** **Normalized `plan_stops` & `plan_votes` Database Models**
+- [x] **`TASK-301`** **Normalized `plan_stops` & `plan_votes` Database Models**
   - **Mục tiêu**: Cấu trúc lưu trữ điểm dừng chuẩn hóa cho cơ chế vote và swap.
   - **Target Files**: `backend/app/models/plan.py`, `backend/app/models/stop.py`, `backend/alembic/versions/`
   - **Acceptance Criteria**: Bảng `plan_stops` hỗ trợ lưu Place ID, tọa độ lat/lng, backup options JSONB; bảng `plan_votes` có ràng buộc unique `(stop_id, user_id)`.
