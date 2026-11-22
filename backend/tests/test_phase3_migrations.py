@@ -48,6 +48,13 @@ def test_migration_chain_integrity():
     assert hasattr(feedback_mod, "upgrade") and callable(feedback_mod.upgrade)
     assert hasattr(feedback_mod, "downgrade") and callable(feedback_mod.downgrade)
 
+    # Verify PR28-PR30 supervisor alignment revision
+    assert "d7e9f3a2b1c6" in revisions
+    assert revisions["d7e9f3a2b1c6"]["down_revision"] == "c4d8e2f1a0b5"
+    pr_align_mod = revisions["d7e9f3a2b1c6"]["module"]
+    assert hasattr(pr_align_mod, "upgrade") and callable(pr_align_mod.upgrade)
+    assert hasattr(pr_align_mod, "downgrade") and callable(pr_align_mod.downgrade)
+
 
 
 def test_alembic_env_configuration():

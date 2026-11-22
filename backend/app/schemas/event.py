@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime
+from decimal import Decimal
 from app.models.enums import EventType, EventRole, EventScope, BudgetTier
 
 class EventBase(BaseModel):
@@ -11,6 +12,7 @@ class EventBase(BaseModel):
     destination: Optional[str] = None
     location: Optional[str] = None
     budget_tier: Optional[BudgetTier] = None
+    total_budget: Optional[Decimal] = Field(None, ge=0)
     start_date: datetime
     end_date: datetime
 
@@ -25,6 +27,7 @@ class EventUpdate(BaseModel):
     destination: Optional[str] = None
     location: Optional[str] = None
     budget_tier: Optional[BudgetTier] = None
+    total_budget: Optional[Decimal] = Field(None, ge=0)
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     macro_locked: Optional[bool] = None
@@ -47,6 +50,7 @@ class EventMemberResponse(BaseModel):
     event_id: str
     user_id: str
     role: EventRole
+    dietary_notes: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

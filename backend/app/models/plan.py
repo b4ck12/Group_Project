@@ -32,7 +32,7 @@ class Plan(Base):
     status: Mapped[PlanStatus] = mapped_column(Enum(PlanStatus), default=PlanStatus.INITIAL)
     is_ai_generated: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    total_budget: Mapped[Optional[float]] = mapped_column(Numeric(10, 2), nullable=True)
+    total_budget: Mapped[Optional[float]] = mapped_column(Numeric(12, 2), nullable=True)
     created_by_id: Mapped[Optional[str]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )

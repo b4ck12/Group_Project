@@ -157,3 +157,35 @@ def test_plan_stop_transit_and_lifecycle_columns():
     assert any("plan_stops.id" in target for target in replaced_fks)
 
 
+def test_pr28_pr30_supervisor_model_columns():
+    from sqlalchemy import Numeric
+    from app.models.enums import ChatMessageType
+
+    assert ChatMessageType.CHAT == "CHAT"
+    assert ChatMessageType.AGENT_QA == "AGENT_QA"
+    assert ChatMessageType.AGENT_TRIGGER == "AGENT_TRIGGER"
+    assert ChatMessageType.SYSTEM == "SYSTEM"
+
+    assert "dietary_preferences" in User.__table__.columns
+
+    event_cols = Event.__table__.columns
+    assert "total_budget" in event_cols
+    assert isinstance(event_cols["total_budget"].type, Numeric)
+    assert event_cols["total_budget"].type.precision == 12
+    assert event_cols["total_budget"].type.scale == 2
+
+    assert "dietary_notes" in EventMember.__table__.columns
+
+    plan_budget_col = Plan.__table__.columns["total_budget"]
+    assert isinstance(plan_budget_col.type, Numeric)
+    assert plan_budget_col.type.precision == 12
+    assert plan_budget_col.type.scale == 2
+
+    assert "recommended_dishes" in PlanStop.__table__.columns
+
+    chat_cols = ChatMessage.__table__.columns
+    assert "message_type" in chat_cols
+    assert "metadata" in chat_cols
+
+
+

@@ -38,12 +38,19 @@ class TestPlanStopModel:
         columns = PlanStop.__table__.columns
         # 1-Click Swap & Backup POIs JSONB
         assert "backup_options" in columns
+        # In-venue dish recommendations (PR #28)
+        assert "recommended_dishes" in columns
         # Atomic counter columns
         assert "up_votes" in columns
         assert "down_votes" in columns
         # Defaults
         assert columns["up_votes"].default.arg == 0
         assert columns["down_votes"].default.arg == 0
+
+    def test_plan_total_budget_precision(self):
+        budget_col = Plan.__table__.columns["total_budget"]
+        assert budget_col.type.precision == 12
+        assert budget_col.type.scale == 2
 
     def test_plan_stop_lifecycle_and_history_columns(self):
         columns = PlanStop.__table__.columns

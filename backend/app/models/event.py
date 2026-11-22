@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Enum, ForeignKey, UniqueConstraint, DateTime, Boolean
+from sqlalchemy import String, Enum, ForeignKey, UniqueConstraint, DateTime, Boolean, Numeric, Text
 from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime, timezone
 from .base import Base
@@ -19,6 +19,7 @@ class Event(Base):
     destination: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     location: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     budget_tier: Mapped[Optional[BudgetTier]] = mapped_column(Enum(BudgetTier), nullable=True)
+    total_budget: Mapped[Optional[float]] = mapped_column(Numeric(12, 2), nullable=True)
     start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     macro_locked: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -38,6 +39,7 @@ class EventMember(Base):
     event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"))
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     role: Mapped[EventRole] = mapped_column(Enum(EventRole), default=EventRole.MEMBER)
+    dietary_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     event: Mapped["Event"] = relationship("Event", back_populates="members")
     user: Mapped["User"] = relationship("User", back_populates="event_members")

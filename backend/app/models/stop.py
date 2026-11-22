@@ -28,6 +28,7 @@ class PlanStop(Base):
     - 100% verified Google Place ID (`place_ref_id`)
     - Lat/Lng Geo coordinates
     - 1-Click Swap backup POIs JSONB (`backup_options`)
+    - In-venue dish recommendations JSONB (`recommended_dishes`)
     - Non-destructive history tracking (`replaced_by_stop_id`, `stop_status`)
     - Atomic voting counters (`up_votes`, `down_votes`)
     """
@@ -56,6 +57,9 @@ class PlanStop(Base):
     transit_duration_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     transit_distance_km: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     transit_cost: Mapped[Optional[float]] = mapped_column(Numeric(10, 2), nullable=True)
+
+    # PR #28: In-venue dish recommendations tailored to group dietary preferences
+    recommended_dishes: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
 
     # Non-destructive lifecycle & history tracking
     stop_status: Mapped[StopStatus] = mapped_column(
