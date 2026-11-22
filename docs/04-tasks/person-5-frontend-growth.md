@@ -56,10 +56,10 @@
   - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
 
 ### Sprint 3 — Granular Stop Voting Cards & Packing Checklist UI
-- [ ] **`TASK-315`** **Granular Stop Voting Cards & Multi-Option Swap UI**
+- [ ] **`TASK-315`** **Candidate Stop Voting Cards, Progressive Unlock & Backup Options UI**
   - **Feature**: #35
   - **Target Files**: `frontend/src/features/plan/components/StopVotingCard.tsx`, `frontend/src/features/plan/components/AlternativeOptionsModal.tsx`
-  - **Acceptance Criteria**: Thẻ điểm dừng hiển thị hình ảnh thật, nút vote UP/DOWN, progress bar đồng thuận, modal/dropdown hiển thị danh sách các phương án thay thế (Phương án 2, Phương án 3...) cho phép chọn trực tiếp hoặc luân chuyển tuần tự, kèm nút 'Gợi ý thêm phương án mới' từ AI.
+  - **Acceptance Criteria**: Thẻ trạm hiển thị đồng thời danh sách các ứng viên đạt chuẩn (`candidate_options`) với hình ảnh thật, nút `[Bỏ Phiếu]`, avatar người vote và thanh tiến trình Quorum ($\ge 60\%\text{--}70\%$); đạt Quorum tự động chốt trạm và mở khóa tuần tự trạm kế tiếp; kèm modal phương án dự phòng (`backup_options`) và nút 'Gợi ý thêm phương án mới' từ AI.
   - **Docs & Tracking**: Cập nhật `docs/06-design/user-flows.md` + tick `[x]`.
 - [ ] **`TASK-317`** **Packing Checklist UI Screen**
   - **Feature**: Checklist

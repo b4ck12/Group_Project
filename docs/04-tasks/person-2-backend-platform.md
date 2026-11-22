@@ -26,7 +26,7 @@
 ### Sprint 0 — Contract Session (Phụ trách: Phạm Đình Ánh Dương)
 - [X] **`TASK-002`** `[BE-Services - Phạm Đình Ánh Dương]` **FastAPI APIRouter Skeleton & Swagger Docs**
   - **Feature**: N/A (Contract)
-  - **Target Files**: `backend/app/api/v1/` (`auth.py`, `events.py`, `consensus.py`, `places.py`, `export.py`, `finance.py`, `admin.py`)
+  - **Target Files**: `backend/app/api/v1/` (`auth.py`, `events.py`, `chat.py`, `plans.py`, `votes.py`, `places.py`, `export.py`, `admin.py`)
   - **Acceptance Criteria**: Routes trả về `501 Not Implemented` khớp Pydantic DTOs, Swagger xem được tại `http://localhost:8000/docs`.
 
 ### Sprint 1 — Auth APIs, Upstash Redis Cache & PyBreaker Base

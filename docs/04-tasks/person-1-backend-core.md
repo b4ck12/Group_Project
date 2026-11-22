@@ -1,7 +1,7 @@
 # 👤 Person 1 — Tạ Quang Huy (Backend Dev A: Core Domain, Two-Stage Consensus & AI DAL Bridge)
 
 > **Người phụ trách**: **Tạ Quang Huy**  
-> **Trách nhiệm kỹ thuật**: Kiến trúc cơ sở dữ liệu Supabase PostgreSQL 16 (`core`, `checkpoints`, `vectors`), cấu hình Supavisor connection pooler port 6543, Room CRUD APIs, Two-Stage Consensus Engine (Macro Lock & Final Lock), RolesGuard (Host vs Member), Data Access Layer (DAL) Bridge cho AI Agent, và FastAPI WebSocket Room Server.  
+> **Trách nhiệm kỹ thuật**: Kiến trúc cơ sở dữ liệu Supabase PostgreSQL 16 (`core`, `checkpoints`), cấu hình Supavisor connection pooler port 6543, Room CRUD APIs, Two-Stage Consensus Engine (Macro Lock & Final Lock), RolesGuard (Host vs Member), Data Access Layer (DAL) Bridge cho AI Agent, và FastAPI WebSocket Room Server.  
 > **Tham gia bắt buộc**: Contract Session (Sprint 0), Integration Day cuối mỗi Sprint.  
 > **Quy định tracking bắt buộc**: Sau khi hoàn thành code và test mỗi task, đổi `[ ]` thành `[x]` kèm link PR, ngày hoàn thành và cập nhật tài liệu kỹ thuật tương ứng theo [post-task-documentation.md](../01-workflow/post-task-documentation.md).
 
@@ -24,7 +24,7 @@
 
 ### Sprint 0 — Contract Session & Database Architecture Design
 - [x] **`TASK-001`** **Thiết kế Schemas DB Supabase PostgreSQL 16 & Supavisor Pooler**
-  - **Mục tiêu**: Chuẩn hóa mô hình dữ liệu cho Supabase PostgreSQL 16 phân tách 3 schema (`core`, `checkpoints`, `vectors`).
+  - **Mục tiêu**: Chuẩn hóa mô hình dữ liệu cho Supabase PostgreSQL 16 phân tách 2 schema (`core`, `checkpoints`).
   - **Target Files**: `backend/app/models/` (`user.py`, `event.py`, `plan.py`, `stop.py`, `vote.py`, `chat_message.py`), `backend/app/schemas/`
   - **Acceptance Criteria**: Hỗ trợ đầy đủ `scope` (DAY_HANGOUT | VACATION), `macro_locked`, `final_locked`, quan hệ `Event` - `Plan` 1-to-N, `plan_stops` với `place_ref_id`, `transport_mode`, `recommended_dishes`, `backup_options` JSONB và lưu vết 4 giai đoạn không ghi đè. Cấu hình Supavisor Pooler port 6543. Migration Alembic sạch.
   - **Docs & Tracking**: Cập nhật `docs/03-architecture/database-schema.md` + tick `[x]` task board.
@@ -69,15 +69,15 @@
   - **Target Files**: `backend/app/api/v1/plans.py`
   - **Acceptance Criteria**: `PATCH /events/{id}/plans/{planId}/stops` hỗ trợ đổi thứ tự điểm dừng và ghi chú.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-304`** **Stop Voting API with Atomic SQL Counter**
-  - **Mục tiêu**: Thành viên bình chọn điểm dừng với câu lệnh SQL nguyên tử.
-  - **Target Files**: `backend/app/api/v1/consensus.py`, `backend/app/services/vote_service.py`
-  - **Acceptance Criteria**: `POST /events/{id}/stops/{stopId}/vote` vote UP/DOWN với lệnh SQL atomic `UPDATE ... SET up_votes = up_votes + 1`, triệt tiêu race condition.
+- [ ] **`TASK-304`** **Candidate Stop Voting API (Multi-Choice Poll)**
+  - **Mục tiêu**: Mở thẻ trạm hiển thị đồng thời danh sách `candidate_options` đạt chuẩn; thành viên bỏ phiếu chọn `candidate_id` với câu lệnh SQL an toàn, triệt tiêu race condition.
+  - **Target Files**: `backend/app/api/v1/votes.py`, `backend/app/services/vote_service.py`
+  - **Acceptance Criteria**: `POST /events/{id}/plans/{planId}/stops/{stopId}/vote` nhận `candidate_id`, lưu `plan_votes` (unique `stop_id, user_id`), trả về `StopVoteResponse` gồm danh sách ứng viên kèm số phiếu và danh sách `voters`.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + `security-guidelines.md` + tick `[x]`.
-- [ ] **`TASK-305`** **1-Click Swap Alternative POI API**
-  - **Mục tiêu**: Đổi điểm dừng sang phương án dự phòng đã nạp sẵn trong 1 click.
-  - **Target Files**: `backend/app/api/v1/consensus.py`
-  - **Acceptance Criteria**: `POST /events/{id}/stops/{stopId}/swap` thay thế tức thì điểm dừng bằng 1 trong 2 phương án dự phòng mà không cần AI suy luận lại.
+- [ ] **`TASK-305`** **Progressive Unlock (Quorum Auto-advance) & Multi-Option Backup Swap API**
+  - **Mục tiêu**: Tự động chốt trạm khi đạt Quorum ($\ge 60\%\text{--}70\%$) và mở khóa tuần tự trạm kế tiếp (`next_unlocked_stop_id`); hỗ trợ đổi sang phương án dự phòng không ghi đè khi cần.
+  - **Target Files**: `backend/app/api/v1/votes.py`, `backend/app/api/v1/plans.py`
+  - **Acceptance Criteria**: Đạt Quorum tự cập nhật `selected_candidate_id` và `stop_status = SELECTED_AFTER_VOTE`; `POST /events/{id}/plans/{planId}/stops/{stopId}/swap` hỗ trợ đổi phương án dự phòng không ghi đè (`REJECTED_IN_VOTE`).
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
 - [ ] **`TASK-306`** **Final Plan Confirmation API (Consensus Checkpoint 2)**
   - **Mục tiêu**: Host chốt kế hoạch chính thức sau khi mọi điểm dừng đạt đồng thuận cao.
