@@ -11,7 +11,7 @@
 | **Sprint 0** | Contract Session, Supabase Schemas, Two-Phase State DTOs, MSW Mocks, Design Tokens, Docker & CI/CD | 11 Tasks | 🔲 To Do |
 | **Sprint 1** | Supabase Auth, Upstash Redis & PyBreaker Base, LangGraph Skeleton, UI Base, Vercel Edge Deploy | 18 Tasks | 🔲 To Do |
 | **Sprint 2** | Room CRUD, External Travel APIs, Phase 1 Macro State, Four-Tier Grounding, Timeline, Render Deploy | 16 Tasks | 🔲 To Do |
-| **Sprint 3** | Two-Stage Consensus Engine, Stop Voting & 1-Click Swap, Phase 2 Micro State, PDF & .ics Export | 17 Tasks | 🔲 To Do |
+| **Sprint 3** | Two-Stage Consensus Engine, Stop Voting & 1-Click Swap, Phase 2 Micro State, PDF & .ics Export | 17 Tasks | 🟡 In Progress (1/17) |
 | **Sprint 4** | WebSocket Room Server, Token Streaming UI, Input Filter, Dish Recommendations, OpenTelemetry, Locust Load Test | 16 Tasks | 🔲 To Do |
 | **Tổng cộng** | 5 Sprint (Sprint 0 đến 4) | **78 Tasks** | 🔲 Sẵn sàng bắt tay vào làm |
 
@@ -257,7 +257,7 @@ feature/TASK-004-msw-core-mocks
 ## 🗳️ Sprint 3 — Two-Stage Consensus Engine, Phase 2 Micro Curation & Exports
 
 ### 3.1 Two-Stage Consensus Engine (Backend Core)
-- [ ] **TASK-301** `[BE-A]` **Normalized `plan_stops` & `plan_votes` Database Models**
+- [x] **TASK-301** `[BE-A]` **Normalized `plan_stops` & `plan_votes` Database Models**
   - **Feature**: #11
   - **Target Files**: `backend/app/models/plan.py`, `backend/app/models/stop.py`, `backend/alembic/versions/`
   - **Acceptance Criteria**: Bảng `plan_stops` hỗ trợ lưu Place ID, tọa độ lat/lng, backup options JSONB; bảng `plan_votes` có ràng buộc unique `(stop_id, user_id)`.
