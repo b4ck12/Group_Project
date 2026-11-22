@@ -219,20 +219,21 @@ CREATE TABLE core.plan_stops (
     change_reason VARCHAR(500),
     locked_at TIMESTAMPTZ,
 
-    up_votes INT DEFAULT 0,
-    down_votes INT DEFAULT 0,
-    backup_options JSONB, -- Danh sách các phương án thay thế phù hợp (Phương án 2, Phương án 3,...) phục vụ đổi điểm đa cấp
+    candidate_options JSONB, -- Danh sách các ứng viên có mức độ phù hợp đạt chuẩn hiển thị đồng thời trong thẻ trạm để cả nhóm vote trực tiếp
+    selected_candidate_id VARCHAR(100), -- ID ứng viên đang dẫn đầu hoặc đã được chọn
+    backup_options JSONB, -- Danh sách các phương án thay thế dự phòng khẩn cấp khi gặp sự cố
     note TEXT,
     metadata JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- plan_votes: Phiếu vote của từng thành viên cho điểm dừng cụ thể
+-- plan_votes: Phiếu vote của từng thành viên cho ứng viên cụ thể trong trạm dừng
 CREATE TABLE core.plan_votes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     stop_id UUID NOT NULL REFERENCES core.plan_stops(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
-    vote_value VARCHAR(10) NOT NULL, -- UP, DOWN, NEUTRAL
+    candidate_id VARCHAR(100) NOT NULL, -- ID của ứng viên được thành viên lựa chọn trong danh sách candidate_options
+    candidate_name VARCHAR(255), -- Tên ứng viên được chọn
     comment TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT uq_stop_user_vote UNIQUE (stop_id, user_id)
@@ -271,7 +272,7 @@ Hệ thống **tuyệt đối không ghi đè dữ liệu** khi nhóm bình ch�
 | Giai đoạn | Trạng thái `Plan` | Trạng thái `PlanStop` | Cơ chế lưu dữ liệu không mất dấu |
 | :--- | :---: | :---: | :--- |
 | **1. Khởi tạo (Initial Plan)** | `INITIAL` | `INITIAL_PROPOSED` | AI tạo bản kế hoạch đầu tiên (`v1`). Mọi điểm dừng ban đầu được gắn `is_initial_stop = TRUE`. |
-| **2. Bình chọn (Voting)** | `VOTING` | `VOTING_OPEN` | Thành viên vote UP/DOWN. Điểm bị loại **không bị xóa/ghi đè** mà chuyển `stop_status = 'REJECTED_IN_VOTE'`. Nhóm chọn đổi sang Phương án 2 từ danh sách ứng viên (hoặc tiếp tục đổi sang Phương án 3 nếu nhóm vẫn chưa đồng thuận). Điểm mới được chèn với `stop_status = 'SELECTED_AFTER_VOTE'`, điểm cũ trỏ `replaced_by_stop_id` tới điểm mới kèm `change_reason`. Chuỗi thay đổi `PA 1 ➔ PA 2 ➔ PA 3` được lưu vết trọn vẹn 100%. |
+| **2. Bình chọn (Voting)** | `VOTING` | `VOTING_OPEN` | Mở thẻ trạm hiển thị đồng thời các ứng viên có mức độ phù hợp đạt chuẩn. Thành viên trực tiếp bỏ phiếu chọn ứng viên ưng ý (hoặc đổi phiếu). Khi 1 ứng viên đạt đủ số phiếu đồng thuận (Quorum >= 60-70%), ứng viên đó được xác nhận (`stop_status = 'SELECTED_AFTER_VOTE'`) và hệ thống tự động mở khóa tuần tự trạm dừng tiếp theo. Điểm cũ được lưu vết qua `replaced_by_stop_id` nếu có sự thay đổi. |
 | **3. Chốt lịch trình (Finalized)** | `FINALIZED` | `FINALIZED_LOCKED` | Host chốt kế hoạch: các điểm đang được chọn được khóa (`locked_at = NOW()`) và gắn `is_finalized_stop = TRUE`. |
 | **4. Thực hiện thực tế (Ongoing)** | `ONGOING` | `ONGOING_ACTIVE` / `ADAPTED_ON_TRIP` / `SKIPPED_ON_TRIP` | Khi trời mưa, điểm ngoài trời cũ chuyển sang `stop_status = 'SKIPPED_ON_TRIP'` (lý do: *"Trời mưa lớn"*), điểm trong nhà mới chèn với `stop_status = 'ADAPTED_ON_TRIP'`, trỏ `replaced_by_stop_id`. |
 

@@ -44,8 +44,8 @@
 |:---:|:---:|---|---|:---:|
 | 11 | `TASK-301` | **Mô hình dữ liệu Plan & Stops** | Schema chuẩn hóa lưu trữ lộ trình vĩ mô và danh sách chi tiết các điểm dừng (`plan_stops`). | Tạ Quang Huy |
 | 12 | `TASK-302` | **Giai đoạn 1: Khóa Lộ Trình Vĩ Mô (Macro Lock)** | Host bấm nút khóa khung chương trình vĩ mô (**Consensus Checkpoint 1**) sau khi cả nhóm đã thảo luận thống nhất. | Tạ Quang Huy |
-| 13 | `TASK-304` | **Giai đoạn 2: Bình chọn Điểm dừng (Stop Voting)** | Thành viên vote **UP** hoặc **DOWN** trên từng điểm dừng, cập nhật atomic counter ngăn race condition. | Tạ Quang Huy |
-| 14 | `TASK-305` | **Đổi địa điểm dự phòng trong 1 click (1-Click Swap)** | Khi điểm dừng bị vote DOWN, người dùng bấm 1 nút để thay thế bằng điểm dự phòng đã nạp sẵn (pre-fetched). | Tạ Quang Huy |
+| 13 | `TASK-304` | **Giai đoạn 2: Biểu chọn Ứng viên Điểm dừng (Candidate Stop Voting)** | Mở thẻ trạm hiển thị đồng thời danh sách các ứng viên có mức độ phù hợp đạt chuẩn; thành viên bỏ phiếu chọn ứng viên yêu thích. | Tạ Quang Huy |
+| 14 | `TASK-305` | **Mở khóa tuần tự theo Quorum (Progressive Unlock & Quorum Auto-advance)** | Khi 1 ứng viên đạt đủ tỷ lệ đồng thuận (Quorum >= 60-70%), hệ thống tự động chốt trạm và mở khóa trạm dừng tiếp theo. | Tạ Quang Huy |
 | 15 | `TASK-306` | **Chốt Kế Hoạch Chính Thức (Final Confirmation)** | Host bấm xác nhận kế hoạch hoàn chỉnh (**Consensus Checkpoint 2**), khóa toàn bộ lộ trình và kích hoạt xuất file. | Tạ Quang Huy |
 | 16 | `TASK-307` | **Lịch trình Động (Living Itinerary & Dynamic Adaptation)** | Khi gặp biến cố bất ngờ trong chuyến đi (trời mưa), cập nhật duy nhất 1 dòng trong bảng `plan_stops`. | Tạ Quang Huy |
 

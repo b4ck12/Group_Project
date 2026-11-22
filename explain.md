@@ -29,15 +29,15 @@ flowchart TD
         A1["1. Tham gia phòng & Chat mong muốn<br/>(Ngày đi, ngân sách, phong cách)"]
         A2["3. Thảo luận & Đánh giá Roadmap Vĩ mô"]
         A3{"Khung vĩ mô OK?"}
-        A4["5. Bình chọn Điểm dừng Chi tiết<br/>(Vote UP / DOWN từng địa điểm)"]
-        A5{"Điểm dừng OK?"}
+        A4["5. Mở Thẻ Trạm & Vote Ứng Viên<br/>(Hiện các ứng viên đạt chuẩn phù hợp -> Vote chọn)"]
+        A5{"Đạt Quorum đồng thuận?"}
         A6["7. Theo dõi Lịch trình Sống & Điều hướng<br/>(Mapbox GL Canvas)"]
     end
 
     subgraph Part2 ["TripMate Platform (FastAPI + LangGraph + APIs)"]
         B1["2. Phase 1: Macro Planning State<br/>(Soạn thảo số ngày, chủ đề, nhịp độ<br/>KHÔNG gọi API ngoài tốn phí)"]
-        B2["4. Phase 2: Micro Curation State<br/>(Tra cứu Maps, Search & Khách sạn đa nguồn qua PyBreaker,<br/>Gom cụm địa lý 2-3km)"]
-        B3["1-Click Swap: Đổi địa điểm dự phòng đã pre-fetch"]
+        B2["4. Phase 2: Micro Curation State<br/>(Tra cứu Maps, Search & Khách sạn đa nguồn qua PyBreaker,<br/>Gom cụm địa lý 2-3km, nạp các ứng viên)"]
+        B3["Progressive Unlock: Chốt trạm hiện tại & Mở khóa trạm tiếp theo"]
         B4["6. Final Confirmation & Exports<br/>(Ghi plan_stops vào DB, sinh PDF & .ics)"]
         B5["On-Trip Edit: Cập nhật duy nhất 1 dòng khi trời mưa"]
     end
@@ -49,9 +49,11 @@ flowchart TD
     A3 -- "Host Khóa (Consensus 1)" --> B2
     B2 --> A4
     A4 --> A5
-    A5 -- "Vote DOWN" --> B3
-    B3 --> A4
-    A5 -- "Host Chốt (Consensus 2)" --> B4
+    A5 -- "Đạt Quorum (>= 60-70%)" --> B3
+    B3 -- "Mở trạm tiếp theo" --> A4
+    A5 -- "Chưa đủ phiếu" --> A4
+    B3 -- "Đã vote xong hết các trạm" --> A5
+    A5 -- "Host Chốt Lịch Trình (Consensus 2)" --> B4
     B4 --> A6
     A6 -. "Đổi điểm ngẫu hứng (trời mưa)" .-> B5
     B5 -. "Đã cập nhật stop" .-> A6
@@ -80,15 +82,17 @@ flowchart TD
 - Được kích hoạt ngay sau khi Macro Lock.
 - AI Agent gọi các công cụ kết nối API ngoài (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook**) thông qua bộ chuyển đổi Adapter Pattern và lớp ngắt mạch **PyBreaker Circuit Breaker** (timeout 2.5s).
 - **Thuật toán Gom Cụm Địa Lý (Smart Geo-Clustering)**: Sử dụng công thức khoảng cách Haversine và Mapbox Matrix để gom các địa điểm trong cùng một buổi sáng/chiều vào bán kính hẹp $2.0$--$2.5$\,km ($\le 20$\,phút di chuyển), ngăn chặn tuyệt đối tình trạng di chuyển hình ziczac qua lại giữa hai đầu thành phố.
-- AI nạp sẵn 2 địa điểm dự phòng cho mỗi điểm dừng chính để chuẩn bị cho cơ chế 1-click swap.
+- **Tuyển chọn Pool Ứng Viên Đạt Chuẩn Phù Hợp (Matching Threshold)**: Tại mỗi trạm dừng (Stop Slot), AI không áp đặt cứng số lượng mà chuẩn bị sẵn danh sách **tất cả các ứng viên có mức độ phù hợp đạt chuẩn** (vượt qua bộ lọc tiêu chí: GPS thật, đang mở cửa, cùng phân khúc ngân sách, đúng sở thích/khẩu vị nhóm và nằm trong bán kính gom cụm $\le 2.5$\,km) để mở ra cho nhóm biểu quyết.
 
-### Bước 5: Bình chọn Từng Điểm Dừng & Đổi Dự Phòng (Granular Stop Voting & 1-Click Swap)
-- Từng điểm dừng hiển thị thành các thẻ trực quan (thời gian ghé thăm, hình ảnh thật, đánh giá, chi phí dự kiến).
-- Các thành viên trong phòng vote **UP** (đồng ý) hoặc **DOWN** (không thích).
-- Nếu một địa điểm bị phản đối, người dùng chỉ cần nhấn **1-Click Swap**, hệ thống sẽ ngay lập tức thay thế bằng địa điểm dự phòng đã được xác thực sẵn mà không cần AI phải suy luận lại từ đầu (thời gian swap chỉ $3$--$6$\,giây).
+### Bước 5: Mở Thẻ Trạm, Biểu Quyết Ứng Viên & Mở Khóa Tuần Tự (Candidate Venues Voting & Progressive Unlock)
+- Quy trình bình chọn diễn ra tuần tự từng trạm dừng một (Progressive 1-by-1 Flow) để đảm bảo nhóm thống nhất chắc chắn từng bước:
+  - **Mở thẻ trạm hiển thị đồng thời các ứng viên đạt chuẩn**: Khi một trạm dừng được mở, giao diện hiển thị trực tiếp danh sách **các ứng viên có mức độ phù hợp đạt chuẩn** cùng lúc. Mỗi ứng viên có đầy đủ thông tin: tên, hình ảnh, giá phòng/món ăn, cự ly và tag đánh giá phù hợp nguyện vọng thành viên.
+  - **Bỏ phiếu trực tiếp cho ứng viên yêu thích**: Các thành viên trong phòng trực tiếp bấm **[Bỏ Phiếu]** hoặc chuyển đổi lựa chọn giữa các ứng viên. Số phiếu và avatar thành viên vote được cập nhật tức thì qua WebSockets.
+  - **Chốt điểm dừng khi đạt Quorum ($\ge 60\% - 70\%$)**: Khi một ứng viên đạt đủ tỷ lệ đồng thuận nhóm (ví dụ: $2/3$ thành viên đồng thuận), hệ thống xác nhận ứng viên đó là điểm dừng chính thức của trạm.
+  - **Tự động mở khóa trạm tiếp theo (Progressive Unlock)**: Ngay khi trạm hiện tại được chốt, trạm kế tiếp sẽ tự động được mở khóa kèm danh sách ứng viên mới để nhóm tiếp tục biểu quyết, cho đến khi hoàn tất toàn bộ các ngày trong lịch trình.
 
 ### Bước 6: Chốt Kế Hoạch Chính Thức (Consensus Checkpoint 2: Final Lock)
-- Khi mọi điểm dừng đều đạt tỷ lệ đồng thuận cao, Host bấm nút **Xác nhận Kế Hoạch Chính Thức (Final Lock)**.
+- Khi toàn bộ các điểm dừng của tất cả các ngày đều đã được nhóm biểu quyết thông qua, Host bấm nút **Xác nhận Kế Hoạch Chính Thức (Final Lock)**.
 - Backend FastAPI ghi toàn bộ danh sách điểm dừng đã chuẩn hóa vào bảng `plan_stops` trong PostgreSQL.
 - Hệ thống hỗ trợ xuất file **PDF lịch trình chi tiết** (WeasyPrint) và đồng bộ **File Lịch (.ics)** vào Google Calendar / Apple Calendar.
 - Lộ trình định tuyến được hiển thị đồng bộ trên bản đồ Mapbox GL Canvas.
@@ -122,7 +126,7 @@ Hệ thống xây dựng một lớp trừu tượng hóa mô hình LLM:
 1. **Tier 1 — Strict Pydantic Schema**: Mọi phản hồi từ LLM phải parse thành công vào Pydantic schema với kiểu dữ liệu chặt chẽ (tên địa điểm, danh mục `StopCategory`, vĩ độ/kinh độ ước tính, khung giá). Nếu sai cấu trúc, parser tự động yêu cầu sửa đổi thay vì làm crash ứng dụng.
 2. **Tier 2 — Live Map Check**: Kiểm tra chéo từng địa điểm với Google Places API và OpenStreetMap (OSM) để xác thực sự tồn tại, lấy Place ID chuẩn xác, kiểm tra trạng thái mở cửa và khung giờ hoạt động thực tế.
 3. **Tier 3 — Distance Guard (Bảo Vệ Cự Ly)**: Áp dụng thuật toán Haversine và Mapbox Matrix API để kiểm tra: khoảng cách giữa 2 điểm dừng liên tiếp trong cùng 1 buổi phải $\le 2.5$\,km và thời gian di chuyển $\le 20$\,phút. Nếu vượt quá, AI tự động loại bỏ và chọn địa điểm khác gần hơn.
-4. **Tier 4 — Member Votes & 1-Click Backup**: Đặt quyền quyết định tối hậu vào tay người dùng. Từng thành viên bỏ phiếu UP/DOWN; điểm dừng bị từ chối được thay thế ngay bằng phương án dự phòng đã được xác thực qua 3 tầng trước đó.
+4. **Tier 4 — Candidate Venues Multi-Choice Voting & Progressive Unlock**: Đặt quyền quyết định tối hậu vào tay người dùng. Khi mở thẻ trạm, hệ thống hiển thị đồng thời danh sách các ứng viên có mức độ phù hợp đạt chuẩn; từng thành viên trực tiếp bỏ phiếu chọn ứng viên ưng ý. Ứng viên đạt đa số phiếu đồng thuận (Quorum) sẽ được chốt và mở khóa tuần tự trạm tiếp theo.
 
 ---
 

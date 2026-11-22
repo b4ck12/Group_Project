@@ -35,7 +35,7 @@ flowchart LR
     S1["1. Group Chat<br/>• Mong muốn & Ngân sách<br/>• Lưu vào Supabase DB"] --> S2["2. Macro Plan<br/>• Phân bổ số ngày & Chủ đề<br/>• Pha 1: Macro State"]
     S2 --> S3{"3. Macro Lock<br/>🔒 Khóa Roadmap<br/>(Consensus 1)"}
     S3 --> S4["4. Micro Spots<br/>• POIs, Quán ăn, Khách sạn<br/>• Gom cụm 2-3km<br/>• Pha 2: Micro State"]
-    S4 --> S5["5. Stop Voting<br/>• Vote UP / DOWN<br/>• 1-Click Swap dự phòng"]
+    S4 --> S5["5. Candidate Stop Voting<br/>• Hiện các ứng viên đạt chuẩn<br/>• Vote chọn & Mở khóa tuần tự"]
     S5 --> S6{"6. Final Lock<br/>🔒 Chốt Kế Hoạch<br/>(Consensus 2)"}
     S6 --> S7["7. Living Itinerary<br/>• Xuất PDF & Calendar .ics<br/>• Mapbox điều hướng<br/>• Đổi điểm khi trời mưa"]
 
@@ -51,7 +51,7 @@ flowchart LR
 ### Chi tiết các bước thực hiện:
 1. **Thu thập mong muốn (Desires Capture)**: Thành viên chat tự do về ngày đi, khung ngân sách, phong cách chuyến đi; tin nhắn được lưu trực tiếp vào Supabase (`core` schema).
 2. **Đồng thuận Vĩ mô (Macro Consensus - Consensus 1)**: AI Agent (Phase 1 Macro State) phác thảo số ngày và chủ đề từng ngày mà **chưa gọi các API địa điểm tốn kém**. Cả nhóm thảo luận và Host bấm khóa khung chương trình.
-3. **Tuyển chọn Chi tiết & Bình chọn Điểm dừng (Micro Curation & Stop Voting)**: AI Agent (Phase 2 Micro State) truy vấn hệ thống API tổng hợp (Google Maps/Places, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook), gom cụm địa lý trong bán kính $2.0$--$2.5$\,km ($\le 20$\,phút di chuyển). Thành viên vote UP/DOWN cho từng điểm dừng, hỗ trợ đổi địa điểm dự phòng trong 1 click (**1-Click Swap**).
+3. **Tuyển chọn Chi tiết & Bình chọn Ứng viên Điểm dừng (Micro Curation & Candidate Stop Voting)**: AI Agent (Phase 2 Micro State) truy vấn hệ thống API tổng hợp (Google Maps/Places, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook), gom cụm địa lý trong bán kính $2.0$--$2.5$\,km ($\le 20$\,phút di chuyển). Mở thẻ từng trạm hiển thị đồng thời các ứng viên có mức độ phù hợp đạt chuẩn (vượt qua ngưỡng matching score); thành viên trực tiếp bỏ phiếu chọn ứng viên ưng ý. Khi đạt Quorum ($\ge 60\%-70\%$), hệ thống tự động chốt trạm và mở khóa tuần tự trạm tiếp theo.
 4. **Chốt Kế Hoạch Chính Thức (Final Confirmation - Consensus 2)**: Host xác nhận kế hoạch hoàn chỉnh, lưu các bản ghi đã chuẩn hóa vào bảng `plan_stops` trong PostgreSQL, sinh file PDF và lịch (.ics), kích hoạt bản đồ lộ trình Mapbox GL.
 5. **Lịch trình Sống Động (Living Itinerary & Dynamic Adaptation)**: Kế hoạch không bị đóng băng cứng nhắc. Khi có biến động thực tế (ví dụ trời mưa bất chợt), thành viên chat yêu cầu đổi quán cafe trong nhà gần đó, AI chỉ cập nhật duy nhất 1 dòng trong bảng `plan_stops` mà không làm xáo trộn toàn bộ lịch trình.
 
@@ -69,7 +69,7 @@ flowchart LR
 
 ### 4.3. Động Cơ Đồng Thuận 2 Tầng (Two-Tier Consensus Engine)
 - **Tầng 1 (Macro Approval)**: Khóa khung chương trình trước khi gọi các API tốn kém token và chi phí.
-- **Tầng 2 (Micro Stop Voting)**: Bình chọn từng điểm dừng. Điểm dừng bị vote DOWN lập tức hiển thị 2 phương án thay thế đã được nạp sẵn (pre-fetched) để swap chỉ trong 1 click.
+- **Tầng 2 (Micro Stop Voting)**: Mở thẻ trạm hiển thị đồng thời các ứng viên có mức độ phù hợp đạt chuẩn để thành viên vote trực tiếp. Đạt Quorum tự động chốt trạm và mở khóa tuần tự trạm tiếp theo.
 
 ### 4.4. Chuẩn Giao Diện: Flexbox & Fully Responsive UI (Mobile-First)
 - **Bố cục Flexbox & Grid Hiện Đại**: Áp dụng triệt để `display: flex` và CSS Grid cho toàn bộ layout (Timeline, Chat, Voting Cards, Navbar, Modal).
@@ -94,7 +94,7 @@ Thay vì chia thành nhiều sub-agent rời rạc gây nghẽn độ trễ và 
 flowchart LR
     T1["Tier 1: Strict Schema<br/>• Pydantic Schema cố định<br/>• Không text tự do lan man"] --> T2["Tier 2: Live Map Check<br/>• Google Places & OSM<br/>• Xác thực Place ID & Giờ mở cửa"]
     T2 --> T3["Tier 3: Distance Guard<br/>• Gom cụm Haversine + Mapbox<br/>• Bán kính <= 2.5km, di chuyển <= 20p"]
-    T3 --> T4["Tier 4: Member Votes<br/>• Vote UP / DOWN<br/>• 1-Click Swap dự phòng chuẩn hóa"]
+    T3 --> T4["Tier 4: Candidate Venues Voting<br/>• Hiện các ứng viên đạt chuẩn<br/>• Vote chọn & Mở khóa tuần tự"]
 
     style T1 fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
     style T2 fill:#f7f9fc,stroke:#186c8e,stroke-width:1.5px;
@@ -105,7 +105,7 @@ flowchart LR
 1. **Tier 1 (Strict Schema)**: Ràng buộc đầu ra của AI theo Pydantic schema nghiêm ngặt (tên địa điểm, danh mục, thời lượng dừng, phân khúc giá), ngăn chặn việc sinh text lan man hoặc thiếu trường dữ liệu.
 2. **Tier 2 (Live Map Check)**: Xác thực từng địa điểm qua các API đối tác và tìm kiếm: **Google Places (Google Maps), Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia** để đảm bảo địa điểm có thật 100%, có giá phòng thực tế, đang mở cửa và đúng giờ hoạt động.
 3. **Tier 3 (Distance Guard)**: Áp dụng công thức khoảng cách Haversine và Mapbox định tuyến, đảm bảo các điểm dừng trong cùng một buổi sáng/chiều nằm trong bán kính $\le 2.5$\,km và thời gian di chuyển $\le 20$\,phút.
-4. **Tier 4 (Member Votes & 1-Click Swap)**: Thành viên nhóm trực tiếp vote UP/DOWN; các điểm dừng bị phản đối lập tức được thay thế bằng phương án dự phòng đã được xác thực sẵn.
+4. **Tier 4 (Candidate Venues Multi-Choice Voting & Progressive Unlock)**: Mở thẻ trạm hiển thị đồng thời các ứng viên có mức độ phù hợp đạt chuẩn; từng thành viên trực tiếp bỏ phiếu chọn ứng viên ưng ý. Đạt Quorum tự động chốt trạm và mở khóa tuần tự trạm tiếp theo.
 
 ### 5.3. Cơ Chế Quản Lý Ngân Sách & Cân Đối Chi Tiêu Thông Minh (Intelligent Budget & Price Balancing Engine)
 Để giải quyết bài toán mâu thuẫn tài chính trong nhóm, AI Agent đóng vai trò như một **Cố vấn Quản trị Tài chính Du lịch tự động**, cân đối mọi điểm dừng theo trần chi tiêu:
