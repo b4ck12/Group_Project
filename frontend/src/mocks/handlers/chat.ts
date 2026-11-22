@@ -1,10 +1,14 @@
 import { http, HttpResponse } from 'msw';
-import type { ChatMessageResponse, ChatMessageCreateRequest } from '../../types/chat.ts';
+import type {
+  ChatMessageCreateRequest,
+  ChatMessageListResponse,
+  ChatMessageResponse,
+} from '../../types/chat.ts';
 
 /**
- * MSW Mock Handlers for Room Chat APIs.
- * Endpoints follow api-design-guide.md Section 2.
- * Response format follows api-design-guide.md Section 4.
+ * MSW Mock Handlers for Group Room Chat APIs.
+ * Endpoints follow api-design-guide.md Section 2 & 3.5.2.
+ * Supports CHAT, AGENT_QA, AGENT_TRIGGER, and SYSTEM message routing.
  */
 
 const mockMessages: ChatMessageResponse[] = [
@@ -13,31 +17,41 @@ const mockMessages: ChatMessageResponse[] = [
     event_id: 'evt_001',
     user_id: 'usr_001',
     role: 'USER',
+    message_type: 'CHAT',
     content: 'Chào cả nhóm, chúng mình cùng chốt lịch trình Đà Lạt nhé!',
-    created_at: '2024-12-05T10:00:00Z',
+    metadata: null,
+    created_at: '2026-11-20T10:00:00Z',
   },
   {
     id: 'msg_002',
     event_id: 'evt_001',
     user_id: null,
     role: 'AI',
-    content: 'TripMate AI đã phân tích sở thích và chuẩn bị xong khung lộ trình vĩ mô 3 ngày. Host có thể bấm Khóa Lộ Trình Vĩ Mô khi mọi người sẵn sàng.',
-    created_at: '2024-12-05T10:01:00Z',
+    message_type: 'AGENT_QA',
+    content:
+      'Quán Bếp Cuốn có menu chay riêng với gỏi cuốn rau củ nấm và bánh xèo chay rất phù hợp cho nhóm nhé!',
+    metadata: { intent: 'dish_qa', target_stop_id: 'stop_002' },
+    created_at: '2026-11-20T10:01:00Z',
   },
 ];
 
 export const chatHandlers = [
   // GET /api/v1/events/:eventId/chat
-  http.get('/api/v1/events/:eventId/chat', ({ params }) => {
-    const messages = mockMessages.filter((m) => m.event_id === params.eventId);
+  http.get('/api/v1/events/:eventId/chat', ({ params, request }) => {
+    const url = new URL(request.url);
+    const limitParam = Number(url.searchParams.get('limit') ?? '50');
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 50;
 
-    return HttpResponse.json(
-      {
-        success: true,
-        data: messages,
-      },
-      { status: 200 },
-    );
+    const allEventMessages = mockMessages.filter((m) => m.event_id === params.eventId);
+    const sliced = allEventMessages.slice(-limit);
+
+    const payload: ChatMessageListResponse = {
+      messages: sliced,
+      total: allEventMessages.length,
+      has_more: allEventMessages.length > sliced.length,
+    };
+
+    return HttpResponse.json({ success: true, data: payload }, { status: 200 });
   }),
 
   // POST /api/v1/events/:eventId/chat
@@ -49,18 +63,14 @@ export const chatHandlers = [
       event_id: params.eventId as string,
       user_id: 'usr_001',
       role: body.role ?? 'USER',
+      message_type: body.message_type ?? 'CHAT',
       content: body.content,
+      metadata: body.metadata ?? null,
       created_at: new Date().toISOString(),
     };
 
     mockMessages.push(newMessage);
 
-    return HttpResponse.json(
-      {
-        success: true,
-        data: newMessage,
-      },
-      { status: 201 },
-    );
+    return HttpResponse.json({ success: true, data: newMessage }, { status: 201 });
   }),
 ];
