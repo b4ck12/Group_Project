@@ -46,6 +46,8 @@ from .invitation import (
 from .consensus import (
     RoadmapTheme,
     BackupOption,
+    CandidateOption,
+    CandidateVoteSummary,
     MacroLockRequest,
     MacroLockResponse,
     FinalLockRequest,
@@ -126,6 +128,8 @@ __all__ = [
     # Consensus
     "RoadmapTheme",
     "BackupOption",
+    "CandidateOption",
+    "CandidateVoteSummary",
     "MacroLockRequest",
     "MacroLockResponse",
     "FinalLockRequest",
