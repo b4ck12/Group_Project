@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.redis import init_redis_pool, close_redis_pool, check_redis_health
 from app.core.http_client import init_http_client, close_http_client
-from app.api.v1 import auth, events, invitations, places, plans, votes, ai, users, utils
+from app.api.v1 import auth, chat, events, invitations, places, plans, votes, ai, users, utils
 
 
 @asynccontextmanager
@@ -36,6 +36,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(events.router, prefix="/api/v1")
+app.include_router(chat.router, prefix="/api/v1")
 app.include_router(invitations.router, prefix="/api/v1")
 app.include_router(places.router, prefix="/api/v1")
 app.include_router(plans.router, prefix="/api/v1")
