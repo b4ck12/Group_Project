@@ -3,9 +3,10 @@
  * Follows api-design-guide.md Section 2, 3 and database-schema.md.
  */
 
-import type { StopCategory, VoteValue } from './plan.ts';
+import type { StopCategory, StopStatus } from './plan.ts';
 
-export const MAX_BACKUP_OPTIONS = 2;
+export const DEFAULT_INITIAL_BACKUP_OPTIONS = 2;
+export const MAX_BACKUP_OPTIONS = DEFAULT_INITIAL_BACKUP_OPTIONS;
 
 export interface RoadmapTheme {
   day: number;
@@ -23,7 +24,31 @@ export interface MacroLockResponse {
   roadmap_themes: RoadmapTheme[];
 }
 
+export interface CandidateOption {
+  candidate_id: string;
+  place_name: string;
+  place_ref_id: string;
+  category: StopCategory;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  estimated_cost?: number;
+  distance_km?: number | null;
+  image_url?: string | null;
+  description?: string | null;
+  matched_desire?: Record<string, string> | null;
+  is_indoor_backup?: boolean;
+}
+
+export interface CandidateVoteSummary {
+  candidate_id: string;
+  place_name: string;
+  votes_count: number;
+  voters: string[];
+}
+
 export interface BackupOption {
+  option_index: number;
   place_name: string;
   place_ref_id: string;
   category: StopCategory;
@@ -32,29 +57,49 @@ export interface BackupOption {
 }
 
 export interface StopVoteRequest {
-  vote_value: VoteValue;
+  candidate_id: string;
   comment?: string | null;
 }
 
 export interface StopVoteResponse {
   stop_id: string;
-  up_votes: number;
-  down_votes: number;
-  recommend_swap: boolean;
-  backup_options: BackupOption[];
+  selected_candidate_id: string | null;
+  quorum_reached: boolean;
+  stop_status: StopStatus;
+  next_unlocked_stop_id: string | null;
+  candidates: CandidateVoteSummary[];
 }
 
 export interface StopSwapRequest {
-  target_backup_place_ref_id: string;
+  target_backup_place_ref_id?: string | null;
+  cycle_next?: boolean;
+  change_reason?: string | null;
 }
 
 export interface StopSwapResponse {
-  swapped_stop_id: string;
+  previous_stop_id: string;
+  new_stop_id: string;
   new_place_name: string;
+  selected_option_index: number;
   category: StopCategory;
   lat: number;
   lng: number;
+  stop_status: StopStatus;
+  replaced_by_stop_id: string;
   updated_at: string;
+}
+
+export interface FetchMoreBackupsRequest {
+  clarification_notes?: string | null;
+  dietary_filter?: string | null;
+  exclude_place_ref_ids?: string[];
+}
+
+export interface FetchMoreBackupsResponse {
+  stop_id: string;
+  backup_options: BackupOption[];
+  needs_clarification: boolean;
+  clarification_question: string | null;
 }
 
 export interface FinalLockRequest {
@@ -70,15 +115,19 @@ export interface FinalLockResponse {
 }
 
 export interface StopAdaptationRequest {
-  place_name: string;
-  place_ref_id: string;
-  note?: string | null;
+  new_place_name: string;
+  new_place_ref_id: string;
+  change_reason: string;
 }
 
 export interface StopAdaptationResponse {
-  stop_id: string;
-  place_name: string;
-  place_ref_id: string;
-  note: string;
+  previous_stop_id: string;
+  new_stop_id: string;
+  new_place_name: string;
+  new_place_ref_id: string;
+  stop_status: StopStatus;
+  replaced_by_stop_id: string;
+  change_reason: string;
+  cloned_plan_id?: string | null;
   updated_at: string;
 }

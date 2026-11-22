@@ -40,7 +40,10 @@ export interface ResetPasswordRequest {
 export interface UserUpdateRequest {
   full_name?: string | null;
   avatar_url?: string | null;
+  dietary_preferences?: Record<string, unknown> | null;
 }
+
+export type UserProfileUpdateRequest = UserUpdateRequest;
 
 // --- Responses ---
 export interface TokenResponse {
@@ -54,6 +57,7 @@ export interface UserResponse {
   email: string;
   full_name: string;
   avatar_url: string | null;
+  dietary_preferences?: Record<string, unknown> | null;
   provider: AuthProvider;
   role: SystemRole;
   created_at: string; // ISO 8601

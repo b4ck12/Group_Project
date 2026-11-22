@@ -30,6 +30,7 @@ export interface EventCreateRequest {
   location?: string | null;
   destination?: string | null;
   budget_tier?: BudgetTier | null;
+  total_budget?: string | null; // Decimal serialized as string
   start_date: string; // ISO 8601
   end_date: string;
 }
@@ -42,6 +43,7 @@ export interface EventUpdateRequest {
   location?: string | null;
   destination?: string | null;
   budget_tier?: BudgetTier | null;
+  total_budget?: string | null;
   start_date?: string;
   end_date?: string;
   macro_locked?: boolean;
@@ -67,6 +69,7 @@ export interface EventResponse {
   location: string | null;
   destination: string | null;
   budget_tier: BudgetTier | null;
+  total_budget?: string | null;
   start_date: string;
   end_date: string;
   macro_locked: boolean;
@@ -81,6 +84,7 @@ export interface EventMemberResponse {
   event_id: string;
   user_id: string;
   role: EventRole;
+  dietary_notes?: string | null;
   joined_at?: string;
 }
 
