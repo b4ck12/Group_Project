@@ -156,7 +156,7 @@ CREATE TABLE core.plans (
     status VARCHAR(50) DEFAULT 'INITIAL', -- INITIAL, VOTING, FINALIZED, ONGOING, COMPLETED, ARCHIVED
     is_ai_generated BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,
-    total_estimated_cost DECIMAL(12, 2) DEFAULT 0,
+    total_budget DECIMAL(12, 2) DEFAULT 0, -- Tổng chi phí ước tính của phiên bản Plan này (phân biệt với events.total_budget là trần ngân sách phòng)
     created_by_id UUID REFERENCES core.users(id) ON DELETE SET NULL,
     macro_roadmap JSONB,
     change_summary VARCHAR(500),
@@ -265,38 +265,45 @@ CREATE INDEX idx_chat_event_time ON core.chat_messages(event_id, created_at);
 
 ---
 
-## 🛡️ 5. Kịch Bản Vận Hành Lịch Sử 4 Giai Đoạn (Mục 2.5: Non-destructive Lifecycle)
+## 🛡️ 5. Kịch Bản Vận Hành Lịch Sử 4 Giai Đoạn (Mục 2.5: Non-destructive Plan Versioning & Stop Tracking)
 
-Hệ thống **tuyệt đối không ghi đè dữ liệu** khi nhóm bình chọn hoặc khi xảy ra thay đổi đột xuất trong chuyến đi. Toàn bộ tiến trình được theo dõi qua 4 giai đoạn rõ ràng:
+Hệ thống **tuyệt đối không ghi đè dữ liệu** khi nhóm bình chọn, chốt lịch hoặc khi xảy ra thay đổi đột xuất trong chuyến đi. Cơ chế hoạt động theo **2 tầng song song** với **quy tắc Clone Plan tự động (Deep-Copy bản ghi `Plan` + `INSERT` mới các `PlanStop` hợp lệ — tuyệt đối không `UPDATE plan_id` của stop cũ)**:
 
-| Giai đoạn | Trạng thái `Plan` | Trạng thái `PlanStop` | Cơ chế lưu dữ liệu không mất dấu |
+1. **`v1 (INITIAL / VOTING)`**: AI tạo phiên bản đầu tiên (`version_number = 1, parent_plan_id = NULL`). Trong lúc bình chọn, mọi thay đổi ứng viên đều giữ vết ngay trên `v1` thông qua `candidate_options`, `selected_candidate_id` và `replaced_by_stop_id`.
+2. **`v1` $\xrightarrow{\text{final-lock}}$ Clone `v2 (FINALIZED, parent_plan_id = v1)`**: Đóng băng `v1` (`is_active = FALSE`), tạo bản `Plan v2` (`is_active = TRUE, locked_at = NOW()`), và `INSERT` mới các `PlanStop` đã được chọn sang `v2` (`is_finalized_stop = TRUE`).
+3. **`v2` $\xrightarrow{\text{adapt trời mưa}}$ Clone `v3 (ONGOING, parent_plan_id = v2)`**: Khi đang đi thực tế gặp biến cố lần đầu trên `v2` (`FINALIZED`), giữ nguyên `v2` bất biến (`is_active = FALSE`), tự động clone sang `Plan v3` (`ONGOING`), đánh dấu stop cũ trên `v3` là `SKIPPED_ON_TRIP` kèm `change_reason` và chèn stop trong nhà mới (`ADAPTED_ON_TRIP`, liên kết `replaced_by_stop_id`).
+
+| Giai đoạn | Phiên bản & Trạng thái `Plan` | Trạng thái `PlanStop` | Cơ chế lưu dữ liệu không mất dấu |
 | :--- | :---: | :---: | :--- |
-| **1. Khởi tạo (Initial Plan)** | `INITIAL` | `INITIAL_PROPOSED` | AI tạo bản kế hoạch đầu tiên (`v1`). Mọi điểm dừng ban đầu được gắn `is_initial_stop = TRUE`. |
-| **2. Bình chọn (Voting)** | `VOTING` | `VOTING_OPEN` | Mở thẻ trạm hiển thị đồng thời các ứng viên có mức độ phù hợp đạt chuẩn. Thành viên trực tiếp bỏ phiếu chọn ứng viên ưng ý (hoặc đổi phiếu). Khi 1 ứng viên đạt đủ số phiếu đồng thuận (Quorum >= 60-70%), ứng viên đó được xác nhận (`stop_status = 'SELECTED_AFTER_VOTE'`) và hệ thống tự động mở khóa tuần tự trạm dừng tiếp theo. Điểm cũ được lưu vết qua `replaced_by_stop_id` nếu có sự thay đổi. |
-| **3. Chốt lịch trình (Finalized)** | `FINALIZED` | `FINALIZED_LOCKED` | Host chốt kế hoạch: các điểm đang được chọn được khóa (`locked_at = NOW()`) và gắn `is_finalized_stop = TRUE`. |
-| **4. Thực hiện thực tế (Ongoing)** | `ONGOING` | `ONGOING_ACTIVE` / `ADAPTED_ON_TRIP` / `SKIPPED_ON_TRIP` | Khi trời mưa, điểm ngoài trời cũ chuyển sang `stop_status = 'SKIPPED_ON_TRIP'` (lý do: *"Trời mưa lớn"*), điểm trong nhà mới chèn với `stop_status = 'ADAPTED_ON_TRIP'`, trỏ `replaced_by_stop_id`. |
+| **1. Khởi tạo (Initial Plan)** | `v1`: `INITIAL` | `INITIAL_PROPOSED` | AI tạo bản kế hoạch đầu tiên (`v1`). Mọi điểm dừng ban đầu được gắn `is_initial_stop = TRUE`. |
+| **2. Bình chọn (Voting)** | `v1`: `VOTING` | `VOTING_OPEN` | Mở thẻ trạm hiển thị đồng thời `candidate_options`. Thành viên bỏ phiếu chọn `candidate_id` trong `plan_votes`. Khi đạt Quorum ($\ge 60\%-70\%$), ứng viên được xác nhận (`stop_status = 'SELECTED_AFTER_VOTE'`, `selected_candidate_id`) và tự động mở khóa tuần tự trạm kế tiếp. |
+| **3. Chốt lịch trình (Finalized)** | `v2`: `FINALIZED` (`parent=v1`) | `FINALIZED_LOCKED` | Host bấm `final-lock`: đóng băng `v1`, **clone sang `Plan v2`**, khóa (`locked_at = NOW()`) và gắn `is_finalized_stop = TRUE` cho các stop của `v2`. |
+| **4. Thực hiện thực tế (Ongoing)** | `v3`: `ONGOING` (`parent=v2`) | `ONGOING_ACTIVE` / `ADAPTED_ON_TRIP` / `SKIPPED_ON_TRIP` | Khi trời mưa, **clone `v2` $\rightarrow$ `v3`** (nếu chưa ở `ONGOING`); trên `v3`, điểm ngoài trời cũ chuyển `SKIPPED_ON_TRIP` (lý do: *"Trời mưa lớn"*), điểm trong nhà mới chèn với `ADAPTED_ON_TRIP`, trỏ `replaced_by_stop_id`. |
 
-### Ví Dụ Truy Vấn 3 Mốc Lịch Sử Từ Cùng Một Bảng:
-1. **Lấy danh sách ban đầu do AI gợi ý**:
+### Ví Dụ Truy Vấn Chuỗi Phiên Bản & 3 Mốc Lịch Sử Bất Biến:
+1. **Lấy toàn bộ chuỗi phiên bản `Plan` của phòng (chứng minh `1 Event — N Plans`)**:
    ```sql
-   SELECT * FROM core.plan_stops 
-   WHERE plan_id = :plan_id AND is_initial_stop = TRUE 
+   SELECT id, version_number, parent_plan_id, status, is_active, total_budget, change_summary, locked_at
+   FROM core.plans
+   WHERE event_id = :event_id
+   ORDER BY version_number ASC;
+   ```
+2. **Lấy chi tiết điểm dừng bất biến của bất kỳ mốc nào (`v1 Initial` / `v2 Finalized` / `v3 Ongoing`)**:
+   ```sql
+   -- Không bao giờ bị ảnh hưởng khi v3 sửa giờ, thứ tự, phương tiện hay ngân sách!
+   SELECT * FROM core.plan_stops
+   WHERE plan_id = :target_plan_version_id
    ORDER BY day_number, order_index;
    ```
-2. **Lấy danh sách đã chốt sau khi nhóm bình chọn**:
+3. **Dùng `is_initial_stop` & `is_finalized_stop` làm Origin Badge ngay trên phiên bản đang xem**:
    ```sql
-   SELECT * FROM core.plan_stops 
-   WHERE plan_id = :plan_id AND is_finalized_stop = TRUE 
+   SELECT id, place_name, stop_status, is_initial_stop, is_finalized_stop, replaced_by_stop_id, change_reason
+   FROM core.plan_stops
+   WHERE plan_id = :target_plan_version_id
+     AND stop_status IN ('FINALIZED_LOCKED', 'ONGOING_ACTIVE', 'ADAPTED_ON_TRIP', 'SKIPPED_ON_TRIP')
    ORDER BY day_number, order_index;
    ```
-3. **Lấy lộ trình thực tế đang đi (bao gồm các điểm thích ứng khi trời mưa)**:
-   ```sql
-   SELECT * FROM core.plan_stops 
-   WHERE plan_id = :plan_id 
-     AND stop_status IN ('FINALIZED_LOCKED', 'ONGOING_ACTIVE', 'ADAPTED_ON_TRIP')
-   ORDER BY day_number, order_index;
-   ```
-$\implies$ Nhờ thiết kế này, nhóm có thể mở giao diện so sánh: *"Lúc đầu AI đề xuất gì $\rightarrow$ Nhóm vote chốt cái gì $\rightarrow$ Thực tế đi những đâu"* một cách trọn vẹn 100%!
+$\implies$ Nhờ thiết kế 2 tầng này, nhóm có thể đối chiếu trọn vẹn cả **ngân sách/trạng thái cấp Plan (`v1 → v2 → v3`)** lẫn **nguồn gốc từng điểm dừng (`is_initial_stop` / `is_finalized_stop` / `replaced_by_stop_id`)** mà 0% dữ liệu bị ghi đè mất dấu!
 
 ---
 

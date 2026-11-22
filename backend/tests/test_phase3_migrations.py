@@ -55,6 +55,13 @@ def test_migration_chain_integrity():
     assert hasattr(pr_align_mod, "upgrade") and callable(pr_align_mod.upgrade)
     assert hasattr(pr_align_mod, "downgrade") and callable(pr_align_mod.downgrade)
 
+    # Verify PR35 candidate voting revision
+    assert "e8f1a4b3c2d7" in revisions
+    assert revisions["e8f1a4b3c2d7"]["down_revision"] == "d7e9f3a2b1c6"
+    pr35_mod = revisions["e8f1a4b3c2d7"]["module"]
+    assert hasattr(pr35_mod, "upgrade") and callable(pr35_mod.upgrade)
+    assert hasattr(pr35_mod, "downgrade") and callable(pr35_mod.downgrade)
+
 
 
 def test_alembic_env_configuration():

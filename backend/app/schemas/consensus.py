@@ -1,8 +1,8 @@
 from __future__ import annotations
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from app.models.enums import StopCategory, StopStatus, VoteValue
+from app.models.enums import StopCategory, StopStatus
 
 
 # Initial pool size seeded per stop; multi-option swap allows cycling & fetching more (PR #30).
@@ -55,17 +55,45 @@ class FinalLockResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class CandidateOption(BaseModel):
+    candidate_id: str = Field(..., min_length=1, max_length=100)
+    place_name: str = Field(..., min_length=1, max_length=255)
+    place_ref_id: str = Field(..., min_length=1, max_length=255)
+    category: StopCategory
+    address: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    estimated_cost: float = Field(default=0.0, ge=0.0)
+    distance_km: Optional[float] = Field(default=None, ge=0.0)
+    image_url: Optional[str] = None
+    description: Optional[str] = None
+    matched_desire: Optional[Dict[str, str]] = None
+    is_indoor_backup: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CandidateVoteSummary(BaseModel):
+    candidate_id: str
+    place_name: str
+    votes_count: int = Field(default=0, ge=0)
+    voters: List[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class StopVoteRequest(BaseModel):
-    vote_value: VoteValue
+    candidate_id: str = Field(..., min_length=1, max_length=100)
     comment: Optional[str] = None
 
 
 class StopVoteResponse(BaseModel):
     stop_id: str
-    up_votes: int
-    down_votes: int
-    recommend_swap: bool
-    backup_options: List[BackupOption] = []
+    selected_candidate_id: Optional[str] = None
+    quorum_reached: bool = False
+    stop_status: StopStatus = StopStatus.VOTING_OPEN
+    next_unlocked_stop_id: Optional[str] = None
+    candidates: List[CandidateVoteSummary] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 

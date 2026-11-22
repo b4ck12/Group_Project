@@ -4,7 +4,8 @@
  * Endpoints: api-design-guide.md Section 2 & 3 — /api/v1/events/{eventId}/plans, votes
  */
 
-import type { BackupOption, RoadmapTheme } from './consensus.ts';
+import type { BackupOption, CandidateOption, RoadmapTheme } from './consensus.ts';
+import type { BudgetTier } from './event.ts';
 
 // --- Enums ---
 export type PlanStatus =
@@ -52,6 +53,13 @@ export type StopCategory =
   | 'OTHER';
 
 export type VoteValue = 'UP' | 'DOWN' | 'NEUTRAL';
+
+export interface RecommendedDishItem {
+  dish_name: string;
+  estimated_price: string; // Decimal serialized as string
+  tags: string[];
+  dietary_match: boolean;
+}
 
 // --- Requests ---
 export interface PlanCreateRequest {
@@ -103,6 +111,9 @@ export interface PlanStopCreateRequest {
   change_reason?: string | null;
   locked_at?: string | null;
   metadata?: Record<string, unknown> | null;
+  recommended_dishes?: RecommendedDishItem[] | null;
+  candidate_options?: CandidateOption[] | null;
+  selected_candidate_id?: string | null;
   backup_options?: BackupOption[] | null;
 }
 
@@ -133,12 +144,17 @@ export interface PlanStopUpdateRequest {
   change_reason?: string | null;
   locked_at?: string | null;
   metadata?: Record<string, unknown> | null;
+  recommended_dishes?: RecommendedDishItem[] | null;
+  candidate_options?: CandidateOption[] | null;
+  selected_candidate_id?: string | null;
   backup_options?: BackupOption[] | null;
 }
 
 export interface PlanVoteCreateRequest {
   stop_id?: string;
-  value: VoteValue;
+  candidate_id: string;
+  candidate_name?: string | null;
+  value?: VoteValue | null;
   comment?: string | null;
 }
 
@@ -175,6 +191,9 @@ export interface PlanStopResponse {
   metadata: Record<string, unknown> | null;
   up_votes: number;
   down_votes: number;
+  recommended_dishes?: RecommendedDishItem[] | null;
+  candidate_options?: CandidateOption[] | null;
+  selected_candidate_id?: string | null;
   backup_options?: BackupOption[] | null;
 }
 
@@ -204,11 +223,46 @@ export interface PlanStatusTransitionRequest {
   change_summary?: string | null;
 }
 
+export interface StopDishesResponse {
+  stop_id: string;
+  place_name: string;
+  recommended_dishes: RecommendedDishItem[];
+  dietary_notes_applied: string[];
+}
+
+export interface PlanCloneRequest {
+  target_status?: PlanStatus;
+  change_summary?: string | null;
+  title?: string | null;
+}
+
+export interface PlanGenerateRequest {
+  destination: string;
+  start_date: string; // YYYY-MM-DD
+  end_date: string; // YYYY-MM-DD
+  prompt?: string | null;
+  budget_tier?: BudgetTier | null;
+  dietary_preferences?: Record<string, unknown> | null;
+}
+
+export interface PlanVersionSummary {
+  id: string;
+  version_number: number;
+  parent_plan_id?: string | null;
+  status: PlanStatus;
+  is_active: boolean;
+  total_budget?: string | null;
+  change_summary?: string | null;
+  locked_at?: string | null;
+  created_at: string;
+}
+
 export interface PlanStageHistoryResponse {
   plan_id: string;
   event_id: string;
   version_number: number;
   current_status: PlanStatus;
+  version_chain?: PlanVersionSummary[];
   initial_stops: PlanStopResponse[];
   finalized_stops: PlanStopResponse[];
   ongoing_stops: PlanStopResponse[];
@@ -221,7 +275,9 @@ export interface PlanVoteResponse {
   stop_id: string;
   plan_id?: string;
   user_id: string;
-  value: VoteValue;
+  candidate_id: string;
+  candidate_name?: string | null;
+  value?: VoteValue | null;
   comment: string | null;
   created_at: string;
 }

@@ -166,10 +166,13 @@ def test_vote_schema_uses_stop_id():
         id="v-1",
         stop_id="stop-1",
         user_id="u-1",
+        candidate_id="cand-hotel-1",
+        candidate_name="Anio Boutique Hotel",
         value=VoteValue.UP,
         created_at=now,
     )
     assert vote_resp.stop_id == "stop-1"
+    assert vote_resp.candidate_id == "cand-hotel-1"
 
 
 def test_user_schemas_and_auth_dtos():
@@ -533,6 +536,57 @@ def test_pr28_pr30_extended_schemas():
     )
     assert member.dietary_notes == "No seafood"
     assert hasattr(schemas_pkg, "FetchMoreBackupsRequest")
+
+
+def test_pr35_candidate_voting_schemas():
+    from app.models.enums import StopStatus
+    from app.schemas import CandidateOption, CandidateVoteSummary
+
+    cand = CandidateOption(
+        candidate_id="cand_hotel_001",
+        place_name="Anio Boutique Hotel Hoi An",
+        place_ref_id="ChIJ_anio_001",
+        category=StopCategory.HOTEL,
+        estimated_cost=1200000.0,
+        distance_km=1.2,
+        matched_desire={"member": "Lan Vy", "desire": "Indochine"},
+    )
+    assert cand.candidate_id == "cand_hotel_001"
+
+    vote_req = StopVoteRequest(
+        candidate_id="cand_hotel_001",
+        comment="Indochine style looks great",
+    )
+    assert vote_req.candidate_id == "cand_hotel_001"
+
+    summary = CandidateVoteSummary(
+        candidate_id="cand_hotel_001",
+        place_name="Anio Boutique Hotel Hoi An",
+        votes_count=2,
+        voters=["Lan Vy", "Minh Duc"],
+    )
+    vote_resp = StopVoteResponse(
+        stop_id="stop_hotel_001",
+        selected_candidate_id="cand_hotel_001",
+        quorum_reached=True,
+        stop_status=StopStatus.SELECTED_AFTER_VOTE,
+        next_unlocked_stop_id="stop_food_002",
+        candidates=[summary],
+    )
+    assert vote_resp.quorum_reached is True
+    assert vote_resp.next_unlocked_stop_id == "stop_food_002"
+
+    stop_with_cands = PlanStopResponse(
+        id="stop_hotel_001",
+        plan_id="plan-1",
+        order=1,
+        place_name="Anio Boutique Hotel Hoi An",
+        candidate_options=[cand],
+        selected_candidate_id="cand_hotel_001",
+    )
+    assert len(stop_with_cands.candidate_options) == 1
+    assert stop_with_cands.selected_candidate_id == "cand_hotel_001"
+
 
 
 

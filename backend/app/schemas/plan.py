@@ -11,7 +11,7 @@ from app.models.enums import (
     StopStatus,
     TransportMode,
 )
-from app.schemas.consensus import BackupOption
+from app.schemas.consensus import BackupOption, CandidateOption
 
 
 class RecommendedDishItem(BaseModel):
@@ -60,6 +60,10 @@ class PlanStopBase(BaseModel):
 
     # PR #28: In-venue dish recommendations
     recommended_dishes: Optional[List[RecommendedDishItem]] = None
+
+    # PR #35: Candidate Venues Multi-Choice Voting & Progressive Unlock
+    candidate_options: Optional[List[CandidateOption]] = None
+    selected_candidate_id: Optional[str] = None
 
     # Re-maps the frontend 'metadata' to the backend 'metadata_'
     metadata_: Optional[Dict[str, Any]] = Field(None, alias="metadata")

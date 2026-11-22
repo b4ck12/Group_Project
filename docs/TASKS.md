@@ -38,13 +38,13 @@
 
 ### 0.1 Architecture & Contract Definition
 - [x] **TASK-001** `[BE-A]` **Thiết kế SQLAlchemy & Pydantic DB Schemas cho Supabase**
-  - **Mục tiêu**: Chuẩn hóa mô hình dữ liệu cho Supabase PostgreSQL 16 phân tách 3 schema (`core`, `checkpoints`, `vectors`).
+  - **Mục tiêu**: Chuẩn hóa mô hình dữ liệu cho Supabase PostgreSQL 16 phân tách 2 schema (`core`, `checkpoints`).
   - **Target Files**: `backend/app/models/` (`user.py`, `event.py`, `plan.py`, `stop.py`, `vote.py`, `chat_message.py`), `backend/app/schemas/`
-  - **Acceptance Criteria**: Hỗ trợ đầy đủ `scope` (DAY_HANGOUT | VACATION), `macro_locked`, `final_locked`, quan hệ `Event` - `Plan` 1-to-N, `plan_stops` với `place_ref_id`, `transport_mode`, `recommended_dishes`, `backup_options` JSONB và lưu vết 4 giai đoạn không ghi đè. Cấu hình Supavisor Pooler port 6543. Migration Alembic sạch.
+  - **Acceptance Criteria**: Hỗ trợ đầy đủ `scope` (DAY_HANGOUT | VACATION), `macro_locked`, `final_locked`, quan hệ `Event` - `Plan` 1-to-N, `plan_stops` với `place_ref_id`, `transport_mode`, `recommended_dishes`, `candidate_options`, `backup_options` JSONB và lưu vết 4 giai đoạn không ghi đè. Cấu hình Supavisor Pooler port 6543. Migration Alembic sạch.
   - **Docs & Tracking**: Cập nhật `database-schema.md` + tick `[x]` task board.
 - [X] **TASK-002** `[BE-Services]` **FastAPI APIRouter Skeleton & Swagger Docs**
   - **Mục tiêu**: Tạo khung các Router trả về `501 Not Implemented` khớp chuẩn OpenAPI spec.
-  - **Target Files**: `backend/app/api/v1/` (`auth.py`, `events.py`, `consensus.py`, `places.py`, `export.py`, `finance.py`, `admin.py`)
+  - **Target Files**: `backend/app/api/v1/` (`auth.py`, `events.py`, `chat.py`, `plans.py`, `votes.py`, `places.py`, `export.py`, `admin.py`)
   - **Acceptance Criteria**: Swagger hiển thị đầy đủ schema tại `http://localhost:8000/docs`, Pydantic DTOs khớp hợp đồng giao diện.
 - [ ] **TASK-003** `[AI]` **LangGraph State Schema & Fixture Data Definition**
   - **Mục tiêu**: Định nghĩa `AgentState` cho 2 pha thực thi và tạo dữ liệu giả lập để test đồ thị.
@@ -269,14 +269,14 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #11
   - **Target Files**: `backend/app/api/v1/plans.py`
   - **Acceptance Criteria**: Sắp xếp lại thứ tự điểm dừng, cập nhật thời lượng lưu lại và ghi chú điểm dừng.
-- [ ] **TASK-304** `[BE-A]` **Stop Voting API with Atomic SQL Counter**
+- [ ] **TASK-304** `[BE-A]` **Candidate Stop Voting API (Multi-Choice Poll)**
   - **Feature**: #13
-  - **Target Files**: `backend/app/api/v1/consensus.py`, `backend/app/services/vote_service.py`
-  - **Acceptance Criteria**: `POST /events/{id}/stops/{stopId}/vote` vote UP/DOWN với lệnh SQL nguyên tử, triệt tiêu race condition.
-- [ ] **TASK-305** `[BE-A]` **1-Click Swap Alternative POI API**
+  - **Target Files**: `backend/app/api/v1/votes.py`, `backend/app/services/vote_service.py`
+  - **Acceptance Criteria**: `POST /events/{id}/plans/{planId}/stops/{stopId}/vote` bỏ phiếu chọn `candidate_id` từ `candidate_options`, trả về `StopVoteResponse` với số phiếu và `voters`.
+- [ ] **TASK-305** `[BE-A]` **Progressive Unlock (Quorum Auto-advance) & Multi-Option Backup Swap API**
   - **Feature**: #14
-  - **Target Files**: `backend/app/api/v1/consensus.py`
-  - **Acceptance Criteria**: `POST /events/{id}/stops/{stopId}/swap` thay thế tức thì điểm dừng bằng 1 trong 2 phương án dự phòng đã nạp sẵn.
+  - **Target Files**: `backend/app/api/v1/votes.py`, `backend/app/api/v1/plans.py`
+  - **Acceptance Criteria**: Tự động chốt trạm khi đạt Quorum ($\ge 60\%\text{--}70\%$) và mở khóa trạm kế tiếp (`next_unlocked_stop_id`); hỗ trợ `/swap` sang phương án dự phòng không ghi đè.
 - [ ] **TASK-306** `[BE-A]` **Final Plan Confirmation API (Consensus Checkpoint 2)**
   - **Feature**: #15
   - **Target Files**: `backend/app/api/v1/consensus.py`
@@ -319,10 +319,10 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #33
   - **Target Files**: `frontend/src/features/plan/components/InteractiveTimeline.tsx`
   - **Acceptance Criteria**: Kéo thả sắp xếp thứ tự điểm dừng, hiển thị thời lượng ghé thăm và khoảng cách di chuyển.
-- [ ] **TASK-315** `[FE-B]` **Granular Stop Voting Cards & Multi-Option Swap UI**
+- [ ] **TASK-315** `[FE-B]` **Candidate Stop Voting Cards, Progressive Unlock & Backup Options UI**
   - **Feature**: #35
   - **Target Files**: `frontend/src/features/plan/components/StopVotingCard.tsx`, `frontend/src/features/plan/components/AlternativeOptionsModal.tsx`
-  - **Acceptance Criteria**: Thẻ điểm dừng hiển thị hình ảnh thật, nút vote UP/DOWN, progress bar đồng thuận, modal/dropdown hiển thị danh sách các phương án thay thế (Phương án 2, Phương án 3...) cho phép chọn trực tiếp hoặc luân chuyển tuần tự, kèm nút 'Gợi ý thêm phương án mới' từ AI.
+  - **Acceptance Criteria**: Thẻ trạm hiển thị đồng thời danh sách ứng viên đạt chuẩn (`candidate_options`), nút `[Bỏ Phiếu]`, avatar người vote và thanh tiến trình Quorum ($\ge 60\%\text{--}70\%$); đạt Quorum tự mở khóa trạm kế tiếp; kèm modal `backup_options` và nút 'Gợi ý thêm phương án mới' từ AI.
 - [ ] **TASK-316** `[FE-A]` **Macro Lock & Final Confirmation Header UI**
   - **Feature**: #12, #15
   - **Target Files**: `frontend/src/features/plan/components/ConsensusHeader.tsx`

@@ -61,31 +61,30 @@
   POST   /events/{id}/invitations                    # Sinh link mời thành viên vào phòng
   GET    /events/{id}/members                        # Danh sách thành viên và phân quyền (Host vs Member)
 
-/api/v1/events/{id}/plans (Plan Management & Versioning - Items 2.2, 2.4, 2.5)
-  GET    /events/{id}/plans                          # Danh sách các phiên bản Plan của phòng (v1, v2...)
+/api/v1/events/{id}/chat (Group Room Chat Channel)
+  GET    /events/{id}/chat                           # Lịch sử tin nhắn phòng chat chung (hỗ trợ limit, before)
+  POST   /events/{id}/chat                           # Gửi tin nhắn (CHAT | AGENT_QA | AGENT_TRIGGER qua Input Filter)
+
+/api/v1/events/{id}/plans (Plan Management, Versioning 1-to-N & Consensus - Items 2.2, 2.4, 2.5, PR #35)
+  GET    /events/{id}/plans                          # Danh sách các phiên bản Plan của phòng (v1, v2, v3...)
   POST   /events/{id}/plans                          # Tạo phiên bản Plan mới (version_number, macro_roadmap)
   POST   /events/{id}/plans/generate                 # Kích hoạt sinh lịch trình qua AI (Bắt buộc qua Input Filter: Location & Date)
+  POST   /events/{id}/plans/{planId}/clone-version   # Nhân bản Plan sang phiên bản mới (v1 -> v2 -> v3, không ghi đè)
   GET    /events/{id}/plans/{planId}                 # Chi tiết Plan và danh sách điểm dừng (stops)
-  PATCH  /events/{id}/plans/{planId}                 # Cập nhật thông tin Plan (tiêu đề, macro_roadmap, budget)
+  PATCH  /events/{id}/plans/{planId}                 # Cập nhật thông tin Plan (tiêu đề, macro_roadmap, total_budget)
+  DELETE /events/{id}/plans/{planId}                 # Xóa phiên bản Plan (chỉ Host)
   PATCH  /events/{id}/plans/{planId}/status          # Chuyển trạng thái Plan (INITIAL -> VOTING -> FINALIZED -> ONGOING)
   PATCH  /events/{id}/plans/{planId}/stops           # Sắp xếp và cập nhật toàn bộ danh sách điểm dừng
   POST   /events/{id}/plans/{planId}/stops           # Thêm 1 điểm dừng mới vào Plan
-  GET    /events/{id}/stops/{stopId}/dishes          # Gợi ý món ăn trong quán theo sở thích/chế độ ăn của nhóm
-  POST   /events/{id}/plans/{planId}/stops/{stopId}/swap # 1-Click Swap đổi điểm dự phòng (lưu vết REJECTED_IN_VOTE)
-  POST   /events/{id}/plans/{planId}/stops/{stopId}/adapt # Thích ứng đổi điểm trời mưa (lưu vết SKIPPED_ON_TRIP)
-  GET    /events/{id}/plans/{planId}/history         # Xem lịch sử 4 giai đoạn: Initial vs Finalized vs Ongoing
-  DELETE /events/{id}/plans/{planId}                 # Xóa phiên bản Plan (chỉ Host)
-  POST   /events/{id}/plans/{planId}/votes           # Bình chọn điểm dừng trong Plan
-  GET    /events/{id}/plans/{planId}/votes           # Lấy danh sách phiếu bầu của Plan
-
-/api/v1/events/{id}/consensus (Two-Stage Consensus Engine & Voting)
-  GET    /events/{id}/chat                           # Lịch sử tin nhắn phòng chat chung (Group Channel)
-  POST   /events/{id}/chat                           # Gửi tin nhắn (thường, hỏi đáp Q&A, hoặc gọi agent)
-  POST   /events/{id}/macro-lock                     # [Consensus 1] Host bấm Khóa Roadmap Vĩ mô
-  POST   /events/{id}/stops/{stopId}/vote            # Thành viên vote chọn ứng viên trong danh sách candidate_options
-  POST   /events/{id}/stops/{stopId}/swap            # Đổi sang ứng viên dự phòng khác khi cần (Non-destructive)
-  POST   /events/{id}/final-lock                     # [Consensus 2] Host Chốt Kế Hoạch Chính Thức (Khóa is_finalized_stop)
-  POST   /events/{id}/stops/{stopId}/adapt           # Thích ứng lúc đang đi (Trời mưa -> SKIPPED + Chèn điểm mới ADAPTED)
+  POST   /events/{id}/plans/{planId}/macro-lock      # [Consensus 1] Host bấm Khóa Roadmap Vĩ mô
+  POST   /events/{id}/plans/{planId}/final-lock      # [Consensus 2] Host Chốt Kế Hoạch (tự động đóng băng v1 & clone Plan v2 FINALIZED)
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/vote                      # Vote chọn candidate_id trong candidate_options (Quorum >= 60% mở khóa trạm kế)
+  GET    /events/{id}/plans/{planId}/votes                                    # Lấy tổng hợp phiếu bầu & comment của toàn Plan
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/swap                      # Multi-Option Swap: đổi phương án dự phòng (target_backup_place_ref_id hoặc cycle_next)
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/backup-options/fetch-more # Gợi ý thêm PA 4, 5, 6... kèm Proactive Clarification
+  POST   /events/{id}/plans/{planId}/stops/{stopId}/adapt                     # Thích ứng lúc đang đi (tự động clone v2 -> v3 ONGOING nếu đang FINALIZED; SKIPPED + ADAPTED)
+  GET    /events/{id}/plans/{planId}/stops/{stopId}/dishes                    # Gợi ý món ăn trong quán theo sở thích/chế độ ăn của nhóm
+  GET    /events/{id}/plans/{planId}/history                                  # Xem lịch sử 4 giai đoạn: version_chain (v1->v2->v3) & 4 nhóm stops
 
 /api/v1/places & Travel APIs (Adapter Pattern)
   GET    /places/search?category=&keyword=&lat=&lng=&open_now= # Tra cứu địa điểm qua Google Places API (New) + lọc danh mục/giờ mở cửa + Redis L2 Cache (TTL 24h)
@@ -116,7 +115,7 @@
 
 ## ⚡ 3. Chi Tiết Các Endpoint Đồng Thuận Cốt Lõi (Two-Stage Consensus APIs)
 
-### 3.1. `POST /api/v1/events/{id}/macro-lock` (Chốt Consensus 1)
+### 3.1. `POST /api/v1/events/{id}/plans/{planId}/macro-lock` (Chốt Consensus 1)
 - **Mô tả**: Host xác nhận khóa khung lộ trình vĩ mô sau khi cả nhóm đã thảo luận thống nhất.
 - **Quyền hạn (Auth)**: `Bearer JWT` (Bắt buộc Role `HOST`).
 - **Response `200 OK`**:
@@ -139,7 +138,7 @@
 
 ---
 
-### 3.2. `POST /api/v1/events/{id}/stops/{stopId}/vote` (Bình chọn Ứng viên Điểm dừng & Mở khóa Tuần tự)
+### 3.2. `POST /api/v1/events/{id}/plans/{planId}/stops/{stopId}/vote` (Bình chọn Ứng viên Điểm dừng & Mở khóa Tuần tự)
 - **Mô tả**: Thành viên bỏ phiếu cho một ứng viên cụ thể trong danh sách `candidate_options` hiển thị đồng thời tại trạm. Khi 1 ứng viên đạt Quorum ($\ge 60\%-70\%$), hệ thống chốt trạm và tự động mở khóa trạm kế tiếp (`next_unlocked_stop_id`).
 - **Quyền hạn (Auth)**: `Bearer JWT` (Role `HOST` hoặc `MEMBER`).
 - **Request Body (JSON)**:
@@ -182,18 +181,18 @@
     }
   }
   ```
-  ```
 
 ---
 
-### 3.3. `POST /api/v1/events/{id}/stops/{stopId}/swap` (Luân Chuyển Đa Phương Án / Multi-Option Swap)
+### 3.3. `POST /api/v1/events/{id}/plans/{planId}/stops/{stopId}/swap` (Luân Chuyển Đa Phương Án / Multi-Option Swap)
 - **Mô tả**: Thay thế điểm dừng hiện tại bằng một phương án cụ thể trong danh sách ứng viên (`backup_options`), cho phép luân chuyển sang Phương án 2, Phương án 3,... mà không bị giới hạn chỉ swap 1 lần.
 - **Quyền hạn (Auth)**: `Bearer JWT` (Role `HOST` hoặc `MEMBER`).
 - **Request Body (JSON)**:
   ```json
   {
     "target_backup_place_ref_id": "ChIJN1t_tDeuEmsRUsoyG83frY4",
-    "cycle_next": false
+    "cycle_next": false,
+    "change_reason": "Nhóm muốn đổi sang quán yên tĩnh hơn"
   }
   ```
   *(Truyền `target_backup_place_ref_id` để chọn chính xác Phương án 2 hoặc 3; hoặc truyền `"cycle_next": true` để tự động chuyển sang phương án kế tiếp trong danh sách).*
@@ -219,24 +218,25 @@
 
 ---
 
-### 3.3.1. `POST /api/v1/events/{id}/stops/{stopId}/backup-options/fetch-more` (Gợi Ý Thêm Phương Án Mới Kèm Hỏi Lại / Clarification)
+### 3.3.1. `POST /api/v1/events/{id}/plans/{planId}/stops/{stopId}/backup-options/fetch-more` (Gợi Ý Thêm Phương Án Mới Kèm Hỏi Lại / Clarification)
 - **Mô tả**: Khi nhóm đã xem qua cả Phương án 2 và Phương án 3 nhưng vẫn chưa ưng ý, endpoint này kích hoạt AI Agent truy vấn lại live API (Google Places, TripAdvisor) để lấy thêm $3$--$5$ ứng viên mới (Phương án 4, 5, 6...) bổ sung vào danh sách `backup_options`.
 - **Cơ chế Hỏi Lại & Đảm Bảo Ràng Buộc**:
-  - Request body nhận yêu cầu/lý do làm rõ từ nhóm. Nếu không truyền, Agent chủ động gửi tin nhắn hỏi lại vào group chat để hiểu lý do nhóm từ chối các phương án trước.
+  - Request body nhận yêu cầu/lý do làm rõ từ nhóm (`clarification_notes`, `dietary_filter`, `exclude_place_ref_ids`). Nếu không truyền, Agent trả về `needs_clarification: true` kèm `clarification_question` và gửi tin nhắn hỏi lại vào group chat.
   - **100% ứng viên mới bắt buộc phải tuân thủ nghiêm ngặt các ràng buộc cốt lõi**: Bán kính Haversine $\le 2.5$\,km, trần ngân sách phân bổ, giờ mở cửa thực tế và an toàn dị ứng thực phẩm của nhóm.
 - **Request Body (JSON)**:
   ```json
   {
     "clarification_notes": "Nhóm muốn đổi sang quán nướng hoặc lẩu, không gian yên tĩnh để trò chuyện",
-    "dietary_filter": "NON_SPICY"
+    "dietary_filter": "NON_SPICY",
+    "exclude_place_ref_ids": ["ChIJ_PA1", "ChIJ_PA2", "ChIJ_PA3"]
   }
   ```
-- **Response `200 OK`**: Trả về danh sách `backup_options` đã được mở rộng gồm các phương án mới đã qua 4-Tier Grounding.
+- **Response `200 OK`**: Trả về `FetchMoreBackupsResponse` gồm `stop_id`, danh sách `backup_options` mở rộng, `needs_clarification`, và `clarification_question`.
 
 ---
 
-### 3.4. `POST /api/v1/events/{id}/stops/{stopId}/adapt` (Thích Ứng Lịch Trình Động Lúc Đang Đi - Non-destructive)
-- **Mô tả**: Thích ứng linh hoạt khi xảy ra sự cố thực tế (ví dụ: trời mưa lớn, quán đóng cửa đột xuất). Hệ thống chuyển điểm cũ sang `SKIPPED_ON_TRIP` (kèm `change_reason`) và chèn điểm dừng trong nhà mới với `ADAPTED_ON_TRIP`, liên kết qua `replaced_by_stop_id`.
+### 3.4. `POST /api/v1/events/{id}/plans/{planId}/stops/{stopId}/adapt` (Thích Ứng Lịch Trình Động Lúc Đang Đi - Non-destructive)
+- **Mô tả**: Thích ứng linh hoạt khi xảy ra sự cố thực tế (ví dụ: trời mưa lớn, quán đóng cửa đột xuất). Nếu phiên bản `Plan` hiện tại đang ở `FINALIZED` (`v2`), hệ thống **tự động clone sang `Plan v3 (ONGOING, parent_plan_id=v2)`** (giữ nguyên `v2` bất biến); sau đó chuyển điểm cũ trên `v3` sang `SKIPPED_ON_TRIP` (kèm `change_reason`) và chèn điểm dừng trong nhà mới với `ADAPTED_ON_TRIP`, liên kết qua `replaced_by_stop_id`.
 - **Request Body (JSON)**:
   ```json
   {
@@ -245,11 +245,61 @@
     "change_reason": "Trời mưa lớn ngoài trời, đổi sang quán boardgame cafe trong nhà"
   }
   ```
-- **Response `200 OK`**: Chèn điểm thích ứng thành công và phát sóng tức thì tới toàn phòng qua WebSockets.
+- **Response `200 OK`**: Trả về `StopAdaptationResponse` (`previous_stop_id`, `new_stop_id`, `stop_status`, `replaced_by_stop_id`, `cloned_plan_id`) và phát sóng tức thì tới toàn phòng qua WebSockets.
 
 ---
 
-### 3.5. `GET /api/v1/places/search` & `GET /api/v1/places/{placeId}/details` (Places Service & PyBreaker - TASK-108 & TASK-205)
+### 3.5. `POST /api/v1/events/{id}/plans/{planId}/clone-version` & `GET/POST /api/v1/events/{id}/chat` (Plan Versioning & Group Chat Channel)
+
+#### 3.5.1. `POST /api/v1/events/{id}/plans/{planId}/clone-version` (Nhân bản Phiên bản Plan Không Ghi Đè)
+- **Mô tả**: Tạo phiên bản `Plan` mới (`version_number + 1`, `parent_plan_id = planId`, đóng băng bản cũ `is_active = false`), đồng thời **deep-copy (`INSERT` mới)** các `PlanStop` hợp lệ (bỏ qua các stop `REJECTED_IN_VOTE`).
+- **Quy tắc Auto-Clone tích hợp**:
+  - `POST .../plans/{planId}/final-lock` tự động đóng băng `v1` và clone sang **`Plan v2 (FINALIZED)`**.
+  - `POST .../plans/{planId}/stops/{stopId}/adapt` tự động clone `v2` $\rightarrow$ **`Plan v3 (ONGOING)`** nếu bản nguồn đang là `FINALIZED`.
+- **Request Body (JSON)**:
+  ```json
+  {
+    "target_status": "FINALIZED",
+    "change_summary": "Chốt lịch trình chính thức sau khi cả nhóm bình chọn xong",
+    "title": "Đà Nẵng 3N2Đ — Bản Chính Thức (v2)"
+  }
+  ```
+- **Response `200 OK`**: Trả về `PlanResponse` của phiên bản mới (`version_number`, `parent_plan_id`, `is_active: true`, `stops`).
+
+#### 3.5.2. `GET` & `POST /api/v1/events/{id}/chat` (Kênh Chat Chung Của Phòng - Group Channel)
+- **Mô tả**: Đọc phân trang lịch sử tin nhắn chung (`limit`, `before`) và gửi tin nhắn mới phân loại theo `message_type` (`CHAT` không gọi AI, `AGENT_QA` hỏi đáp & gợi ý món ăn, `AGENT_TRIGGER` kích hoạt lập lịch qua Input Filter).
+- **Request Body `POST` (JSON)**:
+  ```json
+  {
+    "content": "@TripMate quán Bếp Cuốn có món gì cho người ăn chay không?",
+    "role": "USER",
+    "message_type": "AGENT_QA",
+    "metadata": { "target_stop_id": "stop_food_002" }
+  }
+  ```
+- **Response `GET` `200 OK` (`ChatMessageListResponse`)**:
+  ```json
+  {
+    "messages": [
+      {
+        "id": "msg_001",
+        "event_id": "evt_da_nang_2026",
+        "user_id": "usr_001",
+        "role": "USER",
+        "message_type": "AGENT_QA",
+        "content": "@TripMate quán Bếp Cuốn có món gì cho người ăn chay không?",
+        "metadata": { "target_stop_id": "stop_food_002" },
+        "created_at": "2026-09-22T14:20:00Z"
+      }
+    ],
+    "total": 1,
+    "has_more": false
+  }
+  ```
+
+---
+
+### 3.6. `GET /api/v1/places/search` & `GET /api/v1/places/{placeId}/details` (Places Service & PyBreaker - TASK-108 & TASK-205)
 - **Mô tả**: Tra cứu địa điểm và lấy thông tin chi tiết POI qua Google Places API (New) được bảo vệ bởi Circuit Breaker `PyBreaker` (`fail_max=3`, `reset_timeout=60s`, `timeout=2.5s`) và Redis L2 Cache 24 giờ. Hỗ trợ chuẩn hóa `category` sang `StopCategory`/`includedType`, lọc theo cờ `open_now`, và làm giàu `metadata` (`stop_category`, `weekday_hours`, `types`).
 - **Query Params (`/places/search`)**: `keyword` (string), `category` (string, hỗ trợ `StopCategory` như `CAFE`, `RESTAURANT`, `HOTEL` hoặc Google `includedType`), `lat` (float), `lng` (float), `radius` (int, default 5000m), `open_now` (bool, optional — lọc địa điểm đang mở/đóng cửa).
 - **Response `200 OK` (`PlaceSearchResponse`)**:
@@ -314,7 +364,7 @@
 
 ---
 
-### 3.6. `PATCH /api/v1/events/{id}/plans/{planId}` (Cập nhật thông tin Plan & Macro Roadmap)
+### 3.7. `PATCH /api/v1/events/{id}/plans/{planId}` (Cập nhật thông tin Plan & Macro Roadmap)
 - **Mô tả**: Cho phép chỉnh sửa thông tin Plan (tiêu đề, tổng ngân sách, và danh sách chủ đề từng ngày `macro_roadmap` chỉnh sửa bằng tay trên UI hoặc qua chat AI ở Pha 1).
 - **Quyền hạn (Auth)**: `Bearer JWT` (Role `HOST` hoặc `MEMBER`).
 - **Request Body (JSON)**:
@@ -332,7 +382,7 @@
 
 ---
 
-### 3.7. `GET /api/v1/events/{id}/plans/{planId}/history` (Xem Lịch Sử 4 Giai Đoạn - Item 2.5)
+### 3.8. `GET /api/v1/events/{id}/plans/{planId}/history` (Xem Lịch Sử 4 Giai Đoạn - Item 2.5)
 - **Mô tả**: Trả về đối tượng `PlanStageHistoryResponse` tổng hợp toàn bộ các điểm dừng được phân loại theo 4 giai đoạn vòng đời (`initial_stops`, `finalized_stops`, `ongoing_stops`, `rejected_or_skipped_stops`), cho phép UI hiển thị tab so sánh mà không mất dấu dữ liệu lịch sử.
 - **Quyền hạn (Auth)**: `Bearer JWT`.
 - **Response `200 OK` (`PlanStageHistoryResponse`)**:
@@ -359,7 +409,7 @@
 
 ---
 
-### 3.8. `GET /api/v1/places/hotels/compare` & `GET /api/v1/places/tours/search` (Multi-OTA Lodging & Tours - TASK-206)
+### 3.9. `GET /api/v1/places/hotels/compare` & `GET /api/v1/places/tours/search` (Multi-OTA Lodging & Tours - TASK-206)
 - **Mô tả**:
   - `GET /places/hotels/compare?ids=h1,h2&checkin=YYYY-MM-DD&checkout=YYYY-MM-DD&guests=2`: So sánh `1`–`5` khách sạn cạnh nhau (`HotelCompareResponse`), trả về giá ước tính VND, tiện nghi (`amenities`) và deep-link đặt phòng trên 9 OTA (`agoda`, `booking_com`, `airbnb`, `trip_com`, `hotels_com`, `expedia`, `trivago`, `google_hotels`, `tripadvisor`). Trả về `400` nếu `ids` rỗng hoặc `> 5` IDs; trả về `503` nếu circuit breaker mở.
   - `GET /places/tours/search?destination=&keyword=&lat=&lng=`: Tìm kiếm tour/điểm tham quan (`TourSearchResponse`) kèm giá vé ước tính VND và deep-link trên `klook`, `tripadvisor`, `12go_asia`.
@@ -433,7 +483,7 @@
   ```
 
 
-### 3.9. `GET /api/v1/weather` (Weather & Rain Alert Service - TASK-207)
+### 3.10. `GET /api/v1/weather` (Weather & Rain Alert Service - TASK-207)
 - **Endpoint**: `GET /api/v1/weather`
 - **Query Parameters**:
   - `lat` (float, required, `-90.0` to `90.0`)
