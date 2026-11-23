@@ -27,6 +27,7 @@ class AuthService:
             password_hash=get_password_hash(user_in.password),
             full_name=user_in.full_name,
             avatar_url=user_in.avatar_url,
+            dietary_preferences=user_in.dietary_preferences,
             provider=AuthProvider.LOCAL,
             role=SystemRole.USER,
         )
