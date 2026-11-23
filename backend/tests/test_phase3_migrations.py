@@ -62,6 +62,13 @@ def test_migration_chain_integrity():
     assert hasattr(pr35_mod, "upgrade") and callable(pr35_mod.upgrade)
     assert hasattr(pr35_mod, "downgrade") and callable(pr35_mod.downgrade)
 
+    # Verify TIMESTAMPTZ, enum schema, and index alignment revision
+    assert "f9a2b5c4d3e8" in revisions
+    assert revisions["f9a2b5c4d3e8"]["down_revision"] == "e8f1a4b3c2d7"
+    align_mod = revisions["f9a2b5c4d3e8"]["module"]
+    assert hasattr(align_mod, "upgrade") and callable(align_mod.upgrade)
+    assert hasattr(align_mod, "downgrade") and callable(align_mod.downgrade)
+
 
 
 def test_alembic_env_configuration():

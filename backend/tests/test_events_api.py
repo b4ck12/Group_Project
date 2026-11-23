@@ -12,6 +12,7 @@ Covers:
 """
 
 from datetime import datetime, timezone
+from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException, status
@@ -207,6 +208,7 @@ async def test_service_create_event_auto_assigns_host():
         scope=EventScope.VACATION,
         destination="Hà Giang",
         budget_tier=BudgetTier.BUDGET,
+        total_budget=Decimal("5000000.00"),
         start_date=datetime(2026, 11, 15, 8, 0, 0, tzinfo=timezone.utc),
         end_date=datetime(2026, 11, 18, 18, 0, 0, tzinfo=timezone.utc),
     )
@@ -226,6 +228,7 @@ async def test_service_create_event_auto_assigns_host():
 
     assert isinstance(added_event, Event)
     assert added_event.name == "Hà Giang Loop"
+    assert added_event.total_budget == Decimal("5000000.00")
     assert added_event.created_by == "user_host_1"
 
     assert isinstance(added_member, EventMember)

@@ -41,6 +41,7 @@ class EventService:
             destination=event_in.destination,
             location=event_in.location,
             budget_tier=event_in.budget_tier,
+            total_budget=event_in.total_budget,
             start_date=event_in.start_date,
             end_date=event_in.end_date,
             created_by=creator_id,

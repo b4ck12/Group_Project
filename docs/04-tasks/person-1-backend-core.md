@@ -61,8 +61,8 @@
   - **Docs & Tracking**: Cập nhật `database-schema.md` + tick `[x]`.
 - [ ] **`TASK-302`** **Macro Consensus Lock API (Consensus Checkpoint 1)**
   - **Mục tiêu**: Host bấm khóa khung lộ trình vĩ mô sau khi nhóm thảo luận thống nhất.
-  - **Target Files**: `backend/app/api/v1/consensus.py`
-  - **Acceptance Criteria**: `POST /events/{id}/macro-lock` chuyển trạng thái `macro_locked = true` (chỉ Host thực hiện), kích hoạt AI chuyển sang Phase 2.
+  - **Target Files**: `backend/app/api/v1/plans.py` *(không tạo file `consensus.py` — mọi route Consensus gộp chuẩn vào `plans.py` và `votes.py`)*
+  - **Acceptance Criteria**: `POST /events/{id}/plans/{planId}/macro-lock` chuyển trạng thái `macro_locked = true` (chỉ Host thực hiện), kích hoạt AI chuyển sang Phase 2.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
 - [ ] **`TASK-303`** **Granular Stop Management & Ordering APIs**
   - **Mục tiêu**: Chỉnh sửa thứ tự và thời lượng lưu lại tại các điểm dừng.
@@ -77,17 +77,17 @@
 - [ ] **`TASK-305`** **Progressive Unlock (Quorum Auto-advance) & Multi-Option Backup Swap API**
   - **Mục tiêu**: Tự động chốt trạm khi đạt Quorum ($\ge 60\%\text{--}70\%$) và mở khóa tuần tự trạm kế tiếp (`next_unlocked_stop_id`); hỗ trợ đổi sang phương án dự phòng không ghi đè khi cần.
   - **Target Files**: `backend/app/api/v1/votes.py`, `backend/app/api/v1/plans.py`
-  - **Acceptance Criteria**: Đạt Quorum tự cập nhật `selected_candidate_id` và `stop_status = SELECTED_AFTER_VOTE`; `POST /events/{id}/plans/{planId}/stops/{stopId}/swap` hỗ trợ đổi phương án dự phòng không ghi đè (`REJECTED_IN_VOTE`).
+  - **Acceptance Criteria**: Đạt Quorum tự cập nhật `selected_candidate_id` và `stop_status = SELECTED_AFTER_VOTE`; `POST /events/{id}/plans/{planId}/stops/{stopId}/swap` hỗ trợ cả `target_backup_place_ref_id` lẫn `cycle_next: true`, đánh dấu stop cũ `REJECTED_IN_VOTE` + trỏ `replaced_by_stop_id` sang stop mới.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-306`** **Final Plan Confirmation API (Consensus Checkpoint 2)**
-  - **Mục tiêu**: Host chốt kế hoạch chính thức sau khi mọi điểm dừng đạt đồng thuận cao.
-  - **Target Files**: `backend/app/api/v1/consensus.py`
-  - **Acceptance Criteria**: `POST /events/{id}/final-lock` chuyển `final_locked = true` (chỉ Host thực hiện) và kích hoạt xuất file PDF/.ics.
+- [ ] **`TASK-306`** **Final Plan Confirmation & Auto-Clone Snapshot API (Consensus Checkpoint 2)**
+  - **Mục tiêu**: Host chốt kế hoạch chính thức sau khi mọi điểm dừng đạt đồng thuận cao, đồng thời bảo toàn bất biến bản `Plan v1` bằng quy tắc Deep-Copy không ghi đè.
+  - **Target Files**: `backend/app/api/v1/plans.py` *(không tạo `consensus.py`)*
+  - **Acceptance Criteria**: `POST /events/{id}/plans/{planId}/final-lock` (chỉ Host thực hiện): đóng băng `v1` (`is_active = False`), **clone thành `Plan v2` (`FINALIZED`, `parent_plan_id = v1`) + `INSERT` mới các `PlanStop` đã chốt (`is_finalized_stop = True`)**, tuyệt đối **không `UPDATE plan_id` của stop cũ**, đặt `final_locked = true`, trả về `PlanResponse` của `v2`.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-307`** **Living Itinerary Dynamic Adaptation API (On-Trip Edit)**
-  - **Mục tiêu**: Cho phép cập nhật duy nhất 1 điểm dừng khi có biến cố thực tế (trời mưa).
-  - **Target Files**: `backend/app/api/v1/consensus.py`
-  - **Acceptance Criteria**: `PATCH /events/{id}/stops/{stopId}` sửa 1 dòng trong bảng `plan_stops` mà không làm xáo trộn các ngày khác.
+- [ ] **`TASK-307`** **Living Itinerary Dynamic Adaptation & On-Trip Auto-Clone API**
+  - **Mục tiêu**: Cho phép thay thế 1 điểm dừng khi có biến cố thực tế (trời mưa) mà vẫn giữ bất biến lịch trình đã chốt (`v2`) theo quy tắc Deep-Copy.
+  - **Target Files**: `backend/app/api/v1/plans.py` *(không tạo `consensus.py`)*
+  - **Acceptance Criteria**: `POST /events/{id}/plans/{planId}/stops/{stopId}/adapt`: nếu plan đang ở `FINALIZED` (`v2`) thì tự động **clone `v2 → v3` (`ONGOING`, `parent_plan_id = v2`)**, giữ `v2` bất biến; trên `v3` đánh dấu stop cũ `SKIPPED_ON_TRIP` + trỏ `replaced_by_stop_id` sang stop mới (`ADAPTED_ON_TRIP`), trả kèm `cloned_plan_id` trong `StopAdaptationResponse`.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
 
 ### Sprint 4 — WebSocket Room Server & Redis Pub/Sub Live Sync

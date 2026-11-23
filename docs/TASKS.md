@@ -263,8 +263,8 @@ feature/TASK-004-msw-core-mocks
   - **Acceptance Criteria**: Bảng `plan_stops` hỗ trợ lưu Place ID, tọa độ lat/lng, backup options JSONB; bảng `plan_votes` có ràng buộc unique `(stop_id, user_id)`.
 - [ ] **TASK-302** `[BE-A]` **Macro Consensus Lock API (Consensus Checkpoint 1)**
   - **Feature**: #12
-  - **Target Files**: `backend/app/api/v1/consensus.py`
-  - **Acceptance Criteria**: `POST /events/{id}/macro-lock` xác nhận khóa khung lộ trình vĩ mô (chỉ Host thực hiện), kích hoạt chuyển sang Phase 2.
+  - **Target Files**: `backend/app/api/v1/plans.py` *(không tạo `consensus.py`)*
+  - **Acceptance Criteria**: `POST /events/{id}/plans/{planId}/macro-lock` xác nhận khóa khung lộ trình vĩ mô (chỉ Host thực hiện), kích hoạt chuyển sang Phase 2.
 - [ ] **TASK-303** `[BE-A]` **Granular Stop Management & Ordering APIs**
   - **Feature**: #11
   - **Target Files**: `backend/app/api/v1/plans.py`
@@ -276,15 +276,15 @@ feature/TASK-004-msw-core-mocks
 - [ ] **TASK-305** `[BE-A]` **Progressive Unlock (Quorum Auto-advance) & Multi-Option Backup Swap API**
   - **Feature**: #14
   - **Target Files**: `backend/app/api/v1/votes.py`, `backend/app/api/v1/plans.py`
-  - **Acceptance Criteria**: Tự động chốt trạm khi đạt Quorum ($\ge 60\%\text{--}70\%$) và mở khóa trạm kế tiếp (`next_unlocked_stop_id`); hỗ trợ `/swap` sang phương án dự phòng không ghi đè.
-- [ ] **TASK-306** `[BE-A]` **Final Plan Confirmation API (Consensus Checkpoint 2)**
+  - **Acceptance Criteria**: Tự động chốt trạm khi đạt Quorum ($\ge 60\%\text{--}70\%$) và mở khóa trạm kế tiếp (`next_unlocked_stop_id`); `POST /events/{id}/plans/{planId}/stops/{stopId}/swap` hỗ trợ cả `target_backup_place_ref_id` lẫn `cycle_next: true`, đánh dấu stop cũ `REJECTED_IN_VOTE` + `replaced_by_stop_id`.
+- [ ] **TASK-306** `[BE-A]` **Final Plan Confirmation & Auto-Clone Snapshot API (Consensus Checkpoint 2)**
   - **Feature**: #15
-  - **Target Files**: `backend/app/api/v1/consensus.py`
-  - **Acceptance Criteria**: `POST /events/{id}/final-lock` khóa toàn bộ kế hoạch chính thức (chỉ Host thực hiện) và kích hoạt xuất file.
-- [ ] **TASK-307** `[BE-A]` **Living Itinerary Dynamic Adaptation API (On-Trip Edit)**
+  - **Target Files**: `backend/app/api/v1/plans.py` *(không tạo `consensus.py`)*
+  - **Acceptance Criteria**: `POST /events/{id}/plans/{planId}/final-lock` (chỉ Host): đóng băng `v1` (`is_active = False`), clone thành `Plan v2` (`FINALIZED`, `parent_plan_id = v1`) + `INSERT` mới các `PlanStop` đã chốt (`is_finalized_stop = True`), tuyệt đối không `UPDATE plan_id` của stop cũ, trả về `PlanResponse` của `v2`.
+- [ ] **TASK-307** `[BE-A]` **Living Itinerary Dynamic Adaptation & On-Trip Auto-Clone API**
   - **Feature**: #16
-  - **Target Files**: `backend/app/api/v1/consensus.py`
-  - **Acceptance Criteria**: `PATCH /events/{id}/stops/{stopId}` cho phép cập nhật duy nhất 1 điểm dừng khi có biến cố thực tế (ví dụ trời mưa).
+  - **Target Files**: `backend/app/api/v1/plans.py` *(không tạo `consensus.py`)*
+  - **Acceptance Criteria**: `POST /events/{id}/plans/{planId}/stops/{stopId}/adapt`: nếu đang ở `FINALIZED` (`v2`) tự clone `v2 → v3` (`ONGOING`, `parent_plan_id = v2`), giữ `v2` bất biến; trên `v3` đánh dấu stop cũ `SKIPPED_ON_TRIP` + `replaced_by_stop_id` sang stop mới (`ADAPTED_ON_TRIP`), trả kèm `cloned_plan_id` trong `StopAdaptationResponse`.
 
 ### 3.2 Phase 2 Micro Curation State & Typed Checkpointing (AI Team)
 - [ ] **TASK-308** `[AI]` **Phase 2: Micro Curation State & Backup Stops Pre-fetching**
