@@ -22,3 +22,11 @@ def test_weather_settings_default():
     assert s.OPEN_METEO_BASE_URL == "https://api.open-meteo.com/v1"
     assert s.WEATHER_API_TIMEOUT == 3.0
     assert s.WEATHER_CACHE_TTL == 10800
+
+
+def test_currency_settings_default():
+    s = Settings()
+    assert s.EXCHANGE_RATE_API_BASE_URL == "https://v6.exchangerate-api.com/v6"
+    assert s.EXCHANGE_RATE_OPEN_BASE_URL == "https://open.er-api.com/v6"
+    assert s.CURRENCY_API_TIMEOUT == 3.0
+    assert s.CURRENCY_CACHE_TTL == 43200
