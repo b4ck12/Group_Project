@@ -1,14 +1,18 @@
 import asyncio
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, status
 import httpx
 import pybreaker
 
+from app.schemas.currency import ExchangeRateResponse
 from app.schemas.weather import WeatherResponse
+from app.services.currency_service import CurrencyService, UnsupportedCurrencyError
 from app.services.weather_service import WeatherService
 
 router = APIRouter(tags=["utils"])
 weather_service = WeatherService()
+currency_service = CurrencyService()
 
 
 @router.get("/weather", response_model=WeatherResponse)
@@ -34,4 +38,60 @@ async def get_weather(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Weather provider temporarily unavailable: {exc}",
+        ) from exc
+
+
+@router.get("/exchange-rate", response_model=ExchangeRateResponse)
+async def get_exchange_rate(
+    base: str = Query(
+        default="VND",
+        min_length=3,
+        max_length=3,
+        pattern="^[A-Za-z]{3}$",
+        description="Base 3-letter ISO-4217 currency code (e.g., VND, USD, THB, SGD)",
+    ),
+    target: Optional[str] = Query(
+        default=None,
+        min_length=3,
+        max_length=3,
+        pattern="^[A-Za-z]{3}$",
+        description="Optional target 3-letter ISO-4217 currency code (e.g., THB, SGD)",
+    ),
+    amount: Optional[float] = Query(
+        default=None,
+        gt=0,
+        description="Optional positive amount in base currency to convert into target currency",
+    ),
+    include_all: bool = Query(
+        default=False,
+        description="When target is omitted, return all global currencies instead of ASEAN + USD",
+    ),
+) -> ExchangeRateResponse:
+    """
+    Get live ASEAN & travel exchange rates and optional currency conversion (TASK-208).
+    Base-currency rate tables are cached for 12 hours in Upstash Redis and protected by PyBreaker.
+    Uses open.er-api.com (100% free, keyless) by default, ExchangeRate-API v6 if key is set,
+    or a custom Team Leader scraper hook if configured.
+    """
+    try:
+        return await currency_service.get_exchange_rates(
+            base=base,
+            target=target,
+            amount=amount,
+            include_all=include_all,
+        )
+    except UnsupportedCurrencyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    except (
+        pybreaker.CircuitBreakerError,
+        httpx.TimeoutException,
+        asyncio.TimeoutError,
+        httpx.HTTPError,
+    ) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Currency provider temporarily unavailable: {exc}",
         ) from exc
