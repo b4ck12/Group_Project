@@ -1,9 +1,9 @@
-# 👤 Person 3 — Nguyễn Tùng Dương & Tạ Quang Huy (AI Agent Team: LangGraph & DeepSeek-V4)
+# 👤 Person 3 — Nguyễn Tùng Dương & Tạ Quang Huy (AI Agent Team: OpenAI SDK & DeepSeek-V4)
 
 > **Người phụ trách**: 
 > - **Nguyễn Tùng Dương** (AI Agent Lead: Unified Agent Architecture, Two-Phase State Machine, Model Abstraction Layer, Four-Tier Grounding Pipeline, Haversine Geo-Clustering)
 > - **Tạ Quang Huy** (AI Integration Bridge: Data Access Layer DAL, Typed Checkpointing Bridge & Tool Calling)  
-> **Sở hữu**: Toàn bộ hệ thống AI Agent trên nền tảng LangGraph Python và mô hình DeepSeek-V4 theo đúng Technical Proposal. Chạy song song từ Sprint 1 bằng **mock fixtures JSON**, không phụ thuộc vào tiến độ database thật.  
+> **Sở hữu**: Toàn bộ hệ thống AI Agent trên nền tảng Python AsyncIO + OpenAI Python SDK (`AsyncOpenAI`) và mô hình DeepSeek-V4 (theo [ADR-001](../03-architecture/adr/ADR-001-pure-openai-sdk-agent.md)). Chạy song song từ Sprint 1 bằng **mock fixtures JSON**, không phụ thuộc vào tiến độ database thật.  
 > **Quy định tracking bắt buộc**: Sau khi hoàn thành code và test mỗi task, đổi `[ ]` thành `[x]` kèm link PR, ngày hoàn thành và cập nhật tài liệu kỹ thuật tương ứng theo [post-task-documentation.md](../01-workflow/post-task-documentation.md).
 
 ---
@@ -24,22 +24,22 @@
 ## 🛠️ Detailed Sprint Backlog
 
 ### Sprint 0 — State Schema & Fixture Data Definition
-- [ ] **`TASK-003`** `[AI - Nguyễn Tùng Dương & Tạ Quang Huy]` **LangGraph State Schema & Fixture Data Definition**
+- [ ] **`TASK-003`** `[AI - Nguyễn Tùng Dương & Tạ Quang Huy]` **Agent State Schema & Fixture Data Definition**
   - **Feature**: #17
   - **Target Files**: `backend/app/ai_agents/state.py`, `backend/app/ai_agents/fixtures/` (`mock_places.json`, `mock_roadmaps.json`)
   - **Acceptance Criteria**: Định nghĩa Pydantic `AgentState` chứa `phase`, `macro_locked`, `final_locked`, `budget_tier`, `transit_info` (vé máy bay/tàu liên tỉnh khứ hồi), `budget_breakdown` (bóc tách vé máy bay và Land Budget 5 nhóm phí), `running_cost`, `daily_themes`, `plan_stops` (gồm `price_level`, `estimated_cost`, `cost_per_person`), `backup_options`. Dữ liệu mock fixtures validate pass 100% với DB models.
   - **Docs & Tracking**: Cập nhật `docs/03-architecture/ai-agent-architecture.md` + tick `[x]`.
 
 ### Sprint 1 — Two-Phase State Machine & Model Abstraction Layer
-- [ ] **`TASK-109`** `[AI - Nguyễn Tùng Dương]` **LangGraph Two-Phase State Machine Skeleton**
+- [ ] **`TASK-109`** `[AI - Nguyễn Tùng Dương]` **Two-Phase State Machine Skeleton (Pure OpenAI SDK)**
   - **Feature**: #17
   - **Target Files**: `backend/app/ai_agents/state_machine.py`
-  - **Acceptance Criteria**: Xây dựng đồ thị máy trạng thái gồm 2 pha (Phase 1 Macro State và Phase 2 Micro State), kiểm soát chuyển pha dựa trên cờ `macro_locked`. Giới hạn `recursion_limit=15`.
+  - **Acceptance Criteria**: Xây dựng máy trạng thái 2 pha thuần Python AsyncIO + OpenAI SDK (`AsyncOpenAI`) gồm Phase 1 Macro State và Phase 2 Micro State, kiểm soát chuyển pha dựa trên cờ `macro_locked`, giới hạn tối đa `AI_MAX_STEPS_PER_SESSION = 15` bước.
   - **Docs & Tracking**: Cập nhật `ai-agent-architecture.md` + tick `[x]`.
 - [ ] **`TASK-110`** `[AI - Nguyễn Tùng Dương]` **DeepSeek-V4 Provider & Model Abstraction Layer**
   - **Feature**: #18
   - **Target Files**: `backend/app/ai_agents/model_abstraction.py`
-  - **Acceptance Criteria**: Gọi mô hình chính `deepseek-v4`, tích hợp cơ chế tự động fallback trong suốt sang OpenAI GPT-4o, Claude 3.5 Sonnet hoặc Gemini 1.5 Pro khi DeepSeek gặp lỗi.
+  - **Acceptance Criteria**: Dùng client `openai.AsyncOpenAI` gọi mô hình chính `deepseek-v4` (`base_url=https://api.deepseek.com/v1`), tích hợp cơ chế tự động fallback trong suốt sang OpenAI GPT-4o hoặc Google Gemini OpenAI-compatible endpoint qua hoán đổi `base_url` khi DeepSeek gặp lỗi.
   - **Docs & Tracking**: Cập nhật `ai-agent-architecture.md` + tick `[x]`.
 
 ### Sprint 2 — Phase 1 Macro State & Four-Tier Grounding Setup
@@ -65,10 +65,10 @@
   - **Target Files**: `backend/app/ai_agents/nodes/micro_curator.py`
   - **Acceptance Criteria**: Sau khi có Macro Lock, AI truy vấn Google Places/12Go Asia/Travel APIs qua PyBreaker, tự động tính cước đưa đón sân bay và cước Grab/xe máy theo Haversine, lọc quán theo phân khúc giá (`price_level`), áp dụng gom cụm 2--3 km, cơ chế cân đối bù trừ chi phí động (`running_cost <= total_budget`) và chuẩn bị sẵn 2 backup options cùng mức giá cho mỗi điểm dừng chính phục vụ 1-Click Swap.
   - **Docs & Tracking**: Cập nhật `ai-agent-architecture.md` + tick `[x]`.
-- [ ] **`TASK-309`** `[AI - Tạ Quang Huy]` **Typed State Persistence with `AsyncPostgresSaver` via DAL**
+- [ ] **`TASK-309`** `[AI - Tạ Quang Huy]` **Typed State Persistence via SQLAlchemy Async DAL (JSONB Checkpoints)**
   - **Feature**: #23
   - **Target Files**: `backend/app/ai_agents/dal.py`
-  - **Acceptance Criteria**: Lưu vết checkpoint của `AgentState` vào schema `checkpoints` của Supabase, hỗ trợ khôi phục phiên tự động khi container restart.
+  - **Acceptance Criteria**: Lưu vết snapshot JSONB của `AgentState` vào bảng `checkpoints.agent_checkpoints` trên Supabase qua SQLAlchemy 2.0 Async DAL (tương thích Supavisor port 6543), hỗ trợ khôi phục phiên tự động khi container restart.
   - **Docs & Tracking**: Cập nhật `database-schema.md` + tick `[x]`.
 - [ ] **`TASK-310`** `[AI - Nguyễn Tùng Dương]` **Dynamic On-The-Go Adaptation Agent Node**
   - **Feature**: #16
@@ -77,10 +77,10 @@
   - **Docs & Tracking**: Cập nhật `ai-agent-architecture.md` + tick `[x]`.
 
 ### Sprint 4 — Dynamic Adaptation & Grounding Benchmark
-- [ ] **`TASK-401`** `[AI - Nguyễn Tùng Dương]` **LangGraph Worker Consumer via Redis Streams**
+- [ ] **`TASK-401`** `[AI - Nguyễn Tùng Dương]` **AI Agent Worker Consumer via Redis Streams**
   - **Feature**: #17
   - **Target Files**: `backend/app/worker.py`
-  - **Acceptance Criteria**: Background worker trên Render đọc task từ Redis Streams (`XREADGROUP`), chạy LangGraph graph và bắn sự kiện qua Redis Pub/Sub. Bounded memory $\le 280$\,MB / $512$\,MB RAM.
+  - **Acceptance Criteria**: Background worker trên Render đọc task từ Redis Streams (`XREADGROUP`), chạy Two-Phase State Machine (OpenAI SDK) và bắn sự kiện qua Redis Pub/Sub. Bounded memory $\le 280$\,MB / $512$\,MB RAM.
   - **Docs & Tracking**: Cập nhật `system-architecture.md` + tick `[x]`.
 - [ ] **`TASK-413`** `[AI - Nguyễn Tùng Dương & Tạ Quang Huy]` **Grounding Benchmark Verification (100 Prompts Test)**
   - **Feature**: AI Evaluation

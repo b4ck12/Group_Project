@@ -55,13 +55,13 @@
 
 | # | Mã Task | Tính năng | Mô tả chi tiết kỹ thuật | Người phụ trách |
 |:---:|:---:|---|---|:---:|
-| 17 | `TASK-109` | **LangGraph State Machine (Two-Phase)** | Máy trạng thái LangGraph Python chạy tuần tự qua 2 pha: Phase 1 (Macro State) và Phase 2 (Micro State). | Nguyễn Tùng Dương |
+| 17 | `TASK-109` | **Two-Phase State Machine (Pure OpenAI SDK)** | Máy trạng thái thuần Python AsyncIO + OpenAI SDK chạy tuần tự qua 2 pha: Phase 1 (Macro State) và Phase 2 (Micro State). | Nguyễn Tùng Dương |
 | 18 | `TASK-110` | **Model Abstraction Layer** | Bọc mô hình chính **DeepSeek-V4**, tự động fallback sang GPT-4o, Claude 3.5, hoặc Gemini 1.5 Pro. | Nguyễn Tùng Dương |
 | 19 | `TASK-209` | **Tier 1: Ràng buộc Pydantic Schema** | Chuẩn hóa đầu ra LLM bằng Pydantic v2 (tên, phân khúc, thời lượng, category), loại bỏ text lan man. | Nguyễn Tùng Dương |
 | 20 | `TASK-210` | **Tier 2: Kiểm tra Bản đồ & Khách sạn Thực tế (Live Map & Hotel Check)** | Đối chiếu dữ liệu đa nguồn: Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia để xác thực Place ID, giá phòng và giờ mở cửa. | Nguyễn Tùng Dương |
 | 21 | `TASK-211` | **Tier 3: Thuật toán Gom cụm Địa lý (Distance Guard)** | Áp dụng công thức Haversine gom cụm các điểm dừng trong bán kính $\le 2.5$\,km ($\le 20$\,phút di chuyển). | Nguyễn Tùng Dương |
 | 22 | `TASK-308` | **Nạp sẵn Phương án Dự phòng (Pre-fetched Backups)** | Tự động truy vấn và chuẩn bị sẵn 2 phương án thay thế cho mỗi điểm dừng chính phục vụ 1-Click Swap. | Nguyễn Tùng Dương |
-| 23 | `TASK-401` | **Lưu vết Checkpoint (AsyncPostgresSaver)** | Ghi nhận trạng thái hội thoại vào schema `checkpoints` qua Data Access Layer (DAL) có xác thực. | Nguyễn Tùng Dương |
+| 23 | `TASK-401` | **Lưu vết Checkpoint (SQLAlchemy Async JSONB)** | Ghi nhận snapshot `AgentState` dạng JSONB vào bảng `checkpoints.agent_checkpoints` qua Data Access Layer (DAL) có xác thực. | Nguyễn Tùng Dương |
 
 ---
 
@@ -101,4 +101,4 @@
 | 39 | `TASK-415` | **Dịch Vụ Lịch Sử Phiên Bản Plan 4 Giai Đoạn** | Lưu vết toàn vẹn 4 giai đoạn (Initial, Voting, Finalized, Ongoing), không ghi đè dữ liệu, hỗ trợ so sánh các mốc. | Phạm Đình Ánh Dương |
 | 40 | `TASK-409` | **Gợi Ý Món Ăn Trong Quán & Xem Lịch Sử Plan UI** | Thẻ gợi ý món ăn đặc sản vùng miền và món ăn cụ thể tại quán theo khẩu vị nhóm (chay, không cay...), kèm màn hình so sánh 3 mốc Plan. | Nguyễn Minh Đức |
 | 41 | `TASK-410` | **Dashboard Giám Sát Quản Trị (Admin UI)** | Thống kê số lượng phòng hoạt động, token LLM tiêu thụ, cache hit rate và thời gian phản hồi. | Nguyễn Minh Đức |
-| 42 | `TASK-414` | **Hạ tầng Giám sát OpenTelemetry & LangSmith** | Đo lường độ trễ end-to-end (Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ DB), theo dõi sức khỏe hệ thống. | Đinh Tiến Luân |
+| 42 | `TASK-414` | **Hạ tầng Giám sát OpenTelemetry & AgentLog** | Đo lường độ trễ end-to-end (Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ DB), ghi nhận token/latency từ OpenAI SDK. | Đinh Tiến Luân |

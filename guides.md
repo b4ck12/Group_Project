@@ -41,10 +41,10 @@
 
 ---
 
-### 🅳️ Person 3 — Nguyễn Tùng Dương & Tạ Quang Huy (AI Agent Team: LangGraph & DeepSeek-V4)
-> **Mục tiêu**: Nắm vững kiến trúc Unified AI Agent trên LangGraph Python, Máy trạng thái 2 pha (Phase 1: Macro State, Phase 2: Micro State), Model Abstraction Layer (DeepSeek-V4 + Fallback GPT-4o/Claude/Gemini), Four-Tier Grounding Pipeline và Typed Checkpointing.
+### 🅳️ Person 3 — Nguyễn Tùng Dương & Tạ Quang Huy (AI Agent Team: OpenAI SDK & DeepSeek-V4)
+> **Mục tiêu**: Nắm vững kiến trúc Unified AI Agent trên Python AsyncIO + OpenAI SDK (`AsyncOpenAI`), Máy trạng thái 2 pha (Phase 1: Macro State, Phase 2: Micro State), Model Abstraction Layer (DeepSeek-V4 + Fallback GPT-4o/Gemini), Four-Tier Grounding Pipeline và Typed Checkpointing.
 
-1. Đọc **[ai-agent-architecture.md](docs/03-architecture/ai-agent-architecture.md)** (6 phút) — Thiết kế đồ thị LangGraph, Two-Phase State Machine, Model Abstraction Layer.
+1. Đọc **[ai-agent-architecture.md](docs/03-architecture/ai-agent-architecture.md)** (6 phút) — Thiết kế Two-Phase State Machine (OpenAI SDK), Model Abstraction Layer.
 2. Đọc **[explain.md](explain.md)** Mục 3 (4 phút) — Hàng rào chống ảo giác 4 tầng (Four-Tier Grounding) và thuật toán gom cụm khoảng cách Haversine ($\le 2.5$\,km).
 3. Đọc **[post-task-documentation.md](docs/01-workflow/post-task-documentation.md)** (3 phút) — Quy trình viết docs và tracking tiến độ.
 4. Mở **[person-3-ai-engineer.md](docs/04-tasks/person-3-ai-engineer.md)** (2 phút) — Kiểm tra danh mục task cá nhân được phân công.

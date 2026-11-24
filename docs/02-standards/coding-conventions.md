@@ -399,7 +399,7 @@ async def test_vote_stop_should_increase_count():
      # Áp dụng công thức Haversine với bán kính Trái Đất R = 6371km để tính khoảng cách cung tròn
      ```
 2. **Docstrings & TSDoc**:
-   - Python: Sử dụng **Google Style Docstring** cho mọi hàm nghiệp vụ, Service, Repository, LangGraph node (xem mẫu ở [documentation-guide.md](documentation-guide.md)).
+   - Python: Sử dụng **Google Style Docstring** cho mọi hàm nghiệp vụ, Service, Repository, AI Agent phase handler (xem mẫu ở [documentation-guide.md](documentation-guide.md)).
    - TypeScript: Sử dụng **TSDoc** cho Custom Hooks, Utilities, và Props Interfaces.
 3. **Module README**:
    - Mỗi thư mục module lớn (ví dụ `app/ai_agents/`, `frontend/src/features/event-planning/`) nên có một file `README.md` ngắn tóm tắt:

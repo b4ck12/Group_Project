@@ -21,7 +21,7 @@
 - [ ] **Task Tracking**: Đã đổi `[ ]` thành `[x]` trong `docs/04-tasks/person-X-*.md` và `docs/TASKS.md`
 - [ ] **API Specification**: Đã cập nhật `docs/02-standards/api-design-guide.md` (nếu có thêm/sửa REST/WS endpoint)
 - [ ] **Database Schema**: Đã cập nhật `docs/03-architecture/database-schema.md` (nếu có thêm/sửa DB model/migration)
-- [ ] **AI Agent Architecture**: Đã cập nhật `docs/03-architecture/ai-agent-architecture.md` (nếu có sửa LangGraph node/state/prompt)
+- [ ] **AI Agent Architecture**: Đã cập nhật `docs/03-architecture/ai-agent-architecture.md` (nếu có sửa AI Agent phase/state/prompt)
 - [ ] **System Architecture / Deploy**: Đã cập nhật `system-architecture.md` hoặc `deployment-guide.md`
 - [ ] **Environment Variables**: Đã cập nhật `.env.example` (nếu có thêm biến môi trường mới)
 - [ ] **Không thay đổi docs** (Chỉ áp dụng cho hotfix typo hoặc refactor thuần không đổi API/Schema)

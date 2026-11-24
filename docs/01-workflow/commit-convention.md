@@ -39,7 +39,7 @@ docs(api-design): cập nhật endpoint tạo event
 
 test(agent-orchestrator): thêm test cho luồng phân giải xung đột vote
 
-chore(deps): nâng cấp langgraph lên v0.4
+chore(deps): nâng cấp openai sdk lên v1.x
 
 feat(auth)!: đổi cấu trúc JWT payload
 
