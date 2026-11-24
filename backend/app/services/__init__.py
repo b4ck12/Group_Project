@@ -25,6 +25,12 @@ from app.services.weather_service import (
     map_wmo_weather_code,
     weather_circuit_breaker,
 )
+from app.services.currency_service import (
+    BaseCurrencyProvider,
+    CurrencyService,
+    UnsupportedCurrencyError,
+    currency_circuit_breaker,
+)
 
 __all__ = [
     "AuthService",
@@ -46,4 +52,8 @@ __all__ = [
     "WeatherService",
     "weather_circuit_breaker",
     "map_wmo_weather_code",
+    "BaseCurrencyProvider",
+    "CurrencyService",
+    "UnsupportedCurrencyError",
+    "currency_circuit_breaker",
 ]
