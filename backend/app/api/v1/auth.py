@@ -1,16 +1,42 @@
 from fastapi import APIRouter, Depends, HTTPException, status ,Response, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import create_access_token, create_refresh_token, decode_token
 from app.models.user import User
-from app.schemas.user import LoginRequest, TokenResponse, UserCreate, UserResponse
+from app.schemas.user import (
+    LoginRequest, 
+    TokenResponse, 
+    UserCreate, 
+    UserResponse, 
+    ForgotPasswordRequest, 
+    GoogleLoginRequest, 
+    ResetPasswordRequest,
+)
 from app.services.auth_service import AuthService
 from app.repositories.user_repository import UserRepository
 
 router = APIRouter(prefix="/auth",tags=["auth"])
+
+def _issue_token_response(user: User, response: Response) -> TokenResponse:
+    """Tạo cặp JWT Access/Refresh và gắn Refresh Token vào httpOnly cookie."""
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=settings.ENVIRONMENT != "development",
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+    )
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+    )
+
 
 @router.post("/register",
     response_model=UserResponse,
@@ -35,25 +61,7 @@ async def login(
     #Login và trả về access_token, tự động set refresh_token vào httpOnly
     service = AuthService(db)
     user = await service.authenticate_user(login_data)
-
-    access_token = create_access_token(user.id)
-    refresh_token = create_refresh_token(user.id)
-
-    #Lưu refresh token vào cookie httlpOnly
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=settings.ENVIRONMENT != "development",
-        samesite="lax",
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
-    )
-
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-    )
+    return _issue_token_response(user, response)
 
 
 @router.post(
@@ -73,13 +81,14 @@ async def refresh_token(
         )
 
     payload = decode_token(refresh_token)
-    if payload.get("type") != "refresh":
+    user_id = payload.get("sub")
+    if payload.get("type") != "refresh" or not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token không phải Refresh Token",
+            detail="Token không phải Refresh Token hợp lệ",
         )
 
-    user_id = payload.get("sub")
+    
     user_repo = UserRepository(db)
     user = await user_repo.get_by_id(user_id)    
     if not user:
@@ -88,35 +97,25 @@ async def refresh_token(
             detail="Người dùng không tồn tại",
         )
 
-    #Tạo cặp token mới
-    new_access_token = create_access_token(user.id)
-    new_refresh_token = create_refresh_token(user.id)
-
-    #Cập nhật cookie mới
-    response.set_cookie(
-        key="refresh_token",
-        value=new_refresh_token,
-        httponly=True,
-        secure=settings.ENVIRONMENT != "development",
-        samesite="lax",
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
-    )
-
-    return TokenResponse(
-        access_token=new_access_token,
-        refresh_token=new_refresh_token,
-        token_type="bearer",
-    )
+    return _issue_token_response(user, response)
 
 @router.post("/forgot-password")
-async def forgot_password(email: str):
+async def forgot_password(payload: ForgotPasswordRequest):
     """
     API endpoint skeleton.
     """
     raise HTTPException(status_code=501, detail="Not Implemented")
 
-@router.post("/login/google",response_model=UserResponse)
-async def login_google(user: UserCreate):
+@router.post("/reset-password")
+async def reset_password(payload: ResetPasswordRequest):
+    """
+    API endpoint skeleton.
+    """
+    raise HTTPException(status_code=501, detail="Not Implemented")
+
+
+@router.post("/login/google",response_model=TokenResponse)
+async def login_google(payload: GoogleLoginRequest):
     """
     API endpoint skeleton.
     """

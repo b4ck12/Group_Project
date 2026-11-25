@@ -1,4 +1,6 @@
-from typing import Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -24,6 +26,15 @@ class UserRepository:
     async def create(self, user: User) -> User:
         """Ghi nhận người dùng mới vào cơ sở dữ liệu."""
         self.db.add(user)
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+
+    async def update(self, user:User, updates: Dict[str, Any]) -> User:
+        """Cập nhật các trường hợp lệ của User và lưu xuống database."""
+        for field, value in updates.items():
+            setattr(user, field, value)
+        user.updated_at = datetime.now(timezone.utc)
         await self.db.commit()
         await self.db.refresh(user)
         return user
