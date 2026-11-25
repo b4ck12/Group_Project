@@ -113,7 +113,7 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #3
   - **Target Files**: `backend/app/api/v1/auth.py`, `backend/app/services/email_service.py`
   - **Acceptance Criteria**: `POST /auth/forgot-password` gửi email token 1 lần (TTL 15 phút) qua SMTP.
-- [ ] **TASK-106** `[BE-Services]` **User Profile API (GET & PATCH)**
+- [X] **TASK-106** `[BE-Services]` **User Profile API (GET & PATCH)**
   - **Feature**: #5
   - **Target Files**: `backend/app/api/v1/users.py`, `backend/app/services/user_service.py`
   - **Acceptance Criteria**: `GET /users/me` và `PATCH /users/me` cập nhật họ tên, avatar URL.
