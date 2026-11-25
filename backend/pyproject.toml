@@ -13,12 +13,10 @@ ignore = ["E501"]  # Black lo độ dài dòng
 "app/models/__init__.py" = ["F401"]
 # Baseline nợ lint có sẵn trước TASK-008: chủ module gỡ dần khi sửa file, không thêm file mới vào đây.
 "alembic/versions/*.py" = ["F401"]
-"app/api/v1/auth.py" = ["F401"]
 "app/api/v1/events.py" = ["F401"]
 "app/core/database.py" = ["F401"]
 "app/models/chat_message.py" = ["F401"]
 "app/models/expense.py" = ["F401", "F811"]
-"app/services/auth_service.py" = ["F401"]
 "app/services/places_service.py" = ["F401", "F821", "F841"]
 "tests/*.py" = ["F401", "F841"]
 
