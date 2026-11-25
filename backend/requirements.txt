@@ -6,6 +6,7 @@ alembic
 pydantic
 pydantic-settings
 passlib[bcrypt]
+bcrypt==4.0.1
 pyjwt
 python-dotenv
 email-validator
