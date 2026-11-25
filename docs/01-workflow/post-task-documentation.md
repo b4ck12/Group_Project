@@ -7,7 +7,7 @@
 
 ## ⚡ 1. Vì Sao Ai Cũng Phải Viết Docs & Tracking?
 
-Trong một dự án gồm 6 thành viên triển khai song song kiến trúc Cloud + AI Agent phức tạp (Vercel, Render, Supabase, Upstash Redis, LangGraph DeepSeek-V4), việc **viết tài liệu và cập nhật tiến độ đồng bộ** giải quyết các vấn đề sống còn:
+Trong một dự án gồm 6 thành viên triển khai song song kiến trúc Cloud + AI Agent phức tạp (Vercel, Render, Supabase, Upstash Redis, OpenAI SDK + DeepSeek-V4), việc **viết tài liệu và cập nhật tiến độ đồng bộ** giải quyết các vấn đề sống còn:
 1. **Không ai bị mù thông tin**: Nhìn vào bảng task và docs là biết ai đang làm gì, module nào đã hoàn thành, endpoint nào đã sẵn sàng gọi thật.
 2. **Minh bạch hóa đóng góp**: Mọi thành viên đều có bằng chứng lịch sử rõ ràng về công việc mình làm (mã task `TASK-xxx`, file code đã sửa, file docs đã viết, pull request đã merge).
 3. **Tránh conflict kiến trúc**: Khi đổi DB Schema, Contract API hoặc State của AI Agent, người đổi phải cập nhật docs ngay lập tức để 5 thành viên còn lại không code sai hướng.
@@ -67,7 +67,7 @@ Tra cứu bảng ở **Mục 3** để biết chính xác bạn phải viết / 
 |---|---|---|
 | 🔌 **Thêm / Sửa REST API hoặc WebSocket** | `docs/02-standards/api-design-guide.md` | Endpoint URL, Method, Auth Guard, Request Body Schema, Response JSON sample, Error codes (400, 401, 403, 404, 422). |
 | 🗄️ **Thêm / Sửa PostgreSQL Model / Migration** | `docs/03-architecture/database-schema.md` | Tên bảng, schema (`core`/`checkpoints`/`vectors`), cột, kiểu dữ liệu, quan hệ FK, indexes, RLS policies, file Alembic migration. |
-| 🤖 **Sửa AI Agent / LangGraph / Prompts** | `docs/03-architecture/ai-agent-architecture.md`<br>`explain.md` | Node LangGraph mới, Two-Phase State changes, Pydantic Schema, prompt versioning, Four-Tier Grounding, model fallback. |
+| 🤖 **Sửa AI Agent / OpenAI SDK / Prompts** | `docs/03-architecture/ai-agent-architecture.md`<br>`explain.md` | Phase handler / tool mới, Two-Phase State changes, Pydantic Schema, prompt versioning, Four-Tier Grounding, model fallback. |
 | 🎨 **Thêm Màn Hình / Component UI / Flow mới** | `docs/06-design/user-flows.md`<br>`frontend/src/mocks/handlers/` | Mô tả luồng tương tác, route URL, wireframe/layout component, mock MSW handler tương ứng để người khác test. |
 | 🚢 **Cấu hình Cloud / DevOps / Docker / Secrets** | `docs/03-architecture/deployment-guide.md`<br>`.env.example`<br>`docs/05-security/security-guidelines.md` | Biến môi trường mới kèm giá trị mẫu, hướng dẫn deploy Render/Vercel/Supabase, cấu hình rate limit, cơ chế bảo mật. |
 | ⚖️ **Quyết định Kỹ thuật Lớn (Kiến trúc)** | `docs/03-architecture/adr/ADR-xxx.md` | File ADR giải thích: Bối cảnh, các lựa chọn xem xét, lý do chọn giải pháp này, hệ quả tích cực/tiêu cực. |

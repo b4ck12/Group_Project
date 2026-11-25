@@ -3,7 +3,7 @@
 
 > [!NOTE]
 > **Tóm Tắt Dự Án (Executive Summary)**:  
-> **TripMate AI** là nền tảng cộng tác lập kế hoạch thông minh dành cho nhóm (2--10 người) đi chơi cuối tuần hoặc du lịch nhiều ngày (Việt Nam & các nước Đông Nam Á miễn thị thực). Hệ thống giải quyết triệt để tình trạng tranh cãi kéo dài và quá tải cho trưởng nhóm bằng việc kết hợp phòng cộng tác thời gian thực với **mô hình AI Agent hợp nhất (DeepSeek-V4)** chạy trên **LangGraph Python**, hoạt động theo **Quy trình đồng thuận 2 giai đoạn (Two-Stage Consensus Planning Flow)** và **Hàng rào kiểm chứng thực tế 4 tầng (Four-Tier Grounding Pipeline)** để đảm bảo 0% địa điểm ảo. Nền tảng được kiến trúc sẵn sàng cho môi trường đám mây thực tế kết hợp **Vercel, Render, Supabase và Upstash Redis**.
+> **TripMate AI** là nền tảng cộng tác lập kế hoạch thông minh dành cho nhóm (2--10 người) đi chơi cuối tuần hoặc du lịch nhiều ngày (Việt Nam & các nước Đông Nam Á miễn thị thực). Hệ thống giải quyết triệt để tình trạng tranh cãi kéo dài và quá tải cho trưởng nhóm bằng việc kết hợp phòng cộng tác thời gian thực với **mô hình AI Agent hợp nhất (DeepSeek-V4)** chạy trên **OpenAI Python SDK (`AsyncOpenAI`)**, hoạt động theo **Quy trình đồng thuận 2 giai đoạn (Two-Stage Consensus Planning Flow)** và **Hàng rào kiểm chứng thực tế 4 tầng (Four-Tier Grounding Pipeline)** để đảm bảo 0% địa điểm ảo. Nền tảng được kiến trúc sẵn sàng cho môi trường đám mây thực tế kết hợp **Vercel, Render, Supabase và Upstash Redis**.
 
 ---
 
@@ -82,11 +82,11 @@ flowchart LR
 ## 🤖 5. Kiến Trúc AI Agent Hợp Nhất & Hàng Rào Chống Ảo Giác (Grounding Pipeline)
 
 ### 5.1. Unified AI Agent (DeepSeek-V4) với Two-Phase State Execution
-Thay vì chia thành nhiều sub-agent rời rạc gây nghẽn độ trễ và khó kiểm thử, TripMate AI sử dụng **một AI Agent hợp nhất duy nhất chạy DeepSeek-V4 trên nền LangGraph Python**, thực thi qua 2 pha trạng thái:
+Thay vì chia thành nhiều sub-agent rời rạc gây nghẽn độ trễ và khó kiểm thử, TripMate AI sử dụng **một AI Agent hợp nhất duy nhất chạy DeepSeek-V4 trên nền OpenAI Python SDK (`AsyncOpenAI`)**, thực thi qua 2 pha trạng thái:
 - **Phase 1 (Macro Planning State)**: Đề xuất ngày đi, nhịp độ và chủ đề hàng ngày mà không gọi API du lịch bên ngoài, tiết kiệm tối đa token cho đến khi đạt đồng thuận vĩ mô.
 - **Phase 2 (Micro Curation State)**: Kích hoạt sau khi có Macro Approval. Thực thi các lệnh gọi công cụ ngoài, áp dụng gom cụm địa lý bán kính $2.0$--$2.5$\,km để tránh lộ trình ziczac, và chuẩn bị sẵn các điểm dừng thay thế.
-- **Model Abstraction Layer**: Xây dựng trên nền tảng LangChain/LangGraph model abstraction. DeepSeek-V4 là động cơ suy luận chính, hỗ trợ fallback mượt mà sang OpenAI (GPT-4o), Anthropic Claude, hoặc Google Gemini để phòng tránh rủi ro phụ thuộc một nhà cung cấp (vendor lock-in).
-- **Typed State Persistence**: Lưu vết checkpoint của `AgentState` vào PostgreSQL thông qua `AsyncPostgresSaver` kết nối qua Data Access Layer (DAL) có xác thực.
+- **Model Abstraction Layer**: Xây dựng trên nền tảng **OpenAI-Compatible SDK Abstraction (`AsyncOpenAI`)**. DeepSeek-V4 là động cơ suy luận chính, hỗ trợ fallback mượt mà sang OpenAI (GPT-4o) hoặc Google Gemini qua hoán đổi `base_url` để phòng tránh rủi ro phụ thuộc một nhà cung cấp (vendor lock-in).
+- **Typed State Persistence**: Lưu vết snapshot JSONB của `AgentState` vào bảng `checkpoints.agent_checkpoints` trên PostgreSQL thông qua SQLAlchemy Async DAL có xác thực.
 
 ### 5.2. Four-Tier Grounding Pipeline (Hàng Rào 4 Tầng Loại Bỏ Ảo Giác AI)
 
@@ -145,10 +145,10 @@ Hệ thống được thiết kế theo kiến trúc phi tập trung, phân bổ
 
 - **Frontend (Vercel Edge CDN)**: React 18 SPA + TypeScript được phân phối trên mạng lưới Global Edge CDN của Vercel, thời gian nạp trang dưới 100ms trên toàn cầu, không có độ trễ khởi động lạnh (zero cold-start), hỗ trợ Preview Deployments cho từng PR.
 - **Backend Gateway (Render.com Web Service)**: FastAPI ASGI application (Python 3.11+) xử lý RESTful endpoints và WebSocket room server. Được cấu hình cron ping tự động tới `/api/healthz` để ngăn service rơi vào trạng thái ngủ khi đang trong phiên lập kế hoạch.
-- **AI Agent Worker (Render.com Background Worker)**: Tiến trình LangGraph Python chạy độc lập, giới hạn bộ nhớ $\le 512$\,MB RAM, tiêu thụ tác vụ bất đồng bộ từ hàng đợi Redis Streams (`XREADGROUP`).
+- **AI Agent Worker (Render.com Background Worker)**: Tiến trình Python AsyncIO + OpenAI SDK chạy độc lập, giới hạn bộ nhớ $\le 512$\,MB RAM, tiêu thụ tác vụ bất đồng bộ từ hàng đợi Redis Streams (`XREADGROUP`).
 - **Database & BaaS (Supabase)**: Managed PostgreSQL 16 tích hợp extension `pgvector`, chia tách 3 schema độc lập:
   - `core`: Lưu trữ users, events, event_members, plans, plan_stops, plan_votes, chat_messages (bảng expenses và settlements đã được loại bỏ hoàn toàn theo góp ý của GVHD).
-  - `checkpoints`: Lưu trạng thái `AgentState` của LangGraph qua `AsyncPostgresSaver`.
+  - `checkpoints`: Lưu snapshot `AgentState` dạng JSONB trong `checkpoints.agent_checkpoints` qua SQLAlchemy Async DAL.
   - `vectors`: Lưu trữ vector embeddings phục vụ tra cứu địa điểm tương tự.
   - **Supavisor Connection Pooler (port 6543, Transaction Mode)**: Ghép hơn 200 phiên client qua 15 kết nối cơ sở dữ liệu vật lý, đảm bảo không bao giờ cạn kiệt connection pool.
   - **Row Level Security (RLS)**: Cách ly dữ liệu nhiều người dùng ở cấp độ database.
@@ -157,7 +157,7 @@ Hệ thống được thiết kế theo kiến trúc phi tập trung, phân bổ
   - **Redis Pub/Sub (`plan:updated`)**: Đồng bộ sự kiện cập nhật kế hoạch tới tất cả các instance FastAPI Gateway để broadcast qua WebSockets.
   - **L2 Cache (TTL 24h)**: Lưu trữ kết quả truy vấn địa điểm từ Google Places API để giảm chi phí và chống rate limit.
 - **Độ Bền & Khả Năng Kháng Lỗi (PyBreaker Resilience)**: Mọi lệnh gọi API du lịch & khách sạn bên thứ 3 (**Google Maps/Places, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook, 12Go Asia**) đều được quản lý qua Adapter Pattern và bọc bởi **PyBreaker Circuit Breaker** với timeout 2.5 giây; khi có sự cố mạng hoặc lỗi API, hệ thống tự động ngắt mạch và chuyển sang dữ liệu cache/DB fallback.
-- **Giám Sát & Truy Vết (Observability)**: Tích hợp **OpenTelemetry** truy vết phân tán xuyên suốt luồng Client $\rightarrow$ Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ Supabase $\rightarrow$ WebSocket, và **LangSmith** theo dõi chất lượng prompt của LLM.
+- **Giám Sát & Truy Vết (Observability)**: Tích hợp **OpenTelemetry** truy vết phân tán xuyên suốt luồng Client $\rightarrow$ Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker $\rightarrow$ Supabase $\rightarrow$ WebSocket, và **AgentLog (`core.agent_logs`)** theo dõi token và độ trễ từ OpenAI SDK.
 
 ---
 
@@ -166,8 +166,8 @@ Hệ thống được thiết kế theo kiến trúc phi tập trung, phân bổ
 ### 7.1. Ngân Sách Độ Trễ (Latency Budget)
 - **Phản hồi thao tác người dùng (User Action / Vote ACK)**: $< 80$\,ms qua WebSocket với atomic database update.
 - **Streaming token AI đầu tiên (TTFT)**: $< 800$\,ms để người dùng thấy phản hồi tức thì, không nhìn màn hình trắng.
-- **Soạn thảo Roadmap Vĩ mô (Macro Drafting)**: $6$--$12$\,giây (Pha 1 LangGraph).
-- **Tuyển chọn Chi tiết (Micro Grounding)**: $10$--$20$\,giây (Pha 2 LangGraph kèm kiểm tra Google Places song song).
+- **Soạn thảo Roadmap Vĩ mô (Macro Drafting)**: $6$--$12$\,giây (Pha 1 Macro Planning).
+- **Tuyển chọn Chi tiết (Micro Grounding)**: $10$--$20$\,giây (Pha 2 Micro Curation kèm kiểm tra Google Places song song).
 - **Đổi địa điểm 1-Click Swap**: $< 500$\,ms TTFT, hoàn thành trong $3$--$6$\,giây.
 
 ### 7.2. Tải & Năng Lực Phục Vụ (Capacity Targets)
@@ -200,7 +200,7 @@ Dự án được phân bổ đồng đều cho 6 thành viên phụ trách 6 m�
 
 | Track | Thành viên | Vai trò kỹ thuật theo Proposal | File theo dõi cá nhân |
 |---|---|---|---|
-| **BE-Core & DAL** | **Tạ Quang Huy** | Thiết kế Schema DB gốc Supabase, Event/Room CRUD, Two-Stage Consensus APIs, RolesGuard, LangGraph DAL Bridge, WebSocket Room Server | [person-1-backend-core.md](../04-tasks/person-1-backend-core.md) |
+| **BE-Core & DAL** | **Tạ Quang Huy** | Thiết kế Schema DB gốc Supabase, Event/Room CRUD, Two-Stage Consensus APIs, RolesGuard, AI Agent DAL Bridge, WebSocket Room Server | [person-1-backend-core.md](../04-tasks/person-1-backend-core.md) |
 | **BE-Platform & FE-Core** | **Hà Đăng Huy** | External Travel APIs (Places, Agoda, Klook), PyBreaker Circuit Breaker, Upstash Redis Cache, React 18 Core UI, Auth, Mapbox GL Canvas | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) / [person-4-frontend-core.md](../04-tasks/person-4-frontend-core.md) |
 | **BE-Services** | **Phạm Đình Ánh Dương** | Bộ lọc đầu vào (Input Filter & Core Params), Supabase Auth Integration, Link Invitations, Notification Services, PDF & Calendar (.ics) Export | [person-2-backend-platform.md](../04-tasks/person-2-backend-platform.md) |
 | **FE-Growth** | **Nguyễn Minh Đức** | Realtime Room Chat & AI Streaming UI, Gợi ý món ăn trong quán (Dish Recommendations UI), Interactive Timeline, Stop Voting Cards (1-Click Swap), Plan History Stage Viewer | [person-5-frontend-growth.md](../04-tasks/person-5-frontend-growth.md) |

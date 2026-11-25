@@ -1,6 +1,6 @@
 # 📌 Master Detailed Task Breakdown (TASKS.md)
 ## Dự án: TripMate AI — Intelligent Group Activity & Travel Planning Platform
-**Tech Stack & Cloud**: React 18 + TS (Vercel Edge CDN) · FastAPI (Render Web Service) · LangGraph Python (Render Worker) · DeepSeek-V4 + Model Abstraction · Supabase PostgreSQL 16 (Supavisor port 6543) · Upstash Redis 7 (Streams & Pub/Sub) · PyBreaker · OpenTelemetry
+**Tech Stack & Cloud**: React 18 + TS (Vercel Edge CDN) · FastAPI (Render Web Service) · OpenAI SDK (Python) (Render Worker) · DeepSeek-V4 + Model Abstraction · Supabase PostgreSQL 16 (Supavisor port 6543) · Upstash Redis 7 (Streams & Pub/Sub) · PyBreaker · OpenTelemetry
 
 ---
 
@@ -9,7 +9,7 @@
 | Sprint | Trọng tâm Sprint | Số Micro-Tasks | Trạng thái |
 |---|---|:---:|:---:|
 | **Sprint 0** | Contract Session, Supabase Schemas, Two-Phase State DTOs, MSW Mocks, Design Tokens, Docker & CI/CD | 11 Tasks | 🔲 To Do |
-| **Sprint 1** | Supabase Auth, Upstash Redis & PyBreaker Base, LangGraph Skeleton, UI Base, Vercel Edge Deploy | 18 Tasks | 🔲 To Do |
+| **Sprint 1** | Supabase Auth, Upstash Redis & PyBreaker Base, AI Agent Skeleton, UI Base, Vercel Edge Deploy | 18 Tasks | 🔲 To Do |
 | **Sprint 2** | Room CRUD, External Travel APIs, Phase 1 Macro State, Four-Tier Grounding, Timeline, Render Deploy | 16 Tasks | 🔲 To Do |
 | **Sprint 3** | Two-Stage Consensus Engine, Stop Voting & 1-Click Swap, Phase 2 Micro State, PDF & .ics Export | 17 Tasks | 🟡 In Progress (1/17) |
 | **Sprint 4** | WebSocket Room Server, Token Streaming UI, Input Filter, Dish Recommendations, OpenTelemetry, Locust Load Test | 16 Tasks | 🔲 To Do |
@@ -26,7 +26,7 @@
 | `[BE-Services]` | Supabase Auth, Invitations, Email SMTP, PDF/.ics Export, Input Filter & Plan History | **Phạm Đình Ánh Dương** | [person-2-backend-platform.md](04-tasks/person-2-backend-platform.md) |
 | `[FE-A]` / `[FE-Core]` | Frontend Core Flows UI (Auth, Room Dashboard, Timeline, Mapbox) | **Hà Đăng Huy** | [person-4-frontend-core.md](04-tasks/person-4-frontend-core.md) |
 | `[FE-B]` / `[FE-Growth]` | Frontend AI Chat UI, Stop Voting Cards (1-Click Swap), Dish Recommendations & Plan History UI | **Nguyễn Minh Đức** | [person-5-frontend-growth.md](04-tasks/person-5-frontend-growth.md) |
-| `[AI]` | AI Agent Lead (LangGraph, DeepSeek-V4, Four-Tier Grounding) | **Nguyễn Tùng Dương** (Lead) & **Tạ Quang Huy** (Bridge) | [person-3-ai-engineer.md](04-tasks/person-3-ai-engineer.md) |
+| `[AI]` | AI Agent Lead (OpenAI SDK, DeepSeek-V4, Four-Tier Grounding) | **Nguyễn Tùng Dương** (Lead) & **Tạ Quang Huy** (Bridge) | [person-3-ai-engineer.md](04-tasks/person-3-ai-engineer.md) |
 | `[SEC/DEVOPS]` | Cyber Security & DevOps (Multi-Cloud, CI/CD, Tracing, Locust Test) | **Đinh Tiến Luân** | [person-6-security-devops.md](04-tasks/person-6-security-devops.md) |
 
 > ⚠️ **Quy tắc bất biến khi thực hiện mọi task**:  
@@ -46,8 +46,8 @@
   - **Mục tiêu**: Tạo khung các Router trả về `501 Not Implemented` khớp chuẩn OpenAPI spec.
   - **Target Files**: `backend/app/api/v1/` (`auth.py`, `events.py`, `chat.py`, `plans.py`, `votes.py`, `places.py`, `export.py`, `admin.py`)
   - **Acceptance Criteria**: Swagger hiển thị đầy đủ schema tại `http://localhost:8000/docs`, Pydantic DTOs khớp hợp đồng giao diện.
-- [ ] **TASK-003** `[AI]` **LangGraph State Schema & Fixture Data Definition**
-  - **Mục tiêu**: Định nghĩa `AgentState` cho 2 pha thực thi và tạo dữ liệu giả lập để test đồ thị.
+- [ ] **TASK-003** `[AI]` **Agent State Schema & Fixture Data Definition**
+  - **Mục tiêu**: Định nghĩa `AgentState` cho 2 pha thực thi và tạo dữ liệu giả lập để test Two-Phase State Machine.
   - **Target Files**: `backend/app/ai_agents/state.py`, `backend/app/ai_agents/fixtures/` (`mock_places.json`, `mock_roadmaps.json`)
 feature/TASK-004-msw-core-mocks
   - **Acceptance Criteria**: Khai báo Pydantic `AgentState` chứa `phase`, `macro_locked`, `daily_themes`, `plan_stops`, `backup_options`. Dữ liệu mock validate pass 100% với DB models.
@@ -129,10 +129,10 @@ feature/TASK-004-msw-core-mocks
   - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s).
 
 ### 1.3 AI Agent Two-Phase State Machine Baseline
-- [ ] **TASK-109** `[AI]` **LangGraph Two-Phase State Machine Skeleton**
+- [ ] **TASK-109** `[AI]` **Two-Phase State Machine Skeleton (Pure OpenAI SDK)**
   - **Feature**: #17
   - **Target Files**: `backend/app/ai_agents/state_machine.py`
-  - **Acceptance Criteria**: Xây dựng đồ thị máy trạng thái gồm 2 pha (Phase 1 Macro State và Phase 2 Micro State), kiểm soát chuyển pha dựa trên cờ `macro_locked`.
+  - **Acceptance Criteria**: Xây dựng máy trạng thái thuần Python AsyncIO + OpenAI SDK (`AsyncOpenAI`) gồm 2 pha (Phase 1 Macro State và Phase 2 Micro State), kiểm soát chuyển pha dựa trên cờ `macro_locked`, giới hạn `AI_MAX_STEPS_PER_SESSION = 15`.
 - [ ] **TASK-110** `[AI]` **DeepSeek-V4 Provider & Model Abstraction Layer**
   - **Feature**: #18
   - **Target Files**: `backend/app/ai_agents/model_abstraction.py`
@@ -291,10 +291,10 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #22
   - **Target Files**: `backend/app/ai_agents/nodes/micro_curator.py`
   - **Acceptance Criteria**: Sau khi có Macro Lock, AI truy vấn Google Places/12Go Asia/Travel APIs qua PyBreaker, tự động tính cước đưa đón sân bay và Grab/xe máy theo Haversine, lọc quán theo phân khúc giá (`price_level`), áp dụng gom cụm 2--3 km, cơ chế cân đối bù trừ chi phí động (`running_cost <= total_budget`) và chuẩn bị sẵn 2 backup options cùng mức giá cho mỗi điểm dừng.
-- [ ] **TASK-309** `[AI]` **Typed State Persistence with `AsyncPostgresSaver` via DAL**
+- [ ] **TASK-309** `[AI]` **Typed State Persistence via SQLAlchemy Async DAL (JSONB Checkpoints)**
   - **Feature**: #23
   - **Target Files**: `backend/app/ai_agents/dal.py`
-  - **Acceptance Criteria**: Lưu vết checkpoint của `AgentState` vào schema `checkpoints` của Supabase, hỗ trợ khôi phục phiên tự động.
+  - **Acceptance Criteria**: Lưu vết snapshot JSONB của `AgentState` vào bảng `checkpoints.agent_checkpoints` trên Supabase qua SQLAlchemy 2.0 Async DAL (tương thích Supavisor port 6543), hỗ trợ khôi phục phiên tự động.
 - [ ] **TASK-310** `[AI]` **Dynamic On-The-Go Adaptation Agent Node**
   - **Feature**: #16
   - **Target Files**: `backend/app/ai_agents/nodes/adaptive_replanner.py`

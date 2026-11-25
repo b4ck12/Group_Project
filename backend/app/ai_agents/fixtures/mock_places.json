@@ -1,0 +1,194 @@
+[
+  {
+    "place_id": "ChIJ_dn_my_khe_beach",
+    "name": "Bãi biển Mỹ Khê",
+    "address": "Võ Nguyên Giáp, Phước Mỹ, Sơn Trà, Đà Nẵng",
+    "lat": 16.0595,
+    "lng": 108.2468,
+    "category": "ATTRACTION",
+    "rating": 4.7,
+    "user_ratings_total": 18400,
+    "price_level": 0,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_mykhe_01",
+    "website_uri": "https://danangfantasticity.com/my-khe",
+    "phone_number": null,
+    "metadata": {
+      "indoor": false,
+      "tags": ["beach", "sunrise", "free_entry"]
+    }
+  },
+  {
+    "place_id": "ChIJ_dn_muong_thanh_luxury",
+    "name": "Mường Thanh Luxury Đà Nẵng",
+    "address": "270 Võ Nguyên Giáp, Bắc Mỹ Phú, Ngũ Hành Sơn, Đà Nẵng",
+    "lat": 16.0544,
+    "lng": 108.2478,
+    "category": "HOTEL",
+    "rating": 4.4,
+    "user_ratings_total": 3200,
+    "price_level": 3,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_mt_02",
+    "website_uri": "https://luxury.muongthanh.com",
+    "phone_number": "+84 236 3956 789",
+    "metadata": {
+      "indoor": true,
+      "amenities": ["Free Wi-Fi", "Breakfast Included", "Swimming Pool"]
+    }
+  },
+  {
+    "place_id": "ChIJ_dn_seafood_be_man",
+    "name": "Nhà hàng Hải sản Bé Mặn",
+    "address": "Lô 11 Võ Nguyên Giáp, Mân Thái, Sơn Trà, Đà Nẵng",
+    "lat": 16.0682,
+    "lng": 108.2435,
+    "category": "RESTAURANT",
+    "rating": 4.5,
+    "user_ratings_total": 9100,
+    "price_level": 2,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_beman_03",
+    "website_uri": "https://beman.vn",
+    "phone_number": "+84 236 3838 888",
+    "metadata": {
+      "indoor": true,
+      "signature_dishes": ["Mực hấp gừng", "Tôm sú nướng mọi", "Nghêu hấp sả"]
+    }
+  },
+  {
+    "place_id": "ChIJ_dn_bep_cuon",
+    "name": "Bếp Cuốn Đà Nẵng",
+    "address": "31-33 Trần Bạch Đằng, Phước Mỹ, Sơn Trà, Đà Nẵng",
+    "lat": 16.0518,
+    "lng": 108.2452,
+    "category": "RESTAURANT",
+    "rating": 4.8,
+    "user_ratings_total": 6200,
+    "price_level": 2,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_bepcuon_04",
+    "website_uri": "https://bepcuondanang.com",
+    "phone_number": "+84 236 3999 123",
+    "metadata": {
+      "indoor": true,
+      "vegetarian_friendly": true,
+      "signature_dishes": ["Bánh xèo tôm nhảy", "Mẹt cuốn thập cẩm", "Gỏi cuốn chay"]
+    }
+  },
+  {
+    "place_id": "ChIJ_dn_mi_quang_ba_mua",
+    "name": "Mì Quảng Bà Mua",
+    "address": "95A Nguyễn Tri Phương, Thanh Khê, Đà Nẵng",
+    "lat": 16.0631,
+    "lng": 108.2098,
+    "category": "RESTAURANT",
+    "rating": 4.3,
+    "user_ratings_total": 4800,
+    "price_level": 1,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_bamua_05",
+    "website_uri": null,
+    "phone_number": "+84 236 3655 222",
+    "metadata": {
+      "indoor": true,
+      "signature_dishes": ["Mì Quảng ếch", "Mì Quảng gà ta"]
+    }
+  },
+  {
+    "place_id": "ChIJ_dn_reply_1988_cafe",
+    "name": "Reply 1988 Cafe",
+    "address": "20 Lê Hồng Phong, Phước Ninh, Hải Châu, Đà Nẵng",
+    "lat": 16.0677,
+    "lng": 108.2216,
+    "category": "CAFE",
+    "rating": 4.6,
+    "user_ratings_total": 2450,
+    "price_level": 1,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_reply88_06",
+    "website_uri": null,
+    "phone_number": null,
+    "metadata": {
+      "indoor": true,
+      "rain_backup": true
+    }
+  },
+  {
+    "place_id": "ChIJ_dn_linh_ung_pagoda",
+    "name": "Chùa Linh Ứng - Bãi Bụt",
+    "address": "Vườn Lâm Tỳ Ni, Hoàng Sa, Thọ Quang, Sơn Trà, Đà Nẵng",
+    "lat": 16.1003,
+    "lng": 108.2775,
+    "category": "ATTRACTION",
+    "rating": 4.8,
+    "user_ratings_total": 24100,
+    "price_level": 0,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_linhung_07",
+    "website_uri": null,
+    "phone_number": null,
+    "metadata": {
+      "indoor": false,
+      "tags": ["culture", "viewpoint", "free_entry"]
+    }
+  },
+  {
+    "place_id": "ChIJ_hn_cafe_giang",
+    "name": "Cà phê Giảng",
+    "address": "39 Nguyễn Hữu Huân, Lý Thái Tổ, Hoàn Kiếm, Hà Nội",
+    "lat": 21.0338,
+    "lng": 105.8534,
+    "category": "CAFE",
+    "rating": 4.6,
+    "user_ratings_total": 14500,
+    "price_level": 1,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_giang_08",
+    "website_uri": "https://giangcafe.vn",
+    "phone_number": "+84 98 989 2298",
+    "metadata": {
+      "indoor": true,
+      "rain_backup": true,
+      "signature_dishes": ["Cà phê trứng nóng", "Cacao trứng"]
+    }
+  },
+  {
+    "place_id": "ChIJ_hn_hoan_kiem_lake",
+    "name": "Hồ Hoàn Kiếm & Đền Ngọc Sơn",
+    "address": "Đinh Tiên Hoàng, Hàng Trống, Hoàn Kiếm, Hà Nội",
+    "lat": 21.0287,
+    "lng": 105.8523,
+    "category": "ATTRACTION",
+    "rating": 4.7,
+    "user_ratings_total": 42000,
+    "price_level": 1,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_hoankiem_09",
+    "website_uri": null,
+    "phone_number": null,
+    "metadata": {
+      "indoor": false,
+      "tags": ["landmark", "walking"]
+    }
+  },
+  {
+    "place_id": "ChIJ_hn_pho_thin_bo_ho",
+    "name": "Phở Thìn Bờ Hồ",
+    "address": "61 Đinh Tiên Hoàng, Lý Thái Tổ, Hoàn Kiếm, Hà Nội",
+    "lat": 21.0298,
+    "lng": 105.8535,
+    "category": "RESTAURANT",
+    "rating": 4.5,
+    "user_ratings_total": 6800,
+    "price_level": 1,
+    "open_now": true,
+    "photo_url": "https://maps.googleapis.com/maps/api/place/photo?photoreference=mock_phothin_10",
+    "website_uri": null,
+    "phone_number": null,
+    "metadata": {
+      "indoor": true,
+      "signature_dishes": ["Phở bò tái chín", "Quẩy giòn"]
+    }
+  }
+]

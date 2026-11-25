@@ -197,7 +197,7 @@ Theo Mục 5.2.1 trong Technical Proposal, AI Agent hợp nhất bắt buộc ph
 Theo Mục 5.2.2 trong Technical Proposal:
 
 ### 5.1. Latency & Distributed Tracing Test (Đo Lường Độ Trễ Phân Tán)
-Sử dụng **OpenTelemetry** và **LangSmith** để đo đạc thời gian xử lý qua từng chặng:
+Sử dụng **OpenTelemetry** và **AgentLog (`core.agent_logs`)** để đo đạc thời gian xử lý qua từng chặng:
 - **Phản hồi thao tác người dùng (User Action / Vote ACK)**: $< 80$\,ms.
 - **Streaming token đầu tiên của AI (TTFT)**: $< 800$\,ms.
 - **Thời gian đồng bộ WebSocket giữa nhiều người dùng**: $< 100$\,ms.

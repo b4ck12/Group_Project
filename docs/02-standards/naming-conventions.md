@@ -65,7 +65,7 @@
 
 ---
 
-## 🐍 2. Backend (Python 3.11+ FastAPI & LangGraph)
+## 🐍 2. Backend (Python 3.11+ FastAPI & OpenAI SDK)
 
 ### 2.1. Bảng quy chuẩn đặt tên Backend
 | Đối tượng | Quy chuẩn (Casing) | Quy tắc & Ví dụ chuẩn | Ví dụ sai ❌ |
@@ -76,7 +76,7 @@
 | **Class Service / Repository** | `PascalCase` | Hậu tố vai trò: `EventService`, `PlanRepository`, `PlacesClient` | `event_service`, `EventClass` |
 | **Pydantic Schema (Request/Response DTO)** | `PascalCase` | Hậu tố rõ ràng: `EventCreateRequest`, `EventResponse`, `StopFilterParams` | `EventDTO`, `EventData`, `ReqEvent` |
 | **Custom Exception** | `PascalCase` | Hậu tố `Exception` hoặc `Error`: `EventNotFoundException`, `PlanLockedError` | `NotFound`, `ErrEvent` |
-| **LangGraph Agent Node** | `snake_case` | Động từ + danh từ: `macro_drafting_node`, `micro_curation_node` | `Node1`, `MacroAgent` |
+| **AI Agent Phase Handler** | `snake_case` | Động từ + danh từ: `macro_drafting_step`, `micro_curation_step` | `Step1`, `MacroAgent` |
 | **Hằng số Module** | `UPPER_SNAKE_CASE` | `MAX_RECURSION_LIMIT = 15`, `EARTH_RADIUS_KM = 6371.0` | `maxRecursion`, `radius` |
 
 ### 2.2. Quy chuẩn đặt tên File & Thư mục Backend

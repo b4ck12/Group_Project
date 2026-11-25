@@ -65,7 +65,7 @@ Người dùng có thể cố tình gửi các tin nhắn độc hại vào room
 
 ## 💾 4. Khôi Phục Phiên Bền Bỉ (Session Checkpoint Recovery)
 
-- **Nguyên lý**: Toàn bộ đồ thị thực thi của LangGraph được lưu vết checkpoint định kỳ vào PostgreSQL thông qua `AsyncPostgresSaver`.
+- **Nguyên lý**: Trạng thái thực thi `AgentState` của AI Agent được lưu vết checkpoint định kỳ dưới dạng JSONB vào PostgreSQL (`checkpoints.agent_checkpoints`) thông qua SQLAlchemy 2.0 Async DAL.
 - **Cơ chế chịu lỗi (Fault Tolerance)**:
   - Nếu container worker trên Render bị restart do bảo trì hoặc vượt giới hạn bộ nhớ tạm thời, worker mới sẽ đọc lại `AgentState` từ schema `checkpoints` qua Data Access Layer (DAL).
   - Phiên làm việc được tiếp tục chính xác tại pha hiện tại (**Phase 1** hoặc **Phase 2**) mà không bắt người dùng phải chat hay tạo phòng lại từ đầu.

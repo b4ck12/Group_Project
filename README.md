@@ -6,11 +6,11 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18.3+-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
-[![LangGraph](https://img.shields.io/badge/LangGraph-Python-FF6F00.svg)](https://langchain-ai.github.io/langgraph/)
+[![OpenAI SDK](https://img.shields.io/badge/OpenAI_SDK-Python-412991.svg)](https://github.com/openai/openai-python)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres_16-3ECF8E.svg?logo=supabase&logoColor=white)](https://supabase.com/)
 [![Upstash](https://img.shields.io/badge/Upstash-Redis_7-00E699.svg?logo=redis&logoColor=white)](https://upstash.com/)
 
-> **Đồ án Kỹ thuật Nhóm (Group Project)**: Nền tảng lập kế hoạch hoạt động nhóm và du lịch thông minh, ứng dụng **mô hình AI Agent hợp nhất (DeepSeek-V4)** chạy trên **LangGraph Python**, kiến trúc đám mây đa nền tảng (**Vercel, Render, Supabase, Upstash Redis**) và quy trình chốt đồng thuận 2 giai đoạn (Two-Stage Consensus Planning Flow).
+> **Đồ án Kỹ thuật Nhóm (Group Project)**: Nền tảng lập kế hoạch hoạt động nhóm và du lịch thông minh, ứng dụng **mô hình AI Agent hợp nhất (DeepSeek-V4)** chạy trên **OpenAI Python SDK (`AsyncOpenAI`)**, kiến trúc đám mây đa nền tảng (**Vercel, Render, Supabase, Upstash Redis**) và quy trình chốt đồng thuận 2 giai đoạn (Two-Stage Consensus Planning Flow).
 
 ---
 
@@ -18,11 +18,11 @@
 
 | STT | Họ và Tên | Vai Trò Chính | Trách Nhiệm Kỹ Thuật | Task File |
 |:---:|---|---|---|:---:|
-| 1 | **Tạ Quang Huy** | Backend Dev A (Core Domain) & AI Integration | Thiết kế Schema DB gốc Supabase, Event/Room Management, Two-Stage Consensus APIs, RolesGuard, LangGraph DAL Bridge, WebSocket Room Server | [person-1-backend-core.md](docs/04-tasks/person-1-backend-core.md) |
+| 1 | **Tạ Quang Huy** | Backend Dev A (Core Domain) & AI Integration | Thiết kế Schema DB gốc Supabase, Event/Room Management, Two-Stage Consensus APIs, RolesGuard, AI Agent DAL Bridge, WebSocket Room Server | [person-1-backend-core.md](docs/04-tasks/person-1-backend-core.md) |
 | 2 | **Hà Đăng Huy** | Backend Dev B (Platform) & Frontend Dev A (Core UI) | External Travel APIs (Places, Agoda, Klook), PyBreaker Circuit Breaker, Upstash Redis Cache, React 18 Core UI, Auth, Mapbox GL Canvas | [person-2-backend-platform.md](docs/04-tasks/person-2-backend-platform.md) / [person-4-frontend-core.md](docs/04-tasks/person-4-frontend-core.md) |
 | 3 | **Phạm Đình Ánh Dương** | Backend Dev C (Services & Platform) | Supabase Auth Integration, Link Invitations, Notification Services, PDF & Calendar (.ics) Export, Input Filter & Multi-Stage Plan History | [person-2-backend-platform.md](docs/04-tasks/person-2-backend-platform.md) |
 | 4 | **Nguyễn Minh Đức** | Frontend Dev B (AI Experience & Growth UI) | Realtime Room Chat & AI Streaming UI, Interactive Timeline, Candidate Stop Voting Cards & Progressive Unlock, Design System, Dish Recommendations & Plan History UI | [person-5-frontend-growth.md](docs/04-tasks/person-5-frontend-growth.md) |
-| 5 | **Nguyễn Tùng Dương** | AI Agent Lead (LangGraph & DeepSeek-V4) | Unified AI Agent Architecture, Two-Phase State Machine, Model Abstraction Layer, Four-Tier Grounding Pipeline, Geo-Clustering | [person-3-ai-engineer.md](docs/04-tasks/person-3-ai-engineer.md) |
+| 5 | **Nguyễn Tùng Dương** | AI Agent Lead (OpenAI SDK & DeepSeek-V4) | Unified AI Agent Architecture, Two-Phase State Machine, Model Abstraction Layer, Four-Tier Grounding Pipeline, Geo-Clustering | [person-3-ai-engineer.md](docs/04-tasks/person-3-ai-engineer.md) |
 | 6 | **Đinh Tiến Luân** | Cyber Security & DevOps Engineer | Multi-Cloud Deployment (Vercel + Render + Supabase), CI/CD GitHub Actions, OpenTelemetry Tracing, Pentest OWASP Top 10, Concurrency Benchmark | [person-6-security-devops.md](docs/04-tasks/person-6-security-devops.md) |
 
 ---
@@ -34,17 +34,17 @@
    - **Giai đoạn 2 (Micro Curation & Candidate Stop Voting)**: AI Agent truy vấn địa điểm thực tế, áp dụng thuật toán gom cụm địa lý (2--3 km geo-clustering) $\rightarrow$ Mở thẻ từng trạm hiển thị đồng thời các ứng viên phù hợp để thành viên bỏ phiếu lựa chọn $\rightarrow$ Đạt Quorum tự động chốt và mở khóa tuần tự trạm tiếp theo $\rightarrow$ Host chốt kế hoạch chính thức (**Consensus Checkpoint 2**).
    - **Lịch trình Động Không Ghi Đè (Non-destructive Living Itinerary)**: Cho phép điều chỉnh linh hoạt ngay trong chuyến đi (ví dụ trời mưa đổi quán cafe) bằng cách cập nhật điểm cũ sang `SKIPPED_ON_TRIP` và chèn điểm mới `ADAPTED_ON_TRIP` trỏ `replaced_by_stop_id`, bảo toàn nguyên vẹn lịch sử 4 giai đoạn mà không mất dấu dữ liệu.
 2. **AI Agent Hợp Nhất & Đáng Tin Cậy (Unified DeepSeek-V4 Agent & Four-Tier Grounding)**:
-   - Một agent duy nhất trong **LangGraph Python** hoạt động với 2 pha trạng thái tách biệt (**Phase 1: Macro Planning State** và **Phase 2: Micro Curation State**).
-   - **Lớp trừu tượng hóa mô hình (Model Abstraction Layer)**: DeepSeek-V4 làm bộ não suy luận chính, tự động fallback sang GPT-4o, Claude, hoặc Gemini để chống vendor lock-in.
+   - Một agent duy nhất trên **OpenAI Python SDK (`AsyncOpenAI`)** hoạt động với 2 pha trạng thái tách biệt (**Phase 1: Macro Planning State** và **Phase 2: Micro Curation State**).
+   - **Lớp trừu tượng hóa mô hình (Model Abstraction Layer)**: DeepSeek-V4 làm bộ não suy luận chính, tự động fallback sang GPT-4o hoặc Gemini qua OpenAI-compatible SDK để chống vendor lock-in.
    - **Four-Tier Grounding Pipeline**: Loại bỏ hoàn toàn ảo giác AI thông qua (1) Strict Pydantic Schema, (2) Live Map & Hotel Check qua hệ sinh thái đối tác (**Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia**), (3) Distance Guard ($\le 2.5$\,km, di chuyển $\le 20$\,phút), (4) Candidate Venues Multi-Choice Voting & Progressive Unlock.
-   - **Typed State Checkpointing**: Lưu vết trạng thái hội thoại vào PostgreSQL qua `AsyncPostgresSaver` kết nối Data Access Layer (DAL).
+   - **Typed State Checkpointing**: Lưu vết snapshot `AgentState` dạng JSONB vào bảng `checkpoints.agent_checkpoints` trên PostgreSQL qua SQLAlchemy Async DAL.
 3. **Hạ Tầng Điện Toán Đám Mây Sẵn Sàng Vận Hành (Cloud Deployment Architecture)**:
    - **Frontend**: React 18 SPA trên **Vercel Global Edge CDN** với thiết kế **Flexbox & Fully Responsive UI** (Mobile-first, Tablet, Desktop 3-pane split-view, zero cold-start latency).
    - **Backend Gateway**: FastAPI (Python 3.11+) trên **Render.com Web Service** (REST + WebSocket room server, anti-sleep keep-alive ping tới `/api/healthz`).
-   - **AI Agent Worker**: LangGraph Worker trên **Render.com** (tiêu thụ RAM $\le 512$\,MB, lắng nghe hàng đợi tác vụ qua Redis Streams).
+   - **AI Agent Worker**: Python AI Worker (OpenAI SDK) trên **Render.com** (tiêu thụ RAM $\le 512$\,MB, lắng nghe hàng đợi tác vụ qua Redis Streams).
    - **Cơ Sở Dữ Liệu & BaaS**: **Supabase PostgreSQL 16 + pgvector** với **Supavisor Connection Pooler (port 6543, Transaction Mode)** ghép 200+ phiên người dùng qua 15 kết nối vật lý, bảo mật Row Level Security (RLS).
    - **Hàng Đợi & Bộ Nhớ Đệm**: **Upstash Redis 7** xử lý hàng đợi bất đồng bộ (Redis Streams `XADD`/`XREADGROUP`), phát sóng sự kiện đa máy chủ (Redis Pub/Sub `plan:updated`), và L2 Cache lưu trữ địa điểm 24h.
-   - **Độ Bền & Giám Sát**: **PyBreaker Circuit Breaker** (timeout 2.5s, tự động chuyển về cache/DB khi API ngoài lỗi), **OpenTelemetry** truy vết phân tán, và **LangSmith** theo dõi LLM.
+   - **Độ Bền & Giám Sát**: **PyBreaker Circuit Breaker** (timeout 2.5s, tự động chuyển về cache/DB khi API ngoài lỗi), **OpenTelemetry** truy vết phân tán, và **AgentLog (`core.agent_logs`)** ghi nhận token/latency từ OpenAI SDK.
 4. **Chuẩn Mực Thiết Kế Ứng Dụng: Architecture Pattern & Modular Design (Dễ Maintain, Dễ Dev, Dễ Hiểu)**:
    - **Clean Layered Architecture & Modular Monolith**: Phân tách rành mạch Router $\rightarrow$ Service $\rightarrow$ DAL $\rightarrow$ External Provider Adapters (`BaseTravelProvider`).
    - **Component-Driven Modular Frontend**: Phân vùng theo Feature slices, 100% Flexbox & CSS Grid, tách bạch Presentation và Container Hooks.
