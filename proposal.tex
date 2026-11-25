@@ -169,17 +169,17 @@ TripMate AI unifies group planning through a collaborative room powered by a \te
 \section{The AI Agent: Architecture, Workflow \& Grounding Pipeline}
 
 \subsection{Unified AI Agent: DeepSeek-V4 with Two-Phase State Execution}
-TripMate AI utilizes a \textbf{single, unified AI Agent powered by DeepSeek-V4} built with pure Python AsyncIO and the OpenAI Python SDK (\texttt{AsyncOpenAI}). To resolve latency bottlenecks and ensure clean testability, the agent operates in two decoupled state phases:
+TripMate AI utilizes a \textbf{single, unified AI Agent powered by DeepSeek-V4} in LangGraph. To resolve latency bottlenecks and ensure clean testability, the agent operates in two decoupled state phases:
 \begin{itemize}
 \item \textbf{Phase 1 (Macro Planning State):} Proposes dates, pacing, and daily themes without invoking external travel APIs, conserving tokens until macro consensus is reached.
 \item \textbf{Phase 2 (Micro Curation State):} Activated only after macro approval. Executes external tool calls, applies 2--3\,km geo-clustering to prevent zigzag routes, and prepares alternative stops.
-\item \textbf{Model Abstraction Layer:} Built directly on the OpenAI-compatible Python SDK (\texttt{AsyncOpenAI}) by swapping \texttt{base\_url} and \texttt{api\_key}. DeepSeek-V4 serves as the primary reasoning engine, with transparent fallback to OpenAI (GPT-4o) or Google Gemini to prevent vendor lock-in.
-\item \textbf{Typed State Persistence:} JSONB snapshots of \texttt{AgentState} are persisted in PostgreSQL (\texttt{checkpoints.agent\_checkpoints}) via SQLAlchemy 2.0 Async through an authenticated Data Access Layer (DAL).
+\item \textbf{Model Abstraction Layer:} Built using LangChain/LangGraph model abstractions. DeepSeek-V4 serves as the primary reasoning engine, with transparent fallback to OpenAI (GPT-4o), Anthropic Claude, or Google Gemini to prevent vendor lock-in.
+\item \textbf{Typed State Persistence:} Checkpoints of \texttt{AgentState} are saved in PostgreSQL via \texttt{AsyncPostgresSaver} through an authenticated Data Access Layer (DAL).
 \end{itemize}
 
 \subsection{AI Agent Data Pipeline}
 \label{sec:agent_integration}
-Figure~\ref{fig:agent_data_flow} illustrates the unified AI agent state and data pipeline, connecting room context, two-phase state execution, typed checkpoints, model abstraction, and resilient tooling:
+Figure~\ref{fig:agent_data_flow} illustrates the unified AI agent state and data pipeline, connecting room context, two-phase LangGraph states, typed checkpoints, model abstraction, and resilient tooling:
 
 \begin{figure}[H]
 \centering
@@ -215,7 +215,7 @@ Figure~\ref{fig:agent_data_flow} illustrates the unified AI agent state and data
 \end{tikzpicture}
 }
 \vspace{-0.25cm}
-\caption{AI Agent state and data pipeline: two-phase OpenAI SDK state execution with model abstraction and resilient tooling}
+\caption{AI Agent state and data pipeline: two-phase LangGraph state execution with model abstraction and resilient tooling}
 \label{fig:agent_data_flow}
 \end{figure}
 
@@ -342,7 +342,7 @@ To eliminate AI hallucinations (inventing fake places, closed venues, or unreali
 
 \section{System Architecture, Technology Stack \& Cloud Deployment}
 
-TripMate AI uses an asynchronous, decoupled architecture connecting the React SPA, FastAPI gateway, Supabase PostgreSQL storage, the unified OpenAI SDK AI agent, and external travel APIs. Figure~\ref{fig:system_flow} presents the complete system architecture and highlights the primary communication interfaces (1)--(6) coordinating the platform across cloud hosting providers.
+TripMate AI uses an asynchronous, decoupled architecture connecting the React SPA, FastAPI gateway, Supabase PostgreSQL storage, the unified LangGraph AI agent, and external travel APIs. Figure~\ref{fig:system_flow} presents the complete system architecture and highlights the primary communication interfaces (1)--(6) coordinating the platform across cloud hosting providers.
 
 \begin{figure}[H]
 \centering
@@ -392,7 +392,7 @@ $\bullet$ \textbf{Serverless:} 10k cmds/day
 \textbf{\footnotesize 4. AI Agent Worker}\\[0.02cm]
 \parbox{4.0cm}{\raggedright \tiny
 $\bullet$ \textbf{Hosting:} Render Worker ($\le 512$\,MB)\\
-$\bullet$ \textbf{OpenAI Python SDK:} DeepSeek-V4\\
+$\bullet$ \textbf{LangGraph Python:} DeepSeek-V4\\
 $\bullet$ \textbf{Two-Phase:} Macro \& Micro curation\\
 $\bullet$ \textbf{Grounding:} Hallucination filter
 }
@@ -448,8 +448,8 @@ $\bullet$ \textbf{Tours \& Transit:} Klook, 12Go Asia, OpenWeather API
 \midrule
 \textbf{Backend Gateway} & FastAPI (Python 3.11+) & \textbf{Render.com} & REST endpoints, WebSocket room server, anti-sleep keep-alive pings. \\
 \midrule
-\textbf{AI Agent Layer} & OpenAI Python SDK & \textbf{Render.com} & Unified DeepSeek-V4 agent, two-phase states, memory bounded $\le 280$\,MB. \\
-& Model Abstraction & Cloud LLM APIs & Primary: DeepSeek-V4; Fallback: OpenAI GPT-4o, Google Gemini. \\
+\textbf{AI Agent Layer} & LangGraph Python & \textbf{Render.com} & Unified DeepSeek-V4 agent, two-phase states, memory bounded $\le 280$\,MB. \\
+& Model Abstraction & Cloud LLM APIs & Primary: DeepSeek-V4; Fallback: OpenAI GPT-4o, Claude, Gemini. \\
 \midrule
 \textbf{Database \& Auth} & PostgreSQL 16 + \texttt{pgvector} & \textbf{Supabase} & Relational persistence, Supavisor connection pooler (port 6543), RLS security. \\
 \midrule
@@ -457,7 +457,7 @@ $\bullet$ \textbf{Tours \& Transit:} Klook, 12Go Asia, OpenWeather API
 \midrule
 \textbf{Travel \& Lodging APIs} & Multi-Provider Adapters & Multi-Provider & Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia. \\
 \midrule
-\textbf{Resilience \& Ops} & PyBreaker / OpenTelemetry & Cloud Observability & External API circuit breakers (2.5s timeout), distributed tracing, \texttt{AgentLog}. \\
+\textbf{Resilience \& Ops} & PyBreaker / OpenTelemetry & Cloud Observability & External API circuit breakers (2.5s timeout), distributed tracing, LangSmith. \\
 \bottomrule
 \end{tabularx}
 \vspace{-0.2cm}
@@ -470,7 +470,7 @@ $\bullet$ \textbf{Tours \& Transit:} Klook, 12Go Asia, OpenWeather API
 TripMate AI is deployed across modern cloud platforms (Vercel, Supabase, Render) configured for high availability:
 \begin{itemize}
 \item \textbf{Frontend (Vercel):} React 18 SPA hosted on Vercel's Global Edge CDN with zero cold-start latency, automatic GitHub CI/CD, and custom domain SSL.
-\item \textbf{Backend Gateway \& AI Worker (Render):} FastAPI ASGI application and Python OpenAI SDK AI worker running in containerized environments (512\,MB RAM). An automated keep-alive cron ping to \texttt{/api/healthz} prevents instance idling during active planning sessions.
+\item \textbf{Backend Gateway \& AI Worker (Render):} FastAPI ASGI application and LangGraph worker running in containerized environments (512\,MB RAM). An automated keep-alive cron ping to \texttt{/api/healthz} prevents instance idling during active planning sessions.
 \item \textbf{Database \& Auth (Supabase):} Managed PostgreSQL 16 with \texttt{pgvector} and Supabase Auth. The built-in Supavisor connection pooler (port 6543, Transaction Mode) multiplexes 200+ client sessions across 15 physical connections, maintaining high connection availability.
 \item \textbf{Task Queue \& Cache (Upstash Redis):} Serverless Redis managing Redis Streams for asynchronous AI agent task dispatch and Redis Pub/Sub for live room WebSocket broadcasting.
 \end{itemize}
@@ -497,7 +497,7 @@ Figure~\ref{fig:operational_flow_diagram} visualizes the operational execution l
 \node[participant] (c) at (0, 0) {Client\\{\tiny React (Vercel)}};
 \node[participant] (gw) at (3.0, 0) {Gateway\\{\tiny FastAPI (Render)}};
 \node[participant] (q) at (6.0, 0) {Redis Infra\\{\tiny Upstash Serverless}};
-\node[participant] (ai) at (9.0, 0) {AI Worker\\{\tiny OpenAI SDK (Render)}};
+\node[participant] (ai) at (9.0, 0) {AI Worker\\{\tiny LangGraph (Render)}};
 \node[participant] (db) at (12.0, 0) {Database\\{\tiny Supabase (Postgres)}};
 \node[participant] (ext) at (15.0, 0) {Travel APIs\\{\tiny PyBreaker / Live}};
 
@@ -580,9 +580,9 @@ Figure~\ref{fig:operational_flow_diagram} visualizes the operational execution l
 \textbf{1} & \textbf{(1)} Frontend $\rightarrow$ Gateway & Sync & User action & Transmits chat message or stop vote payload with OpenTelemetry context. \\
 \textbf{2a} & \textbf{(3)} Gateway $\rightarrow$ Database & Sync & Step 1 & Persists chat logs and vote counts into Supabase (\texttt{core} schema). \\
 \textbf{2b} & \textbf{(2)} Gateway $\rightarrow$ Redis (Streams) & Async & Step 1 & Dispatches non-blocking task to Redis Streams (\texttt{XADD}); returns immediate HTTP/WS ack. \\
-\textbf{3} & \textbf{(2)} Redis (Streams) $\rightarrow$ AI Agent & Async & Step 2b & AI Agent worker consumes task via \texttt{XREADGROUP} consumer group. \\
+\textbf{3} & \textbf{(2)} Redis (Streams) $\rightarrow$ AI Agent & Async & Step 2b & LangGraph worker consumes task via \texttt{XREADGROUP} consumer group. \\
 \textbf{4} & \textbf{(5)} AI Agent $\leftarrow$ Database & Async & Step 3 & Loads active session checkpoint and context via DAL from \texttt{checkpoints} schema. \\
-\textbf{4b} & Agent State Transition & Internal & Step 4 & Evaluates consensus and transitions between Macro Planning and Micro Curation phases. \\
+\textbf{4b} & LangGraph State Transition & Internal & Step 4 & Evaluates consensus and transitions between Macro Planning and Micro Curation phases. \\
 \textbf{5} & \textbf{(4)} AI Agent $\leftrightarrow$ Travel APIs & Parallel & Step 4b & Queries live APIs via PyBreaker circuit breaker; falls back to cache/vector gems on timeout. \\
 \textbf{6} & \textbf{(5)} AI Agent $\rightarrow$ Database & Async & Step 5 & Writes normalized, verified venue records to \texttt{plan\_stops} via DAL. \\
 \textbf{7} & \textbf{(6)} AI Agent $\rightarrow$ Redis $\rightarrow$ Gateway & Async & Step 6 & Publishes \texttt{plan:updated} via Redis Pub/Sub to synchronize all FastAPI gateway instances. \\
@@ -594,7 +594,7 @@ Figure~\ref{fig:operational_flow_diagram} visualizes the operational execution l
 \label{tab:system_flow_summary}
 \end{table}
 
-\textbf{Dynamic On-the-Go Adaptability:} When conditions change unexpectedly (e.g., sudden rain), a member chats: \textit{``it is raining, find an indoor cafe nearby''}. FastAPI immediately returns an acknowledgment (non-blocking WebSocket), records the message in Supabase (\texttt{core} schema, Step 2a), and enqueues an asynchronous task to Redis Streams (Step 2b). The AI Agent worker consumes the task (Step 3), restores the active session checkpoint from Supabase via DAL (Step 4), transitions directly to its Micro Curation state (Step 4b), queries nearby indoor venues in parallel through the resilient PyBreaker-guarded API and cache layer (Step 5), modifies \textbf{only the affected single row in \texttt{plan\_stops}} in PostgreSQL (Step 6), publishes the update event to Redis Pub/Sub (Step 7), and FastAPI broadcasts the updated stop to all room members via WebSockets (Step 8).
+\textbf{Dynamic On-the-Go Adaptability:} When conditions change unexpectedly (e.g., sudden rain), a member chats: \textit{``it is raining, find an indoor cafe nearby''}. FastAPI immediately returns an acknowledgment (non-blocking WebSocket), records the message in Supabase (\texttt{core} schema, Step 2a), and enqueues an asynchronous task to Redis Streams (Step 2b). The LangGraph AI Agent worker consumes the task (Step 3), restores the active session checkpoint from Supabase via DAL (Step 4), transitions directly to its Micro Curation state (Step 4b), queries nearby indoor venues in parallel through the resilient PyBreaker-guarded API and cache layer (Step 5), modifies \textbf{only the affected single row in \texttt{plan\_stops}} in PostgreSQL (Step 6), publishes the update event to Redis Pub/Sub (Step 7), and FastAPI broadcasts the updated stop to all room members via WebSockets (Step 8).
 
 \clearpage
 % ==========================================
@@ -631,7 +631,7 @@ TripMate AI defines four concrete, measurable performance targets:
   \end{itemize}
 \item \textbf{Planet-Scale Scalability Targets:}
   \begin{itemize}[leftmargin=1.0em]
-  \item Designed to scale globally without architectural rewrites: Vercel Global Edge CDN for sub-100\,ms frontend delivery worldwide, stateless FastAPI and AI Agent workers on Render that scale horizontally, Redis Streams for queue buffering, and Supavisor connection pooling for database scalability.
+  \item Designed to scale globally without architectural rewrites: Vercel Global Edge CDN for sub-100\,ms frontend delivery worldwide, stateless FastAPI and LangGraph workers on Render that scale horizontally, Redis Streams for queue buffering, and Supavisor connection pooling for database scalability.
   \end{itemize}
 \end{itemize}
 
@@ -645,7 +645,7 @@ TripMate AI defines four concrete, measurable performance targets:
 \midrule
 \textbf{Member Action / Vote} & $< 80$\,ms & $< 80$\,ms & Instant WebSocket ACK with atomic database update. \\
 \textbf{Quick Clarification / Q\&A} & $< 600$\,ms & $3$--$5$\,s & Direct LLM response for dietary, parking, or hours queries. \\
-\textbf{Macro Itinerary Drafting} & $< 800$\,ms & $6$--$12$\,s & Phase 1 macro themes and multi-day pacing roadmap. \\
+\textbf{Macro Itinerary Drafting} & $< 800$\,ms & $6$--$12$\,s & LangGraph Phase 1 themes and multi-day pacing roadmap. \\
 \textbf{Micro Spot Grounding} & $< 1.0$\,s & $10$--$20$\,s & Parallel Google Places checks and route matrix calculation. \\
 \textbf{1-Click Swap / Revision} & $< 500$\,ms & $3$--$6$\,s & Instant replacement with pre-verified backup venue. \\
 \bottomrule
@@ -672,7 +672,7 @@ To empirically verify performance, TripMate AI evaluates both the AI Agent and t
 
 \subsubsection{System Performance Evaluation (Infrastructure \& Reliability)}
 \begin{itemize}[leftmargin=1.2em]
-\item \textbf{Latency \& Tracing Test:} OpenTelemetry and \texttt{AgentLog} (\texttt{core.agent\_logs}) track end-to-end timing across Gateway $\rightarrow$ Queue $\rightarrow$ Agent $\rightarrow$ DB $\rightarrow$ WebSocket.
+\item \textbf{Latency \& Tracing Test:} OpenTelemetry and LangSmith track end-to-end timing across Gateway $\rightarrow$ Queue $\rightarrow$ Agent $\rightarrow$ DB $\rightarrow$ WebSocket.
 \textbf{Metric:} TTFT $< 800$\,ms, action ACK $< 80$\,ms, room sync $< 100$\,ms.
 \item \textbf{Load \& Concurrency Stress Test:} Locust/k6 simulates 50--100 CCU in 10--20 rooms chatting, voting, and generating itineraries simultaneously.
 \textbf{Metric:} Sustained 150--250 req/s, error rate $< 0.5\%$, worker memory $\le 512$\,MB.
@@ -686,7 +686,7 @@ To empirically verify performance, TripMate AI evaluates both the AI Agent and t
 \item \textbf{Data Privacy (Supabase RLS):} Database-level policies ensure users only access data in their own planning rooms.
 \item \textbf{Atomic Voting:} Atomic SQL updates and Redis counters prevent race conditions when multiple members vote simultaneously.
 \item \textbf{Input Sanitization:} Chat inputs are sanitized before LLM processing to prevent prompt injection attempts.
-\item \textbf{Session Recovery:} JSONB \texttt{AgentState} checkpoints are saved in PostgreSQL (\texttt{checkpoints.agent\_checkpoints}), enabling instant recovery if a container restarts.
+\item \textbf{Session Recovery:} LangGraph execution checkpoints are saved in PostgreSQL, enabling instant recovery if a container restarts.
 \end{itemize}
 
 \subsection{Architecture Patterns, Modular Design \& Engineering Foundations}

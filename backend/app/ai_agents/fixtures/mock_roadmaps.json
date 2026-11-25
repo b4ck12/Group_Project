@@ -1,0 +1,543 @@
+{
+  "scenarios": [
+    {
+      "event_id": "evt_da_nang_3d2n_001",
+      "phase": "MICRO_CURATION",
+      "step_count": 3,
+      "macro_locked": true,
+      "final_locked": false,
+      "scope": "VACATION",
+      "destination": "Đà Nẵng",
+      "start_date": "2026-12-18",
+      "end_date": "2026-12-20",
+      "group_size": 4,
+      "budget_tier": "MODERATE",
+      "transit_info": {
+        "is_prebooked": false,
+        "transit_mode": "FLIGHT",
+        "carrier_hint": "Vietnam Airlines / Vietjet Air",
+        "origin_city": "HAN",
+        "destination_city": "DAD",
+        "roundtrip_cost_per_person": "1200000",
+        "total_transit_cost": "4800000"
+      },
+      "budget_breakdown": {
+        "total_budget": "16000000",
+        "is_transit_prebooked": false,
+        "intercity_transit_budget": "4800000",
+        "land_budget": "11200000",
+        "accommodation_budget": "3600000",
+        "dining_budget": "3800000",
+        "attraction_budget": "1800000",
+        "local_transport_budget": "1100000",
+        "contingency_buffer": "900000"
+      },
+      "running_cost": "10075000",
+      "daily_themes": [
+        {
+          "day": 1,
+          "theme": "Biển Mỹ Khê & Hải sản Sơn Trà",
+          "summary": "Nhận phòng gần biển, thư giãn buổi chiều và ăn tối hải sản.",
+          "pacing": "RELAXED",
+          "morning_focus": "Đáp chuyến bay, gửi hành lý và dạo biển Mỹ Khê",
+          "afternoon_focus": "Nhận phòng khách sạn và nghỉ ngơi",
+          "evening_focus": "Thưởng thức hải sản tươi sống ven biển"
+        },
+        {
+          "day": 2,
+          "theme": "Bán đảo Sơn Trà & Ẩm thực bản địa",
+          "summary": "Tham quan Chùa Linh Ứng buổi sáng, ăn trưa đặc sản miền Trung.",
+          "pacing": "BALANCED",
+          "morning_focus": "Chùa Linh Ứng - Bãi Bụt",
+          "afternoon_focus": "Cafe thư giãn trong trung tâm",
+          "evening_focus": "Khám phá ẩm thực cuốn Đà Nẵng"
+        },
+        {
+          "day": 3,
+          "theme": "Đặc sản địa phương & Mua quà về",
+          "summary": "Ăn sáng Mì Quảng, mua đặc sản chợ Hàn và ra sân bay.",
+          "pacing": "RELAXED",
+          "morning_focus": "Ăn sáng Mì Quảng Bà Mua",
+          "afternoon_focus": "Di chuyển ra sân bay Đà Nẵng",
+          "evening_focus": null
+        }
+      ],
+      "plan_stops": [
+        {
+          "day_number": 1,
+          "stop_date": "2026-12-18",
+          "time_slot": "MORNING",
+          "order_index": 1,
+          "start_time": "2026-12-18T09:00:00+07:00",
+          "end_time": "2026-12-18T11:00:00+07:00",
+          "duration_minutes": 120,
+          "place_name": "Bãi biển Mỹ Khê",
+          "place_ref_id": "ChIJ_dn_my_khe_beach",
+          "address": "Võ Nguyên Giáp, Phước Mỹ, Sơn Trà, Đà Nẵng",
+          "category": "ATTRACTION",
+          "lat": 16.0595,
+          "lng": 108.2468,
+          "price_level": 0,
+          "estimated_cost": "0",
+          "cost_per_person": "0",
+          "transport_mode": "TAXI_GRAB",
+          "transit_duration_minutes": 18,
+          "transit_distance_km": 5.8,
+          "transit_cost": "60000",
+          "stop_status": "INITIAL_PROPOSED",
+          "is_initial_stop": true,
+          "is_finalized_stop": false,
+          "recommended_dishes": [],
+          "candidate_options": [
+            {
+              "candidate_id": "cand_my_khe_01",
+              "place_name": "Bãi biển Mỹ Khê",
+              "place_ref_id": "ChIJ_dn_my_khe_beach",
+              "category": "ATTRACTION",
+              "address": "Võ Nguyên Giáp, Phước Mỹ, Sơn Trà, Đà Nẵng",
+              "lat": 16.0595,
+              "lng": 108.2468,
+              "estimated_cost": 0.0,
+              "distance_km": 0.0,
+              "description": "Bãi biển rộng, cát mịn và miễn phí vé vào cổng.",
+              "matched_desire": {"budget": "free", "style": "relax"},
+              "is_indoor_backup": false
+            }
+          ],
+          "selected_candidate_id": null,
+          "backup_options": [
+            {
+              "option_index": 2,
+              "place_name": "Reply 1988 Cafe",
+              "place_ref_id": "ChIJ_dn_reply_1988_cafe",
+              "category": "CAFE",
+              "estimated_cost": 200000.0,
+              "distance_km": 2.4
+            },
+            {
+              "option_index": 3,
+              "place_name": "Chùa Linh Ứng - Bãi Bụt",
+              "place_ref_id": "ChIJ_dn_linh_ung_pagoda",
+              "category": "ATTRACTION",
+              "estimated_cost": 0.0,
+              "distance_km": 5.4
+            }
+          ],
+          "note": "Phương án dự phòng trong nhà là Reply 1988 Cafe nếu trời mưa."
+        },
+        {
+          "day_number": 1,
+          "stop_date": "2026-12-18",
+          "time_slot": "AFTERNOON",
+          "order_index": 2,
+          "start_time": "2026-12-18T14:00:00+07:00",
+          "end_time": "2026-12-18T15:30:00+07:00",
+          "duration_minutes": 90,
+          "place_name": "Mường Thanh Luxury Đà Nẵng",
+          "place_ref_id": "ChIJ_dn_muong_thanh_luxury",
+          "address": "270 Võ Nguyên Giáp, Bắc Mỹ Phú, Ngũ Hành Sơn, Đà Nẵng",
+          "category": "HOTEL",
+          "lat": 16.0544,
+          "lng": 108.2478,
+          "price_level": 3,
+          "estimated_cost": "3600000",
+          "cost_per_person": "900000",
+          "transport_mode": "TAXI_GRAB",
+          "transit_duration_minutes": 5,
+          "transit_distance_km": 0.6,
+          "transit_cost": "50000",
+          "stop_status": "VOTING_OPEN",
+          "is_initial_stop": true,
+          "is_finalized_stop": false,
+          "recommended_dishes": [],
+          "candidate_options": [
+            {
+              "candidate_id": "cand_hotel_mt_01",
+              "place_name": "Mường Thanh Luxury Đà Nẵng",
+              "place_ref_id": "ChIJ_dn_muong_thanh_luxury",
+              "category": "HOTEL",
+              "address": "270 Võ Nguyên Giáp, Bắc Mỹ Phú, Ngũ Hành Sơn, Đà Nẵng",
+              "lat": 16.0544,
+              "lng": 108.2478,
+              "estimated_cost": 3600000.0,
+              "distance_km": 0.6,
+              "description": "Khách sạn gần biển Mỹ Khê cho 2 đêm (2 phòng đôi).",
+              "matched_desire": {"location": "beachfront", "tier": "MODERATE"},
+              "is_indoor_backup": true
+            }
+          ],
+          "selected_candidate_id": "cand_hotel_mt_01",
+          "backup_options": [
+            {
+              "option_index": 2,
+              "place_name": "Bếp Cuốn Đà Nẵng",
+              "place_ref_id": "ChIJ_dn_bep_cuon",
+              "category": "RESTAURANT",
+              "estimated_cost": 900000.0,
+              "distance_km": 0.4
+            }
+          ],
+          "note": "Check-in nhận phòng 2 đêm cho nhóm 4 người."
+        },
+        {
+          "day_number": 1,
+          "stop_date": "2026-12-18",
+          "time_slot": "EVENING",
+          "order_index": 3,
+          "start_time": "2026-12-18T18:30:00+07:00",
+          "end_time": "2026-12-18T20:30:00+07:00",
+          "duration_minutes": 120,
+          "place_name": "Nhà hàng Hải sản Bé Mặn",
+          "place_ref_id": "ChIJ_dn_seafood_be_man",
+          "address": "Lô 11 Võ Nguyên Giáp, Mân Thái, Sơn Trà, Đà Nẵng",
+          "category": "RESTAURANT",
+          "lat": 16.0682,
+          "lng": 108.2435,
+          "price_level": 2,
+          "estimated_cost": "1400000",
+          "cost_per_person": "350000",
+          "transport_mode": "TAXI_GRAB",
+          "transit_duration_minutes": 8,
+          "transit_distance_km": 1.6,
+          "transit_cost": "45000",
+          "stop_status": "VOTING_OPEN",
+          "is_initial_stop": true,
+          "is_finalized_stop": false,
+          "recommended_dishes": [
+            {
+              "dish_name": "Mực hấp gừng",
+              "estimated_price": "220000",
+              "tags": ["Đặc sản", "Không cay"],
+              "dietary_match": true
+            },
+            {
+              "dish_name": "Bánh tráng cuốn rau củ hấp",
+              "estimated_price": "95000",
+              "tags": ["Ăn chay được", "Không cay"],
+              "dietary_match": true
+            }
+          ],
+          "candidate_options": [
+            {
+              "candidate_id": "cand_beman_01",
+              "place_name": "Nhà hàng Hải sản Bé Mặn",
+              "place_ref_id": "ChIJ_dn_seafood_be_man",
+              "category": "RESTAURANT",
+              "address": "Lô 11 Võ Nguyên Giáp, Mân Thái, Sơn Trà, Đà Nẵng",
+              "lat": 16.0682,
+              "lng": 108.2435,
+              "estimated_cost": 1400000.0,
+              "distance_km": 1.6,
+              "description": "Quán hải sản tươi sống nổi tiếng đường Võ Nguyên Giáp.",
+              "matched_desire": {"cuisine": "seafood", "dietary": "non_spicy_options"},
+              "is_indoor_backup": true
+            },
+            {
+              "candidate_id": "cand_bepcuon_02",
+              "place_name": "Bếp Cuốn Đà Nẵng",
+              "place_ref_id": "ChIJ_dn_bep_cuon",
+              "category": "RESTAURANT",
+              "address": "31-33 Trần Bạch Đằng, Phước Mỹ, Sơn Trà, Đà Nẵng",
+              "lat": 16.0518,
+              "lng": 108.2452,
+              "estimated_cost": 960000.0,
+              "distance_km": 0.4,
+              "description": "Đặc sản Đà Nẵng có thực đơn chay riêng.",
+              "matched_desire": {"dietary": "vegetarian_friendly"},
+              "is_indoor_backup": true
+            }
+          ],
+          "selected_candidate_id": null,
+          "backup_options": [
+            {
+              "option_index": 2,
+              "place_name": "Bếp Cuốn Đà Nẵng",
+              "place_ref_id": "ChIJ_dn_bep_cuon",
+              "category": "RESTAURANT",
+              "estimated_cost": 960000.0,
+              "distance_km": 1.8
+            },
+            {
+              "option_index": 3,
+              "place_name": "Mì Quảng Bà Mua",
+              "place_ref_id": "ChIJ_dn_mi_quang_ba_mua",
+              "category": "RESTAURANT",
+              "estimated_cost": 400000.0,
+              "distance_km": 2.4
+            }
+          ],
+          "note": "Đã kèm món không cay và lựa chọn cho thành viên ăn chay."
+        },
+        {
+          "day_number": 2,
+          "stop_date": "2026-12-19",
+          "time_slot": "MORNING",
+          "order_index": 1,
+          "start_time": "2026-12-19T08:00:00+07:00",
+          "end_time": "2026-12-19T10:30:00+07:00",
+          "duration_minutes": 150,
+          "place_name": "Chùa Linh Ứng - Bãi Bụt",
+          "place_ref_id": "ChIJ_dn_linh_ung_pagoda",
+          "address": "Vườn Lâm Tỳ Ni, Hoàng Sa, Thọ Quang, Sơn Trà, Đà Nẵng",
+          "category": "ATTRACTION",
+          "lat": 16.1003,
+          "lng": 108.2775,
+          "price_level": 0,
+          "estimated_cost": "0",
+          "cost_per_person": "0",
+          "transport_mode": "TAXI_GRAB",
+          "transit_duration_minutes": 15,
+          "transit_distance_km": 5.1,
+          "transit_cost": "120000",
+          "stop_status": "INITIAL_PROPOSED",
+          "is_initial_stop": true,
+          "is_finalized_stop": false,
+          "recommended_dishes": [],
+          "candidate_options": [
+            {
+              "candidate_id": "cand_linhung_01",
+              "place_name": "Chùa Linh Ứng - Bãi Bụt",
+              "place_ref_id": "ChIJ_dn_linh_ung_pagoda",
+              "category": "ATTRACTION",
+              "address": "Vườn Lâm Tỳ Ni, Hoàng Sa, Thọ Quang, Sơn Trà, Đà Nẵng",
+              "lat": 16.1003,
+              "lng": 108.2775,
+              "estimated_cost": 0.0,
+              "distance_km": 5.1,
+              "description": "Điểm tham quan miễn phí vé, phù hợp đi buổi sáng mát.",
+              "matched_desire": {"budget": "free", "pacing": "relaxed"},
+              "is_indoor_backup": false
+            }
+          ],
+          "selected_candidate_id": null,
+          "backup_options": [
+            {
+              "option_index": 2,
+              "place_name": "Reply 1988 Cafe",
+              "place_ref_id": "ChIJ_dn_reply_1988_cafe",
+              "category": "CAFE",
+              "estimated_cost": 200000.0,
+              "distance_km": 2.1
+            }
+          ],
+          "note": "Ưu tiên đi sớm tránh nắng gắt."
+        }
+      ],
+      "user_desires": {
+        "style": "thư giãn và ẩm thực địa phương",
+        "max_budget_vnd": 16000000
+      },
+      "dietary_preferences": {
+        "vegetarian_members": 1,
+        "allergies": [],
+        "spice_level": "no_spicy"
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Nhóm 4 người đi Đà Nẵng 3 ngày 2 đêm từ 18/12 đến 20/12, tổng ngân sách 16 triệu, chưa đặt vé máy bay, có 1 bạn ăn chay.",
+          "name": "host",
+          "tool_call_id": null
+        },
+        {
+          "role": "assistant",
+          "content": "Đã hoàn thành khung vĩ mô 3 ngày 2 đêm và bắt đầu tuyển chọn điểm dừng chi tiết tại Đà Nẵng.",
+          "name": "tripmate_agent",
+          "tool_call_id": null
+        }
+      ]
+    },
+    {
+      "event_id": "evt_hanoi_day_002",
+      "phase": "MACRO_PLANNING",
+      "step_count": 1,
+      "macro_locked": false,
+      "final_locked": false,
+      "scope": "DAY_HANGOUT",
+      "destination": "Hà Nội",
+      "start_date": "2026-12-12",
+      "end_date": "2026-12-12",
+      "group_size": 4,
+      "budget_tier": "BUDGET",
+      "transit_info": {
+        "is_prebooked": true,
+        "transit_mode": "NONE",
+        "carrier_hint": null,
+        "origin_city": "Hà Nội",
+        "destination_city": "Hà Nội",
+        "roundtrip_cost_per_person": "0",
+        "total_transit_cost": "0"
+      },
+      "budget_breakdown": {
+        "total_budget": "1200000",
+        "is_transit_prebooked": true,
+        "intercity_transit_budget": "0",
+        "land_budget": "1200000",
+        "accommodation_budget": "0",
+        "dining_budget": "660000",
+        "attraction_budget": "360000",
+        "local_transport_budget": "120000",
+        "contingency_buffer": "60000"
+      },
+      "running_cost": "740000",
+      "daily_themes": [
+        {
+          "day": 1,
+          "theme": "Chiều phố cổ Hoàn Kiếm & Ẩm thực truyền thống",
+          "summary": "Đi bộ quanh Hồ Gươm, thưởng thức cà phê trứng và ăn tối phở bò.",
+          "pacing": "RELAXED",
+          "morning_focus": null,
+          "afternoon_focus": "Cà phê Giảng và dạo quanh Hồ Hoàn Kiếm",
+          "evening_focus": "Ăn tối Phở Thìn Bờ Hồ"
+        }
+      ],
+      "plan_stops": [
+        {
+          "day_number": 1,
+          "stop_date": "2026-12-12",
+          "time_slot": "AFTERNOON",
+          "order_index": 1,
+          "start_time": "2026-12-12T14:30:00+07:00",
+          "end_time": "2026-12-12T16:00:00+07:00",
+          "duration_minutes": 90,
+          "place_name": "Cà phê Giảng",
+          "place_ref_id": "ChIJ_hn_cafe_giang",
+          "address": "39 Nguyễn Hữu Huân, Lý Thái Tổ, Hoàn Kiếm, Hà Nội",
+          "category": "CAFE",
+          "lat": 21.0338,
+          "lng": 105.8534,
+          "price_level": 1,
+          "estimated_cost": "180000",
+          "cost_per_person": "45000",
+          "transport_mode": "MOTORBIKE",
+          "transit_duration_minutes": 10,
+          "transit_distance_km": 1.2,
+          "transit_cost": "0",
+          "stop_status": "INITIAL_PROPOSED",
+          "is_initial_stop": true,
+          "is_finalized_stop": false,
+          "recommended_dishes": [
+            {
+              "dish_name": "Cà phê trứng nóng",
+              "estimated_price": "35000",
+              "tags": ["Đặc sản", "Must-try"],
+              "dietary_match": true
+            }
+          ],
+          "candidate_options": [
+            {
+              "candidate_id": "cand_giang_01",
+              "place_name": "Cà phê Giảng",
+              "place_ref_id": "ChIJ_hn_cafe_giang",
+              "category": "CAFE",
+              "address": "39 Nguyễn Hữu Huân, Lý Thái Tổ, Hoàn Kiếm, Hà Nội",
+              "lat": 21.0338,
+              "lng": 105.8534,
+              "estimated_cost": 180000.0,
+              "distance_km": 0.0,
+              "description": "Quán cà phê trứng lâu đời trong nhà tại phố cổ.",
+              "matched_desire": {"style": "local_classic", "budget": "BUDGET"},
+              "is_indoor_backup": true
+            }
+          ],
+          "selected_candidate_id": null,
+          "backup_options": [
+            {
+              "option_index": 2,
+              "place_name": "Hồ Hoàn Kiếm & Đền Ngọc Sơn",
+              "place_ref_id": "ChIJ_hn_hoan_kiem_lake",
+              "category": "ATTRACTION",
+              "estimated_cost": 200000.0,
+              "distance_km": 0.6
+            }
+          ],
+          "note": "Có chỗ ngồi trong nhà phù hợp gặp mặt đầu buổi."
+        },
+        {
+          "day_number": 1,
+          "stop_date": "2026-12-12",
+          "time_slot": "AFTERNOON",
+          "order_index": 2,
+          "start_time": "2026-12-12T16:15:00+07:00",
+          "end_time": "2026-12-12T18:00:00+07:00",
+          "duration_minutes": 105,
+          "place_name": "Hồ Hoàn Kiếm & Đền Ngọc Sơn",
+          "place_ref_id": "ChIJ_hn_hoan_kiem_lake",
+          "address": "Đinh Tiên Hoàng, Hàng Trống, Hoàn Kiếm, Hà Nội",
+          "category": "ATTRACTION",
+          "lat": 21.0287,
+          "lng": 105.8523,
+          "price_level": 1,
+          "estimated_cost": "200000",
+          "cost_per_person": "50000",
+          "transport_mode": "WALKING",
+          "transit_duration_minutes": 8,
+          "transit_distance_km": 0.6,
+          "transit_cost": "0",
+          "stop_status": "INITIAL_PROPOSED",
+          "is_initial_stop": true,
+          "is_finalized_stop": false,
+          "recommended_dishes": [],
+          "candidate_options": [],
+          "selected_candidate_id": null,
+          "backup_options": [],
+          "note": "Đi bộ từ Cà phê Giảng chỉ mất 8 phút."
+        },
+        {
+          "day_number": 1,
+          "stop_date": "2026-12-12",
+          "time_slot": "EVENING",
+          "order_index": 3,
+          "start_time": "2026-12-12T18:15:00+07:00",
+          "end_time": "2026-12-12T19:30:00+07:00",
+          "duration_minutes": 75,
+          "place_name": "Phở Thìn Bờ Hồ",
+          "place_ref_id": "ChIJ_hn_pho_thin_bo_ho",
+          "address": "61 Đinh Tiên Hoàng, Lý Thái Tổ, Hoàn Kiếm, Hà Nội",
+          "category": "RESTAURANT",
+          "lat": 21.0298,
+          "lng": 105.8535,
+          "price_level": 1,
+          "estimated_cost": "320000",
+          "cost_per_person": "80000",
+          "transport_mode": "TAXI_GRAB",
+          "transit_duration_minutes": 4,
+          "transit_distance_km": 0.2,
+          "transit_cost": "40000",
+          "stop_status": "INITIAL_PROPOSED",
+          "is_initial_stop": true,
+          "is_finalized_stop": false,
+          "recommended_dishes": [
+            {
+              "dish_name": "Phở bò tái chín",
+              "estimated_price": "70000",
+              "tags": ["Đặc sản", "Không cay"],
+              "dietary_match": true
+            }
+          ],
+          "candidate_options": [],
+          "selected_candidate_id": null,
+          "backup_options": [],
+          "note": "Ngay sát bờ hồ Hoàn Kiếm, cự ly < 1km."
+        }
+      ],
+      "user_desires": {
+        "style": "đi chơi nửa ngày quanh Hồ Gươm",
+        "max_budget_vnd": 1200000
+      },
+      "dietary_preferences": {
+        "vegetarian_members": 0,
+        "allergies": [],
+        "spice_level": "normal"
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Chiều thứ 7 nhóm 4 người đi cafe và ăn tối quanh Hồ Gươm, ngân sách 300k/người.",
+          "name": "member_1",
+          "tool_call_id": null
+        }
+      ]
+    }
+  ]
+}
