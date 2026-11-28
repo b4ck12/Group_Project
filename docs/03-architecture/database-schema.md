@@ -37,7 +37,7 @@ TripMate AI hiện thực hóa nguyên tắc này triệt để:
 | Tầng lưu trữ | Công nghệ | Dữ liệu quản lý | Vòng đời dữ liệu |
 | :--- | :--- | :--- | :--- |
 | **Relational Data (`core` schema)** | **Supabase PostgreSQL 16** (Deploy) / **PostgreSQL 16 Docker** (Local) | `users`, `events`, `event_members`, `invitations`, `plans`, `plan_stops`, `plan_votes`, `chat_messages` | Bền vững (Persistent, ACID transactions) |
-| **State Persistence (`checkpoints`)** | **Supabase PostgreSQL 16** | `checkpoints`, `checkpoint_blobs`, `checkpoint_writes` (LangGraph `AsyncPostgresSaver`) | Bền vững theo phiên phòng (`event_id`) |
+| **State Persistence (`checkpoints`)** | **Supabase PostgreSQL 16** | `checkpoints.agent_checkpoints` (SQLAlchemy 2.0 Async JSONB snapshot qua DAL) | Bền vững theo phiên phòng (`event_id`) |
 | **Ephemeral L2 Cache** | **Upstash Redis 7** | Cache kết quả tìm kiếm Google Places API (`places_search:`, `place_details:`) | Tạm thời (TTL 24 giờ, tự xóa) |
 
 ---
@@ -49,7 +49,7 @@ TripMate AI hiện thực hóa nguyên tắc này triệt để:
   - Multiplex **200+ phiên client đồng thời** chỉ thông qua **15 kết nối vật lý** tới PostgreSQL.
   - Sử dụng biến môi trường:
     ```env
-    # Kết nối qua Supavisor Pooler (Dùng cho FastAPI Web Service & LangGraph Worker)
+    # Kết nối qua Supavisor Pooler (Dùng cho FastAPI Web Service & AI Agent Worker (OpenAI SDK))
     DATABASE_URL=postgresql+asyncpg://postgres.project_ref:[PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require
     # Kết nối trực tiếp Direct Connection (Chỉ dùng cho Alembic migration DDL)
     DIRECT_URL=postgresql+asyncpg://postgres:[PASSWORD]@db.project_ref.supabase.co:5432/postgres?sslmode=require
@@ -312,7 +312,7 @@ $\implies$ Nhờ thiết kế 2 tầng này, nhóm có thể đối chiếu tr�
 Để tránh lãng phí chi phí token LLM và hạn chế rủi ro ảo giác, hệ thống bổ sung **Bộ lọc đầu vào (Input Filter)** tại Backend Gateway:
 1. **Lọc tin nhắn rác (Noise / Spam Filter)**: Phân tách tin nhắn tán gẫu thông thường (`'CHAT'`) khỏi các yêu cầu lập kế hoạch (`'AGENT_TRIGGER'`).
 2. **Ép buộc thông tin cốt lõi (Core Planning Parameters Enforcement)**:
-   - Trước khi cho phép kích hoạt LangGraph AI Agent để sinh hoặc cập nhật Plan, hệ thống kiểm tra bắt buộc 2 thông tin cốt lõi:
+   - Trước khi cho phép kích hoạt AI Agent Worker (OpenAI SDK) để sinh hoặc cập nhật Plan, hệ thống kiểm tra bắt buộc 2 thông tin cốt lõi:
      - **Địa điểm / Điểm đến (`Location / Destination`)**: Không được rỗng (ví dụ: *"Đà Nẵng"*, *"Đà Lạt"*, *"Hà Nội"*).
      - **Thời gian / Ngày đi (`Date / Date Range`)**: Phải xác định rõ ngày bắt đầu và kết thúc (`start_date`, `end_date` hoặc số ngày $N$).
    - Nếu tin nhắn yêu cầu lập lịch trình nhưng thiếu một trong hai thông tin này, Gateway trả về phản hồi yêu cầu người dùng cung cấp thêm thông tin (hoặc mở Modal thu thập thông tin nhanh), **tuyệt đối không chuyển tác vụ sang AI Worker** khi chưa đủ điều kiện đầu vào.

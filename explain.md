@@ -11,7 +11,7 @@
 - **Phân vai trò & Ma trận RACI**: [team-roles.md](docs/00-overview/team-roles.md).
 - **Tổng quan công nghệ & Cloud**: [tech-stack.md](docs/00-overview/tech-stack.md).
 - **Kiến trúc hệ thống tổng thể**: [system-architecture.md](docs/03-architecture/system-architecture.md) (Sơ đồ 6 Interface và 8 Bước xử lý).
-- **Kiến trúc AI Agent hợp nhất**: [ai-agent-architecture.md](docs/03-architecture/ai-agent-architecture.md) (LangGraph Two-Phase State Machine & Four-Tier Grounding).
+- **Kiến trúc AI Agent hợp nhất**: [ai-agent-architecture.md](docs/03-architecture/ai-agent-architecture.md) (Two-Phase State Machine trên OpenAI SDK & Four-Tier Grounding).
 - **Mô hình cơ sở dữ liệu**: [database-schema.md](docs/03-architecture/database-schema.md) (Supabase PostgreSQL 16, Supavisor connection pooler).
 - **Hướng dẫn triển khai đám mây**: [deployment-guide.md](docs/03-architecture/deployment-guide.md) (Vercel, Render, Supabase, Upstash Redis).
 - **Bảo mật & Phòng thủ AI**: [security-guidelines.md](docs/05-security/security-guidelines.md) (RLS, Atomic voting, Input sanitization).
@@ -34,7 +34,7 @@ flowchart TD
         A6["7. Theo dõi Lịch trình Sống & Điều hướng<br/>(Mapbox GL Canvas)"]
     end
 
-    subgraph Part2 ["TripMate Platform (FastAPI + LangGraph + APIs)"]
+    subgraph Part2 ["TripMate Platform (FastAPI + OpenAI SDK Agent + APIs)"]
         B1["2. Phase 1: Macro Planning State<br/>(Soạn thảo số ngày, chủ đề, nhịp độ<br/>KHÔNG gọi API ngoài tốn phí)"]
         B2["4. Phase 2: Micro Curation State<br/>(Tra cứu Maps, Search & Khách sạn đa nguồn qua PyBreaker,<br/>Gom cụm địa lý 2-3km, nạp các ứng viên)"]
         B3["Progressive Unlock: Chốt trạm hiện tại & Mở khóa trạm tiếp theo"]
@@ -70,7 +70,7 @@ flowchart TD
 - Nhóm thảo luận tự do trong màn hình Room Chat: ngày dự kiến, mức ngân sách, mong muốn đặc biệt (ăn chay, thích cafe view đẹp, thích vận động). Mọi tin nhắn được lưu trực tiếp vào Supabase (`core` schema).
 
 ### Bước 2: Pha 1 — Lập Kế Hoạch Vĩ Mô (Phase 1: Macro Planning)
-- Khi nhận yêu cầu, AI Agent khởi động **Phase 1 Macro State** trên LangGraph Python.
+- Khi nhận yêu cầu, AI Agent khởi động **Phase 1 Macro State** trên Python AsyncIO + OpenAI SDK (`AsyncOpenAI`).
 - AI tổng hợp mong muốn và đề xuất khung chương trình: phân chia các ngày, chủ đề chính của từng buổi (ví dụ: *Sáng Day 1: Khám phá phố cổ; Chiều: Check-in bán đảo Sơn Trà; Tối: Thưởng thức hải sản*).
 - **Điểm đột phá kỹ thuật**: Ở pha này, AI **hoàn toàn không gọi API bên thứ 3 tốn kém** (Google Places/Agoda), giúp tiết kiệm token và phản hồi nhanh ($6$--$12$\,giây).
 
@@ -111,7 +111,7 @@ Trong nhiều đồ án thử nghiệm, việc chia nhỏ thành 8--9 sub-agent 
 - **Rủi ro trôi ngữ cảnh (Context Drift)**: Agent này không hiểu trọn vẹn mong muốn mà agent trước đã tiếp nhận.
 - **Chi phí token nhân bội**: Mỗi agent phải load lại system prompt và conversation history.
 
-**Giải pháp của TripMate AI**: Sử dụng **1 AI Agent hợp nhất duy nhất chạy mô hình DeepSeek-V4 trên LangGraph Python**, vận hành tuần tự qua 2 pha trạng thái (**Two-Phase State Machine**) rõ ràng:
+**Giải pháp của TripMate AI**: Sử dụng **1 AI Agent hợp nhất duy nhất chạy mô hình DeepSeek-V4 trên Python AsyncIO + OpenAI SDK (`AsyncOpenAI`)**, vận hành tuần tự qua 2 pha trạng thái (**Two-Phase State Machine**) rõ ràng:
 1. **Macro Planning State**: Suy luận logic, phân bổ thời gian và chủ đề.
 2. **Micro Curation State**: Gọi công cụ, lọc dữ liệu thực tế, tính khoảng cách địa lý.
 
@@ -140,7 +140,7 @@ sequenceDiagram
     actor C as Client (React on Vercel)
     participant GW as Gateway (FastAPI on Render)
     participant Q as Redis Infra (Upstash Serverless)
-    participant AI as AI Worker (LangGraph on Render)
+    participant AI as AI Worker (OpenAI SDK on Render)
     participant DB as Database (Supabase Postgres 16)
     participant EXT as Travel APIs (PyBreaker / Live)
 
@@ -183,9 +183,9 @@ sequenceDiagram
 | **1** | **(1)** Frontend $\rightarrow$ Gateway | Sync | Thao tác người dùng | Truyền tin nhắn chat hoặc vote điểm dừng kèm OpenTelemetry trace context. |
 | **2a** | **(3)** Gateway $\rightarrow$ Database | Sync | Bước 1 | Lưu vết tin nhắn và số lượt vote vào Supabase (`core` schema). |
 | **2b** | **(2)** Gateway $\rightarrow$ Redis (Streams) | Async | Bước 1 | Đẩy task vào Redis Streams (`XADD`); trả về HTTP/WS ACK ngay lập tức. |
-| **3** | **(2)** Redis (Streams) $\rightarrow$ AI Agent | Async | Bước 2b | LangGraph Worker kéo task về xử lý qua Consumer Group (`XREADGROUP`). |
+| **3** | **(2)** Redis (Streams) $\rightarrow$ AI Agent | Async | Bước 2b | AI Agent Worker (OpenAI SDK) kéo task về xử lý qua Consumer Group (`XREADGROUP`). |
 | **4** | **(5)** AI Agent $\leftarrow$ Database | Async | Bước 3 | Tải checkpoint và ngữ cảnh phòng từ schema `checkpoints` qua DAL. |
-| **4b** | LangGraph State Transition | Internal | Bước 4 | Đánh giá điều kiện đồng thuận và chuyển đổi giữa Macro State và Micro State. |
+| **4b** | Agent State Transition | Internal | Bước 4 | Đánh giá điều kiện đồng thuận và chuyển đổi giữa Macro State và Micro State. |
 | **5** | **(4)** AI Agent $\leftrightarrow$ Travel APIs | Parallel | Bước 4b | Gọi Google Places/Agoda qua PyBreaker; tự động lấy từ L2 Cache nếu API ngoài lỗi. |
 | **6** | **(5)** AI Agent $\rightarrow$ Database | Async | Bước 5 | Ghi các điểm dừng đã kiểm chứng và chuẩn hóa vào bảng `plan_stops` qua DAL. |
 | **7** | **(6)** AI Agent $\rightarrow$ Redis $\rightarrow$ Gateway | Async | Bước 6 | Bắn sự kiện `PUBLISH plan:updated` qua Redis Pub/Sub để đồng bộ các node Gateway. |
@@ -217,7 +217,7 @@ TripMate AI hỗ trợ 2 kịch bản sử dụng thực tế:
 2. **Cách Ly Dữ Liệu Bằng Supabase Row Level Security (RLS)**: Các chính sách RLS ở tầng database đảm bảo người dùng chỉ có thể đọc và ghi dữ liệu thuộc về phòng mà họ đã tham gia hợp lệ (`event_members`).
 3. **Bình Chọn Bất Khả Xâm Phạm (Atomic Voting)**: Sử dụng các câu lệnh cập nhật SQL nguyên tử (`UPDATE ... WHERE ...`) và Redis transaction để triệt tiêu hoàn toàn tình trạng race condition khi nhiều thành viên cùng bấm vote tại một phần nghìn giây.
 4. **Phòng Chống Prompt Injection**: Toàn bộ nội dung chat từ người dùng được làm sạch (sanitization) qua Pydantic v2 và thư viện bảo mật trước khi đưa vào template prompt của LLM. Tách biệt hoàn toàn giữa vai trò `system` và `user`.
-5. **Khôi Phục Phiên Tự Động (Session Recovery)**: Trạng thái của LangGraph được checkpoint liên tục vào Supabase. Nếu container AI Worker trên Render bị restart đột ngột, tác vụ sẽ tự động khôi phục chính xác từ checkpoint gần nhất mà không làm mất dữ liệu của người dùng.
+5. **Khôi Phục Phiên Tự Động (Session Recovery)**: Trạng thái `AgentState` của AI Agent được checkpoint liên tục dưới dạng JSONB vào bảng `checkpoints.agent_checkpoints` trên Supabase qua SQLAlchemy Async DAL. Nếu container AI Worker trên Render bị restart đột ngột, tác vụ sẽ tự động khôi phục chính xác từ checkpoint gần nhất mà không làm mất dữ liệu của người dùng.
 
 ---
 

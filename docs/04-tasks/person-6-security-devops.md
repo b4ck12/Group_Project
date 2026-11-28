@@ -59,7 +59,7 @@
 - [ ] **`TASK-216`** **Render Deploy Pipeline & Keep-Alive Ping Setup**
   - **Feature**: DevOps
   - **Target Files**: `render.yaml`, `backend/Dockerfile.prod`, `backend/app/api/healthz.py`, `.github/workflows/cd-backend.yml`
-  - **Acceptance Criteria**: Render Blueprint (`render.yaml`) khởi tạo FastAPI web service + LangGraph worker. Endpoint `/api/healthz` phản hồi 200 OK. Thiết lập cron ping 10 phút chống sleep.
+  - **Acceptance Criteria**: Render Blueprint (`render.yaml`) khởi tạo FastAPI web service + AI Agent worker (OpenAI SDK). Endpoint `/api/healthz` phản hồi 200 OK. Thiết lập cron ping 10 phút chống sleep.
   - **Docs & Tracking**: Cập nhật `docs/03-architecture/deployment-guide.md` + tick `[x]`.
 
 ### Sprint 4 — Pentest, Grounding Benchmark & Locust Load Testing

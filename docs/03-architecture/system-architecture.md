@@ -24,8 +24,8 @@ flowchart TD
             REDIS["• Task Queue: Redis Streams (XADD)<br/>• Pub/Sub: plan:updated Broadcast<br/>• L2 Cache: POIs TTL 24h Store"]
         end
 
-        subgraph L4 ["4. AI Agent Worker (LangGraph on Render Worker <= 512MB)"]
-            AI["• Unified AI Agent: DeepSeek-V4<br/>• Two-Phase State Machine (Macro & Micro)<br/>• Model Abstraction (Fallback GPT-4o/Claude/Gemini)<br/>• Four-Tier Grounding Filter"]
+        subgraph L4 ["4. AI Agent Worker (OpenAI SDK on Render Worker <= 512MB)"]
+            AI["• Unified AI Agent: DeepSeek-V4<br/>• Two-Phase State Machine (Macro & Micro)<br/>• Model Abstraction (AsyncOpenAI Fallback GPT-4o/Gemini)<br/>• Four-Tier Grounding Filter"]
         end
     end
 
@@ -64,10 +64,10 @@ flowchart TD
 | Giao diện | Thành phần kết nối | Giao thức / Phương thức | Mục đích & Nghiệp vụ |
 |:---:|---|:---:|---|
 | **(1)** | **Frontend $\leftrightarrow$ Backend Gateway** | **WebSockets (`WSS`) / HTTPS REST** | Truyền tin nhắn phòng chat, gửi phiếu bình chọn điểm dừng (Vote UP/DOWN), gửi lệnh luân chuyển đa phương án (Multi-Option Swap: đổi sang Phương án 2, Phương án 3 hoặc yêu cầu AI nạp thêm), và nhận luồng đồng bộ tức thì (<80ms ACK). |
-| **(2)** | **Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker** | **Redis Streams (`XADD` / `XREADGROUP`)** | Hàng đợi tác vụ bất đồng bộ. Gateway đẩy task vào Redis Streams không chặn người dùng; LangGraph AI Worker kéo task về thực thi. |
+| **(2)** | **Gateway $\rightarrow$ Redis $\rightarrow$ AI Worker** | **Redis Streams (`XADD` / `XREADGROUP`)** | Hàng đợi tác vụ bất đồng bộ. Gateway đẩy task vào Redis Streams không chặn người dùng; AI Agent Worker (OpenAI SDK) kéo task về thực thi. |
 | **(3)** | **Gateway $\rightarrow$ Supabase Database** | **SQLAlchemy Async / PostgreSQL (core schema)** | Lưu vết tức thì lịch sử tin nhắn phòng chat, thông tin người dùng, quyền hạn thành viên và số lượt bình chọn. |
 | **(4)** | **AI Worker $\leftrightarrow$ External Travel & Lodging APIs** | **HTTPX Async qua PyBreaker Circuit Breaker & Adapter Pattern** | Truy vấn địa điểm và khách sạn thực tế từ Google Maps/Places, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia, Klook với cơ chế ngắt mạch tự động (timeout 2.5s). |
-| **(5)** | **AI Worker $\leftrightarrow$ Supabase Database** | **Data Access Layer (DAL) / AsyncPostgresSaver** | Nạp và lưu vết trạng thái `AgentState` vào schema `checkpoints`; ghi các điểm dừng đã chuẩn hóa vào bảng `plan_stops`. |
+| **(5)** | **AI Worker $\leftrightarrow$ Supabase Database** | **Data Access Layer (DAL) / SQLAlchemy Async JSONB** | Nạp và lưu vết snapshot `AgentState` vào bảng `checkpoints.agent_checkpoints`; ghi các điểm dừng đã chuẩn hóa vào bảng `plan_stops`. |
 | **(6)** | **AI Worker $\rightarrow$ Redis $\rightarrow$ Gateway** | **Redis Pub/Sub (`plan:updated`)** | Phát sóng sự kiện cập nhật lịch trình từ AI Worker tới mọi instance Gateway để chuyển tiếp xuống Frontend qua WebSockets. |
 
 ---
@@ -82,7 +82,7 @@ sequenceDiagram
     actor C as 1. Client (React on Vercel)
     participant GW as 2. Gateway (FastAPI on Render)
     participant Q as 3. Redis Infra (Upstash Serverless)
-    participant AI as 4. AI Worker (LangGraph on Render)
+    participant AI as 4. AI Worker (OpenAI SDK on Render)
     participant DB as 5. Database (Supabase Postgres 16)
     participant EXT as 6. Travel APIs (PyBreaker / Live)
 
@@ -125,9 +125,9 @@ sequenceDiagram
 | **1** | **(1)** Frontend $\rightarrow$ Gateway | Sync | Thao tác người dùng | Truyền tin nhắn chat hoặc vote điểm dừng kèm OpenTelemetry trace context. |
 | **2a** | **(3)** Gateway $\rightarrow$ Database | Sync | Bước 1 | Lưu vết tin nhắn phòng và số phiếu vote vào Supabase (`core` schema). |
 | **2b** | **(2)** Gateway $\rightarrow$ Redis (Streams) | Async | Bước 1 | Đẩy tác vụ bất đồng bộ vào Redis Streams (`XADD`); trả về HTTP/WS ACK ngay lập tức. |
-| **3** | **(2)** Redis (Streams) $\rightarrow$ AI Agent | Async | Bước 2b | LangGraph Worker kéo tác vụ về xử lý qua Consumer Group (`XREADGROUP`). |
+| **3** | **(2)** Redis (Streams) $\rightarrow$ AI Agent | Async | Bước 2b | AI Agent Worker (OpenAI SDK) kéo tác vụ về xử lý qua Consumer Group (`XREADGROUP`). |
 | **4** | **(5)** AI Agent $\leftarrow$ Database | Async | Bước 3 | Tải checkpoint phiên làm việc và ngữ cảnh phòng từ schema `checkpoints` qua DAL. |
-| **4b** | LangGraph State Transition | Internal | Bước 4 | Đánh giá điều kiện đồng thuận và chuyển đổi giữa Macro State và Micro State. |
+| **4b** | Agent State Transition | Internal | Bước 4 | Đánh giá điều kiện đồng thuận và chuyển đổi giữa Macro State và Micro State. |
 | **5** | **(4)** AI Agent $\leftrightarrow$ Travel APIs | Parallel | Bước 4b | Gọi hệ thống API đối tác (Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia) qua PyBreaker; tự động lấy từ L2 Cache nếu API ngoài lỗi. |
 | **6** | **(5)** AI Agent $\rightarrow$ Database | Async | Bước 5 | Ghi các điểm dừng đã kiểm chứng và chuẩn hóa vào bảng `plan_stops` qua DAL. |
 | **7** | **(6)** AI Agent $\rightarrow$ Redis $\rightarrow$ Gateway | Async | Bước 6 | Bắn sự kiện `PUBLISH plan:updated` qua Redis Pub/Sub để đồng bộ các node Gateway. |
@@ -141,7 +141,7 @@ Hệ thống giải quyết câu hỏi: *"Lúc nào chat thường, lúc nào th
 
 1. **Kênh Chat Nhóm Chung (Group Channel)**:
    - Toàn bộ thành viên trong phòng cùng tham gia vào 1 kênh chat thời gian thực qua WebSocket (`/ws/rooms/{roomId}`).
-   - Các tin nhắn trao đổi, thảo luận thông thường (`'CHAT'`) được lưu vào CSDL và broadcast tới toàn bộ client trong phòng (<80ms) mà **tuyệt đối không kích hoạt LangGraph Worker**.
+   - Các tin nhắn trao đổi, thảo luận thông thường (`'CHAT'`) được lưu vào CSDL và broadcast tới toàn bộ client trong phòng (<80ms) mà **tuyệt đối không kích hoạt AI Agent Worker**.
 2. **Bộ Lọc Đầu Vào Cốt Lõi (Input Filter Layer)**:
    - Khi có tin nhắn gọi Agent (`@TripMate`) hoặc thao tác bấm nút tạo/sửa lịch trình, Gateway thực hiện 2 cấp lọc:
      - **Cấp 1 - Lọc rác (Noise Filter)**: Loại bỏ các câu chém gió không liên quan đến du lịch.
@@ -150,7 +150,7 @@ Hệ thống giải quyết câu hỏi: *"Lúc nào chat thường, lúc nào th
    - Nếu thiếu tham số cốt lõi: Gateway phản hồi yêu cầu người dùng bổ sung thông tin, ngăn chặn hoàn toàn việc gọi LLM bừa bãi gây tốn token và sai lệch dữ liệu.
 3. **Phân Luồng Tương Tác Của Agent**:
    - **Nhánh Hỏi Đáp / Gợi Ý Món Ăn (Q&A & Dish Suggestions)**: Tra cứu nhanh đặc sản, giải đáp thắc mắc du lịch, gợi ý món ăn theo sở thích ăn uống của thành viên $\rightarrow$ Trả lời trực tiếp dạng tin nhắn trong group chat, **không chạm vào Plan**.
-   - **Nhánh Lập / Điều Chỉnh Lịch Trình (Planning Engine)**: Chạy qua LangGraph State Machine $\rightarrow$ Ghi các `plan_stops` vào CSDL theo kịch bản 4 giai đoạn không ghi đè $\rightarrow$ Broadcast cập nhật lộ trình.
+   - **Nhánh Lập / Điều Chỉnh Lịch Trình (Planning Engine)**: Chạy qua Two-Phase State Machine (OpenAI SDK) $\rightarrow$ Ghi các `plan_stops` vào CSDL theo kịch bản 4 giai đoạn không ghi đè $\rightarrow$ Broadcast cập nhật lộ trình.
 
 ---
 
@@ -160,7 +160,7 @@ Hệ thống giải quyết câu hỏi: *"Lúc nào chat thường, lúc nào th
 
 1. **Người dùng nhắn tin**: Một thành viên nhắn vào chat: *"Trời đang mưa to quá, tìm giúp quán cafe trong nhà gần đây"*.
 2. **Gateway phản hồi tức thì**: FastAPI Gateway nhận tin qua WebSocket, trả về ACK `< 80$\,ms, ghi tin nhắn vào bảng `chat_messages` (Supabase `core` schema, Bước 2a) và đẩy task vào Redis Streams (Bước 2b).
-3. **AI Worker xử lý ngầm**: LangGraph Worker kéo task về (Bước 3), khôi phục phiên làm việc từ `checkpoints` schema (Bước 4), chuyển thẳng vào **Phase 2 Micro Curation State** (Bước 4b).
+3. **AI Worker xử lý ngầm**: AI Agent Worker (OpenAI SDK) kéo task về (Bước 3), khôi phục phiên làm việc từ `checkpoints` schema (Bước 4), chuyển thẳng vào **Phase 2 Micro Curation State** (Bước 4b).
 4. **Truy vấn địa điểm trong nhà**: AI gọi Google Places API tìm các quán cafe có tiện ích trong nhà nằm trong bán kính $\le 1.5$\,km qua PyBreaker (Bước 5).
 5. **Cập nhật nguyên tử không ghi đè (Non-destructive History)**: Thay vì ghi đè làm mất dấu dữ liệu quá khứ, AI Agent thực hiện cơ chế lưu vết lịch sử:
    - Điểm dừng ngoài trời cũ được cập nhật trạng thái `stop_status = 'SKIPPED_ON_TRIP'` kèm lý do `change_reason = 'Trời mưa lớn tại địa điểm ngoài trời'`.
@@ -173,7 +173,7 @@ Hệ thống giải quyết câu hỏi: *"Lúc nào chat thường, lúc nào th
 ## 🛡️ 5. Độ Bền Vận Hành & Khả Năng Mở Rộng Hành Tinh (Planet-Scale Readiness)
 
 - **Vercel Edge CDN**: Phân phối tài nguyên tĩnh và giao diện React 18 trên hơn 300 điểm PoP toàn cầu, thời gian nạp trang $< 100$\,ms, zero cold-start.
-- **Render Stateless Workers**: Cả FastAPI Gateway và LangGraph Worker đều là tiến trình phi trạng thái (stateless), có thể scale ngang (horizontal scaling) thêm instance bất cứ lúc nào.
+- **Render Stateless Workers**: Cả FastAPI Gateway và AI Agent Worker (OpenAI SDK) đều là tiến trình phi trạng thái (stateless), có thể scale ngang (horizontal scaling) thêm instance bất cứ lúc nào.
 - **Supavisor Connection Pooling**: Cụm pooler hoạt động ở port 6543 (Transaction Mode) giúp xử lý an toàn hơn 200 phiên client đồng thời chỉ với 15 kết nối vật lý tới PostgreSQL, ngăn ngừa lỗi `connection limit exceeded`.
 - **PyBreaker Resilience**: Đảm bảo lỗi từ phía các API du lịch bên ngoài không bao giờ làm treo hay crash hệ thống backend của dự án.
 

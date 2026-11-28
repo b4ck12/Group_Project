@@ -13,11 +13,11 @@
 | Sprint | Số Tasks | Phụ trách | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|:---:|
 | **Sprint 0** | 1 Task | Phạm Đình Ánh Dương | 1/1 | ✅ Done (TASK-002) |
-| **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 3/7 | 🟡 Đang thực hiện |
+| **Sprint 1** | 7 Tasks | Hà Đăng Huy (2) + Phạm Đình Ánh Dương (5) | 4/7 | 🟡 Đang thực hiện |
 | **Sprint 2** | 5 Tasks | Hà Đăng Huy (4) + Phạm Đình Ánh Dương (1) | 1/5 | 🟡 Đang thực hiện |
 | **Sprint 3** | 3 Tasks | Phạm Đình Ánh Dương | 0/3 | 🔲 To Do |
 | **Sprint 4** | 2 Tasks | Phạm Đình Ánh Dương | 0/2 | 🔲 To Do |
-| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 5/18 | 🟡 Đang thực hiện |
+| **Tổng cộng** | **18 Tasks** | 2 Thành viên | 6/18 | 🟡 Đang thực hiện |
 
 ---
 
@@ -60,7 +60,7 @@
   - **Target Files**: `backend/app/api/v1/auth.py`, `backend/app/services/email_service.py`
   - **Acceptance Criteria**: `POST /auth/forgot-password` gửi email token 1 lần (TTL 15 phút) qua SMTP.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-106`** `[BE-Services - Phạm Đình Ánh Dương]` **User Profile API (GET & PATCH)**
+- [X] **`TASK-106`** `[BE-Services - Phạm Đình Ánh Dương]` **User Profile API (GET & PATCH)**
   - **Feature**: #5
   - **Target Files**: `backend/app/api/v1/users.py`, `backend/app/services/user_service.py`
   - **Acceptance Criteria**: `GET /users/me` và `PATCH /users/me` cập nhật họ tên, avatar URL.

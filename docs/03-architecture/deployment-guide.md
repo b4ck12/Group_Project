@@ -1,7 +1,7 @@
 # 🚢 Deployment Guide — Multi-Cloud Production Architecture
 ## Dự án: TripMate AI — Intelligent Group Activity & Travel Planning Platform
 
-> Tài liệu hướng dẫn triển khai sản phẩm thực tế trên 4 nền tảng đám mây phối hợp: **Vercel** (Frontend Edge), **Render** (FastAPI Web Service & LangGraph Worker), **Supabase** (PostgreSQL 16 + Supavisor Pooler), và **Upstash Redis** (Serverless Streams & Cache), bám sát 100% Mục 4.3 trong Technical Proposal.
+> Tài liệu hướng dẫn triển khai sản phẩm thực tế trên 4 nền tảng đám mây phối hợp: **Vercel** (Frontend Edge), **Render** (FastAPI Web Service & AI Agent Worker), **Supabase** (PostgreSQL 16 + Supavisor Pooler), và **Upstash Redis** (Serverless Streams & Cache), bám sát 100% Mục 4.3 trong Technical Proposal.
 
 ---
 
@@ -20,7 +20,7 @@
   │                         │       • REST Endpoints & WebSocket Room Server
   │                         │       • Keep-Alive Anti-Sleep Ping (/api/healthz)
   │                         │
-  │                         └──► 3. Render.com Background Worker (LangGraph AI Agent)
+  │                         └──► 3. Render.com Background Worker (AI Agent - OpenAI SDK)
   │                                 • DeepSeek-V4 Reasoning Engine (RAM <= 512MB)
   │                                 • Consumer Group đọc Redis Streams
   │
@@ -33,7 +33,7 @@
 |---|---|---|---|
 | **Frontend** | **Vercel** | Global Edge CDN | Tự động build và deploy khi merge `main`; tự sinh Preview URL cho mỗi PR. |
 | **Backend Gateway** | **Render.com** | Web Service (Docker) | FastAPI ASGI app, phục vụ REST & WebSocket, cron ping chống sleep `/api/healthz`. |
-| **AI Worker** | **Render.com** | Background Worker | Chạy tiến trình LangGraph Python tiêu thụ tác vụ từ Redis Streams. |
+| **AI Worker** | **Render.com** | Background Worker | Chạy tiến trình Python AsyncIO + OpenAI SDK tiêu thụ tác vụ từ Redis Streams. |
 | **Database** | **Supabase** | Managed PostgreSQL 16 | Cung cấp Supavisor pooler (port 6543) và Supabase Auth. |
 | **Queue & Cache** | **Upstash** | Serverless Redis 7 | Hàng đợi Redis Streams và kênh phát sóng Redis Pub/Sub. |
 
@@ -106,7 +106,7 @@ services:
         sync: false
     healthCheckPath: /api/healthz
 
-  # 2. LangGraph AI Agent Background Worker
+  # 2. AI Agent Background Worker (OpenAI SDK)
   - type: worker
     name: tripmate-ai-worker
     runtime: docker

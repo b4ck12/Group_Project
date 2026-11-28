@@ -41,12 +41,19 @@ class Settings(BaseSettings):
     FACEBOOK_APP_ID: str = ""
     FACEBOOK_APP_SECRET: str = ""
 
-    # --- AI DeepSeek API (Nhóm AI dùng, khai báo sẵn ở đây để dùng chung 1 nguồn config) ---
+    # --- AI Agent / LLM Providers (Pure OpenAI SDK `AsyncOpenAI`, ADR-001) ---
     DEEPSEEK_API_KEY: str = ""
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com/v1"
     AI_MODEL_DEFAULT: str = "deepseek-chat"
     AI_MODEL_REASONING: str = "deepseek-reasoner"
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL_FALLBACK: str = "gpt-4o"
+    GOOGLE_API_KEY: str = ""
+    GEMINI_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    GEMINI_MODEL_FALLBACK: str = "gemini-1.5-pro"
     AI_MAX_TOKENS_PER_REQUEST: int = 4096
     AI_MAX_STEPS_PER_SESSION: int = 15
+    AI_REQUEST_TIMEOUT: float = 30.0
 
     # --- External APIs & Circuit Breaker ---
     GOOGLE_PLACES_API_KEY: str = ""

@@ -10,12 +10,12 @@
 |---|---|---|---|
 | **Frontend** | **React 18 + Vite + TypeScript** | **Vercel** | Giao diện Single Page Application (SPA), Bố cục Flexbox & Responsive thích ứng đa màn hình, Component-Driven Modular Design, Dòng thời gian tương tác, Thẻ bình chọn điểm dừng, Canvas Mapbox GL trên Edge CDN (Zero cold-start). |
 | **Backend Gateway** | **FastAPI (Python 3.11+)** | **Render.com** | ASGI Gateway (Clean Architecture), cung cấp RESTful endpoints, WebSocket Room Server cho cộng tác thời gian thực, cron ping tự động chống sleep (`/api/healthz`), JWT / Role Guards. |
-| **AI Agent Layer** | **LangGraph Python** | **Render.com** | Worker AI chạy ngầm tiêu thụ hàng đợi, thực thi Agent hợp nhất DeepSeek-V4 qua 2 pha trạng thái (Macro & Micro curation), giới hạn bộ nhớ $\le 280$\,MB / $512$\,MB RAM. |
-| **Model Abstraction** | **LangChain Model Abstraction** | **Cloud LLM APIs** | Mô hình suy luận chính: **DeepSeek-V4**; Cơ chế tự động Fallback trong suốt sang **OpenAI (GPT-4o)**, **Anthropic Claude**, hoặc **Google Gemini** để chống vendor lock-in. |
+| **AI Agent Layer** | **Python AsyncIO + OpenAI SDK (`AsyncOpenAI`)** | **Render.com** | Worker AI chạy ngầm tiêu thụ hàng đợi, thực thi Agent hợp nhất DeepSeek-V4 qua 2 pha trạng thái (Macro & Micro curation), giới hạn bộ nhớ $\le 280$\,MB / $512$\,MB RAM. |
+| **Model Abstraction** | **OpenAI-Compatible SDK Abstraction** | **Cloud LLM APIs** | Mô hình suy luận chính: **DeepSeek-V4**; Cơ chế tự động Fallback trong suốt sang **OpenAI (GPT-4o)** hoặc **Google Gemini** qua hoán đổi `base_url` để chống vendor lock-in. |
 | **Database & BaaS** | **PostgreSQL 16 + pgvector** | **Supabase** | Lưu trữ quan hệ ACID chuẩn hóa, phân tách 3 schema (`core`, `checkpoints`, `vectors`), kết nối qua **Supavisor Connection Pooler (port 6543, Transaction Mode)** ghép 200+ phiên, bảo mật Row Level Security (RLS). |
 | **Queue & Cache** | **Redis 7 / Redis Streams** | **Upstash Redis** | Serverless Redis quản lý hàng đợi tác vụ bất đồng bộ (**Redis Streams** `XADD`/`XREADGROUP`), phát sóng sự kiện đa máy chủ (**Redis Pub/Sub** `plan:updated`), và bộ nhớ đệm L2 Cache lưu POIs (TTL 24h). |
 | **Travel & Lodging APIs** | **Multi-Provider Adapters** | **Multi-Provider APIs** | Tích hợp hệ thống tìm kiếm khách sạn & địa điểm đa nguồn: **Google Maps, Google Search, Google Hotels, TripAdvisor, Airbnb, Trip.com, Hotels.com, Trivago, Expedia** qua Adapter/Strategy Pattern. |
-| **Resilience & Ops** | **PyBreaker + OpenTelemetry** | **Cloud Observability** | Ngắt mạch tự động (**Circuit Breaker**) bảo vệ các API du lịch bên ngoài (timeout 2.5s), phân tán vết đo lường (Distributed Tracing) và kiểm soát LLM qua **LangSmith**. |
+| **Resilience & Ops** | **PyBreaker + OpenTelemetry** | **Cloud Observability** | Ngắt mạch tự động (**Circuit Breaker**) bảo vệ các API du lịch bên ngoài (timeout 2.5s), phân tán vết đo lường (Distributed Tracing) và ghi nhận token/latency LLM qua **AgentLog (`core.agent_logs`)**. |
 
 ---
 
@@ -40,24 +40,24 @@
 - **WebSocket Server**: WebSocket Router quản lý kết nối thời gian thực của từng phòng (`/ws/rooms/{room_id}`), nhận diện tin nhắn chat, vote điểm dừng, phản hồi tức thì dưới 80ms.
 - **Keep-Alive Cron Ping**: Tự động gửi request tới `/api/healthz` định kỳ mỗi 10 phút để đảm bảo instance trên Render Web Service luôn sẵn sàng phục vụ người dùng.
 
-### 2.3. AI Agent Layer (LangGraph Python & DeepSeek-V4)
-- **Orchestrator**: **LangGraph Python (`langgraph`)** xây dựng máy trạng thái hữu hạn (State Machine) với 2 pha thực thi:
+### 2.3. AI Agent Layer (Python AsyncIO + OpenAI SDK & DeepSeek-V4)
+- **Orchestrator**: **Python AsyncIO + OpenAI SDK (`AsyncOpenAI`)** xây dựng máy trạng thái hữu hạn (State Machine) tường minh với 2 pha thực thi (giới hạn `AI_MAX_STEPS_PER_SESSION = 15`):
   - *Phase 1 (Macro Planning State)*: Soạn thảo khung chương trình (số ngày, chủ đề từng ngày, nhịp độ).
   - *Phase 2 (Micro Curation State)*: Truy vấn địa điểm thực tế, áp dụng thuật toán gom cụm khoảng cách Haversine ($\le 2.5$\,km).
-- **Model Engine**: **DeepSeek-V4** làm mô hình suy luận chính; Model Abstraction Layer bọc ngoài giúp tự động fallback sang GPT-4o, Claude 3.5 Sonnet hoặc Gemini 1.5 Pro khi DeepSeek API quá tải.
-- **Checkpointing**: Sử dụng `AsyncPostgresSaver` lưu vết trạng thái `AgentState` vào schema `checkpoints` của PostgreSQL, cho phép khôi phục phiên hội thoại ngay lập tức nếu container bị khởi động lại.
+- **Model Engine**: **DeepSeek-V4** làm mô hình suy luận chính; Model Abstraction Layer thuần `AsyncOpenAI` bọc ngoài giúp tự động fallback sang GPT-4o hoặc Gemini 1.5 Pro qua hoán đổi `base_url` khi DeepSeek API quá tải.
+- **Checkpointing**: Sử dụng **SQLAlchemy Async JSONB (`checkpoints.agent_checkpoints`)** qua DAL lưu snapshot trạng thái `AgentState`, cho phép khôi phục phiên hội thoại ngay lập tức nếu container bị khởi động lại.
 
 ### 2.4. Database & BaaS (Supabase PostgreSQL 16)
 - **Engine**: PostgreSQL 16 hỗ trợ quan hệ toàn vẹn, chỉ mục tối ưu, và tiện ích mở rộng `pgvector`.
 - **Cấu trúc Schema phân lập**:
   - `core`: Bảng `users`, `events`, `event_members`, `plans`, `plan_stops`, `plan_votes`, `chat_messages` (Bảng `expenses` và `settlements` đã được xóa bỏ hoàn toàn vì hệ thống không có thanh toán trực tuyến).
-  - `checkpoints`: Lưu trữ trạng thái đồ thị của LangGraph.
+  - `checkpoints`: Lưu trữ snapshot JSONB trạng thái của AI Agent (`checkpoints.agent_checkpoints`).
   - `vectors`: Lưu trữ vector embeddings cho địa điểm.
 - **Supavisor Connection Pooler**: Hoạt động tại **port 6543 ở chế độ Transaction Mode**, ghép tải từ hàng trăm request đồng thời qua 15 kết nối vật lý.
 - **Bảo mật RLS**: Áp dụng Row Level Security (RLS) để chỉ thành viên trong cùng một phòng mới được truy cập dữ liệu của phòng đó.
 
 ### 2.5. Queue & Cache (Upstash Redis 7)
-- **Redis Streams (`XADD`/`XREADGROUP`)**: Đóng vai trò Message Broker bất đồng bộ. Khi người dùng yêu cầu AI lên lịch, FastAPI đẩy task vào stream và trả về HTTP ACK tức thì; LangGraph Worker trên Render sẽ kéo task về xử lý.
+- **Redis Streams (`XADD`/`XREADGROUP`)**: Đóng vai trò Message Broker bất đồng bộ. Khi người dùng yêu cầu AI lên lịch, FastAPI đẩy task vào stream và trả về HTTP ACK tức thì; AI Agent Worker trên Render sẽ kéo task về xử lý.
 - **Redis Pub/Sub (`plan:updated`)**: Khi AI Worker ghi xong điểm dừng vào database, nó bắn sự kiện qua Redis Pub/Sub; các node FastAPI Gateway đang lắng nghe sẽ lập tức broadcast dữ liệu mới tới tất cả các client qua WebSockets.
 - **L2 Cache (TTL 24h)**: Lưu trữ các kết quả tra cứu địa điểm và thời tiết để giảm tải chi phí và chống rate limit API bên thứ 3.
 
@@ -89,5 +89,5 @@
 | **Hà Đăng Huy** | Backend Platform & Frontend Core | HTTPX Async, Google Places API, PyBreaker, Upstash Redis Cache, React 18, Mapbox GL JS, Tailwind. |
 | **Phạm Đình Ánh Dương** | Backend Services & Platform | Supabase Auth, JWT, SMTP Email, WeasyPrint PDF, .ics Calendar, Input Filter & Core Parameter Validation. |
 | **Nguyễn Minh Đức** | Frontend Growth & AI Experience | React 18, Realtime WebSockets, AI Streaming UI, Design System, i18n (VI/EN), Recharts Admin UI. |
-| **Nguyễn Tùng Dương** | AI Agent Lead | LangGraph Python, DeepSeek-V4, Model Abstraction Layer, Four-Tier Grounding, Geo-Clustering. |
-| **Đinh Tiến Luân** | DevOps & Cyber Security | Multi-Cloud (Vercel, Render, Supabase), GitHub Actions CI/CD, OpenTelemetry, LangSmith, OWASP Pentest. |
+| **Nguyễn Tùng Dương** | AI Agent Lead | Python AsyncIO + OpenAI SDK, DeepSeek-V4, Model Abstraction Layer, Four-Tier Grounding, Geo-Clustering. |
+| **Đinh Tiến Luân** | DevOps & Cyber Security | Multi-Cloud (Vercel, Render, Supabase), GitHub Actions CI/CD, OpenTelemetry, AgentLog, OWASP Pentest. |

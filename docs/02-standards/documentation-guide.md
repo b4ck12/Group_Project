@@ -14,7 +14,7 @@
 - **Backend submodules**:
   - `backend/app/api/v1/README.md`: Hướng dẫn danh mục API v1, authentication headers, error convention.
   - `backend/app/services/README.md`: Tổng quan các business service và cách inject dependencies.
-  - `backend/app/ai_agents/README.md`: Cấu trúc đồ thị LangGraph, input/output state, cách thêm 1 agent mới.
+  - `backend/app/ai_agents/README.md`: Cấu trúc Two-Phase State Machine (OpenAI SDK), input/output state, cách thêm 1 phase handler hoặc tool mới.
 - **Frontend feature modules**:
   - `frontend/src/features/event-planning/README.md`: Giải thích luồng dữ liệu lập kế hoạch, danh sách components, hooks và các state chính.
   - `frontend/src/features/ai-chat/README.md`: Cơ chế streaming WebSocket/SSE, component hiển thị tin nhắn gợi ý.
@@ -50,7 +50,7 @@ Mỗi khi hoàn thành một task, thành viên bắt buộc cập nhật các f
 |---|---|---|
 | **API Endpoint (REST / WebSocket)** | `docs/02-standards/api-design-guide.md` | Method, URL path, Auth Guard/Role, Request Body JSON, Response JSON, Error Codes. |
 | **Database Model / Migration** | `docs/03-architecture/database-schema.md` | Schema (`core`, `checkpoints`, `vectors`), Tên bảng, cột, kiểu dữ liệu, quan hệ FK, indexes, file Alembic migration. |
-| **AI Agent / LangGraph** | `docs/03-architecture/ai-agent-architecture.md` | Two-Phase State changes, Node LangGraph, Four-Tier Grounding, Pydantic DTOs, Model fallback. |
+| **AI Agent (OpenAI SDK)** | `docs/03-architecture/ai-agent-architecture.md` | Two-Phase State changes, Phase handler / tool, Four-Tier Grounding, Pydantic DTOs, Model fallback. |
 | **Hạ tầng / Deploy / Biến MT** | `docs/03-architecture/deployment-guide.md`<br>`.env.example` | Cấu hình Vercel, Render, Supabase, Upstash Redis, danh sách biến môi trường mới và giá trị mẫu. |
 | **Màn hình UI / User Flow** | `docs/06-design/user-flows.md`<br>`frontend/src/mocks/handlers/` | Mô tả luồng tương tác, route URL, component layout, cập nhật Mock Service Worker (MSW). |
 | **Tracking Hoàn Thành Task** | `docs/04-tasks/person-X-*.md`<br>`docs/TASKS.md` | Chuyển `[ ]` thành `[x]` kèm mã PR, tên người làm và ngày hoàn thành. |
@@ -59,8 +59,8 @@ Mỗi khi hoàn thành một task, thành viên bắt buộc cập nhật các f
 
 ## 3. Quy Chuẩn Comment & Docstring Trong Mã Nguồn
 
-### 3.1. Backend Python (FastAPI / LangGraph) — Google Style Docstring
-Tất cả các hàm public, service method, API router, và LangGraph nodes bắt buộc có docstring:
+### 3.1. Backend Python (FastAPI / OpenAI SDK Agent) — Google Style Docstring
+Tất cả các hàm public, service method, API router, và AI Agent phase handler bắt buộc có docstring:
 ```python
 async def execute_micro_curation(
     state: AgentState, 
@@ -73,7 +73,7 @@ async def execute_micro_curation(
     đồng thời chuẩn bị 2 điểm dừng dự phòng cho cơ chế 1-click swap.
 
     Args:
-        state: Trạng thái LangGraph hiện tại chứa roadmap vĩ mô đã được Host lock.
+        state: Trạng thái AgentState hiện tại chứa roadmap vĩ mô đã được Host lock.
         db_session: Phiên làm việc cơ sở dữ liệu Supabase kết nối qua Supavisor pooler.
 
     Returns:

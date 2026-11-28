@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gg-place"
+version = "0.1.0"
+description = "Free, no-API-key, no-Playwright Google Maps & Places Python client"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "curl_cffi>=0.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.setuptools]
+packages = ["gmaps"]
+py-modules = ["gmaps_web_client"]

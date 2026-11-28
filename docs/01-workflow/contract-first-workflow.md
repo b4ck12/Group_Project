@@ -11,7 +11,7 @@ Nếu làm theo cách truyền thống: *"Backend viết xong API $\rightarrow$ 
 Với mô hình **Contract-First**:
 - Cả nhóm chốt trước **Database Schema** (Supabase PostgreSQL 16) và **OpenAPI Specification** (FastAPI).
 - **Frontend** dùng Mock Service Worker (MSW) giả lập response đúng hợp đồng để dựng toàn bộ giao diện (Room Chat, Timeline, Voting Cards, Mapbox).
-- **AI Agent Lead** dùng dữ liệu mock fixtures JSON (`mock_places.json`, `mock_roadmaps.json`) để xây dựng đồ thị LangGraph máy trạng thái 2 pha (Phase 1 & Phase 2).
+- **AI Agent Lead** dùng dữ liệu mock fixtures JSON (`mock_places.json`, `mock_roadmaps.json`) để xây dựng máy trạng thái 2 pha (Two-Phase State Machine trên OpenAI SDK).
 - **Security & DevOps** dựng sẵn pipeline CI/CD, linter, Docker local và kết nối hạ tầng đám mây (Vercel, Render, Supabase).
 - Khi đến **Integration Day**, nhóm chỉ việc tắt mock và kết nối thật — tỷ lệ lỗi ghép nối giảm trên 90%.
 

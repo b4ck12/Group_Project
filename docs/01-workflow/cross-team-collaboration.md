@@ -257,7 +257,7 @@ Vào ngày cuối cùng của Sprint (Integration Day):
 
 1. **Chuyển chế độ Mock → Thật**:
    - Frontend tắt MSW mock mode (`VITE_USE_MOCK=false`), trỏ URL API về môi trường Staging/Dev server.
-   - AI Engineer trỏ LangGraph Agent sang đọc/ghi DB PostgreSQL thật thay cho fixture JSON.
+   - AI Engineer trỏ AI Agent (OpenAI SDK) sang đọc/ghi DB PostgreSQL thật thay cho fixture JSON.
 2. **Chạy E2E Sanity Checklist**:
    - Kiểm tra các luồng đi qua đúng Happy Path.
 3. **Demo ngắn 15 phút**:

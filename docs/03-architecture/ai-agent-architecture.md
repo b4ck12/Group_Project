@@ -1,7 +1,7 @@
 # 🤖 AI Agent Architecture: Unified DeepSeek-V4 & Four-Tier Grounding
 ## Dự án: TripMate AI — Intelligent Group Activity & Travel Planning Platform
 
-> Tài liệu kỹ thuật chi tiết về kiến trúc **AI Agent hợp nhất (Unified AI Agent)**, mô hình suy luận **DeepSeek-V4**, máy trạng thái 2 pha trên **LangGraph Python**, tầng trừu tượng hóa mô hình (**Model Abstraction Layer**), và hàng rào 4 tầng chống ảo giác (**Four-Tier Grounding Pipeline**), bám sát 100% Mục 3, Hình 2 và Hình 3 trong Technical Proposal.
+> Tài liệu kỹ thuật chi tiết về kiến trúc **AI Agent hợp nhất (Unified AI Agent)**, mô hình suy luận **DeepSeek-V4**, máy trạng thái 2 pha thuần **Python AsyncIO + OpenAI Python SDK (`AsyncOpenAI`)**, tầng trừu tượng hóa mô hình (**Model Abstraction Layer**), và hàng rào 4 tầng chống ảo giác (**Four-Tier Grounding Pipeline**), bám sát 100% Mục 3, Hình 2 và Hình 3 trong Technical Proposal và quyết định kiến trúc [ADR-001](adr/ADR-001-pure-openai-sdk-agent.md).
 
 ---
 
@@ -21,7 +21,7 @@ Trong phòng cộng tác, các thành viên liên tục trao đổi với nhau. 
 
 3. **Chế Độ 2: Động Cơ Lập & Cập Nhật Lịch Trình (Planning Engine - `message_type = 'AGENT_TRIGGER'`)**:
    - **Thời điểm kích hoạt**: Khi Host hoặc nhóm bấm nút **"Gợi Ý Lịch Trình" / "Tạo Lịch Trình"** trên giao diện, hoặc gửi lệnh rõ ràng như `@TripMate lên lịch trình 3 ngày 2 đêm đi Đà Nẵng...`.
-   - **Bộ Lọc Đầu Vào (Input Filter Check)**: Trước khi kích hoạt LangGraph Worker, tin nhắn **bắt buộc phải vượt qua Bộ lọc đầu vào** tại Gateway:
+   - **Bộ Lọc Đầu Vào (Input Filter Check)**: Trước khi kích hoạt AI Agent Worker (OpenAI SDK), tin nhắn **bắt buộc phải vượt qua Bộ lọc đầu vào** tại Gateway:
      - Phải có đủ **Location (Điểm đến)** và **Date (Thời gian / Ngày đi)**.
      - Nếu thiếu thông tin cốt lõi, hệ thống nhắc người dùng bổ sung ngay trên giao diện mà không gọi LLM.
    - **Hành vi xử lý**: Kích hoạt máy trạng thái 2 pha (Phase 1: Macro $\rightarrow$ Phase 2: Micro), sinh các điểm dừng `plan_stops` với đầy đủ thuộc tính bắt buộc và lưu trữ theo lịch sử 4 giai đoạn không ghi đè.
@@ -33,7 +33,7 @@ flowchart TD
     FILTER -- "Hỏi đáp du lịch / Gợi ý món ăn" --> QA["AI Assistant Mode (type='AGENT_QA')<br/>• Giải đáp thời tiết, văn hóa, kinh nghiệm<br/>• Gợi ý đặc sản & món ăn trong quán<br/>• Trả lời trực tiếp vào Chat (Không đổi Plan)"]
     FILTER -- "Lệnh lập/đổi lịch trình" --> CORE_CHECK{"Đã đủ Location & Date?"}
     CORE_CHECK -- "Thiếu thông tin cốt lõi" --> REJECT["Nhắc người dùng bổ sung Điểm đến & Ngày đi<br/>(Chặn gọi LLM tốn kém)"]
-    CORE_CHECK -- "Đầy đủ thông tin cốt lõi" --> WORKER["Kích hoạt LangGraph AI Worker<br/>(type='AGENT_TRIGGER')<br/>Chạy Two-Phase Planning State Machine"]
+    CORE_CHECK -- "Đầy đủ thông tin cốt lõi" --> WORKER["Kích hoạt AI Agent Worker (OpenAI SDK)<br/>(type='AGENT_TRIGGER')<br/>Chạy Two-Phase Planning State Machine"]
 
     style MSG fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
     style CHAT fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px;
@@ -45,18 +45,18 @@ flowchart TD
 ---
 
 ### 1.1. Kiến Trúc Hai Pha Trạng Thái (Two-Phase State Execution)
-Thay vì chia nhỏ thành nhiều sub-agent phân mảnh gây nghẽn độ trễ (latency bottleneck) và khó kiểm thử, TripMate AI ứng dụng **một Agent hợp nhất duy nhất chạy DeepSeek-V4 trên LangGraph Python**, hoạt động qua 2 pha trạng thái tách biệt:
+Thay vì chia nhỏ thành nhiều sub-agent phân mảnh gây nghẽn độ trễ (latency bottleneck) và khó kiểm thử, TripMate AI ứng dụng **một Agent hợp nhất duy nhất chạy DeepSeek-V4 trên Python AsyncIO + OpenAI Python SDK (`AsyncOpenAI`)**, hoạt động qua 2 pha trạng thái tách biệt:
 
 ```mermaid
 flowchart TD
     subgraph Row1 ["Pha 1: Lập Kế Hoạch Vĩ Mô (Macro Planning)"]
         IN["Ngữ Cảnh Phòng Chat Đã Qua Lọc<br/>• Điểm đến, Khung ngày, Ngân sách, Thành viên"]
         MACRO["Phase 1: Macro Planning State<br/>• Đề xuất số ngày, chủ đề từng buổi, nhịp độ<br/>• KHÔNG gọi API ngoài tốn phí"]
-        LLM["Model Abstraction Layer<br/>• Động cơ chính: DeepSeek-V4<br/>• Fallback trong suốt: GPT-4o / Claude / Gemini"]
+        LLM["Model Abstraction Layer (AsyncOpenAI)<br/>• Động cơ chính: DeepSeek-V4<br/>• Fallback trong suốt: GPT-4o / Gemini"]
     end
 
     subgraph Row2 ["Pha 2: Tuyển Chọn Chi Tiết & Tích Hợp (Micro Curation)"]
-        STATE["PostgreSQL Checkpoints<br/>• Typed AgentState qua DAL<br/>• AsyncPostgresSaver"]
+        STATE["PostgreSQL Checkpoints<br/>• Typed AgentState qua DAL<br/>• SQLAlchemy Async JSONB (checkpoints.agent_checkpoints)"]
         MICRO["Phase 2: Micro Curation State<br/>• Tra cứu Maps, Search & Khách sạn đa nguồn<br/>• Gom cụm địa lý bán kính 2-3km<br/>• Tuyển chọn pool ứng viên đạt chuẩn cho từng trạm<br/>• Gợi ý món ăn trong quán theo sở thích nhóm"]
         TOOLS["Resilient Travel APIs & DB (PyBreaker 2.5s)<br/>• Google Maps, Google Search, Google Hotels<br/>• TripAdvisor, Airbnb, Trip.com, Hotels.com<br/>• Trivago, Expedia, Klook, 12Go Asia"]
     end
@@ -79,6 +79,10 @@ flowchart TD
 #### Chi tiết 2 pha:
 - **Phase 1 — Macro Planning State (Trạng Thái Lập Kế Hoạch Vĩ Mô)**: Đề xuất ngày đi, nhịp độ và chủ đề cho từng buổi sáng/chiều/tối dựa trên mong muốn của nhóm. Tuyệt đối không gọi các API du lịch bên ngoài, tiết kiệm token và chi phí. Độ trễ: $6$--$12$\,giây.
 - **Phase 2 — Micro Curation State (Trạng Thái Tuyển Chọn Chi Tiết & Món Ăn)**: Kích hoạt sau khi Host bấm Khóa Lộ Trình Vĩ Mô (Macro Consensus). Thực thi các lệnh gọi công cụ ngoài qua PyBreaker, áp dụng thuật toán gom cụm Haversine ($\le 2.5$\,km), chuẩn bị sẵn danh sách **các ứng viên có mức độ phù hợp đạt chuẩn** cùng lúc cho mỗi trạm dừng, và sinh danh sách gợi ý món ăn cụ thể tại quán (`recommended_dishes`). Độ trễ: $10$--$20$\,giây.
+- **Triển khai mã nguồn (`backend/app/ai_agents/`)**:
+  - `model_abstraction.py`: `LLMModelAbstraction` bọc `openai.AsyncOpenAI` (DeepSeek primary, fallback GPT-4o / Gemini), quản lý `LlmRequest` / `LlmResponse` và ghi nhận token/latency từ `response.usage`.
+  - `tools.py`: `BaseTool`, `FunctionTool` và decorator `@tool` tự sinh JSON Schema (hỗ trợ `Optional[T]` và nested Pydantic `$defs`).
+  - `state_machine.py`: `TwoPhaseStateMachine` điều phối Phase 1 (`tools=[]`) và Phase 2 (`think -> act` loop) dựa trên `macro_locked` / `final_locked` (Human-in-the-Loop, không bao giờ tự khóa), giới hạn tối đa `AI_MAX_STEPS_PER_SESSION = 15`.
 
 ---
 
@@ -125,30 +129,65 @@ flowchart LR
 
 ## 🔄 3. Lớp Trừu Tượng Hóa Mô Hình (Model Abstraction Layer)
 
-Để loại bỏ rủi ro phụ thuộc vào một nhà cung cấp duy nhất (Vendor Lock-in), toàn bộ logic gọi AI đều đi qua lớp trừu tượng hóa:
+Để loại bỏ rủi ro phụ thuộc vào một nhà cung cấp duy nhất (Vendor Lock-in) và tránh các lớp bọc "hộp đen" nặng bộ nhớ, toàn bộ logic gọi AI đều sử dụng trực tiếp **`openai.AsyncOpenAI`** thông qua lớp trừu tượng hóa hoán đổi `base_url` và `api_key`, đồng thời ghi nhận trực tiếp `response.usage` vào bảng `core.agent_logs`:
 
 ```python
+from openai import APIConnectionError, APITimeoutError, AsyncOpenAI, RateLimitError
+
 class LLMModelAbstraction:
-    """Lớp trừu tượng hóa mô hình ngôn ngữ lớn hỗ trợ fallback tự động."""
-    
-    PRIMARY_MODEL = "deepseek-v4"
-    FALLBACK_MODELS = ["gpt-4o", "claude-3-5-sonnet", "gemini-1.5-pro"]
-    
-    async def generate_response(self, messages: list[dict], tools: list[dict] = None):
-        try:
-            # 1. Ưu tiên gọi DeepSeek-V4
-            return await self._call_deepseek_v4(messages, tools)
-        except (RateLimitException, APITimeoutException, ServiceUnavailableException) as exc:
-            logger.warning(f"DeepSeek-V4 gặp sự cố ({exc}). Kích hoạt fallback...")
-            # 2. Tự động chuyển luồng sang GPT-4o / Claude / Gemini
-            return await self._call_fallback_llm(messages, tools)
+    """Lớp trừu tượng hóa LLM thuần OpenAI SDK hỗ trợ fallback đa nhà cung cấp."""
+
+    PROVIDERS = [
+        {
+            "name": "deepseek",
+            "model": "deepseek-v4",
+            "base_url": "https://api.deepseek.com/v1",
+            "api_key_env": "DEEPSEEK_API_KEY",
+        },
+        {
+            "name": "openai",
+            "model": "gpt-4o",
+            "base_url": None,  # Default OpenAI endpoint
+            "api_key_env": "OPENAI_API_KEY",
+        },
+        {
+            "name": "gemini",
+            "model": "gemini-1.5-pro",
+            "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+            "api_key_env": "GOOGLE_API_KEY",
+        },
+    ]
+
+    async def generate_response(
+        self,
+        messages: list[dict],
+        tools: list[dict] | None = None,
+        response_format: dict | None = None,
+    ):
+        for provider in self.PROVIDERS:
+            client = AsyncOpenAI(
+                api_key=self._get_key(provider["api_key_env"]),
+                base_url=provider["base_url"],
+            )
+            try:
+                response = await client.chat.completions.create(
+                    model=provider["model"],
+                    messages=messages,
+                    tools=tools,
+                    response_format=response_format,
+                )
+                # Ghi nhận trực tiếp response.usage (prompt_tokens, completion_tokens) vào AgentLog
+                return response
+            except (RateLimitError, APITimeoutError, APIConnectionError) as exc:
+                logger.warning(f"{provider['model']} gặp sự cố ({exc}). Chuyển sang fallback...")
+        raise AllProvidersFailedError("Không thể kết nối tới bất kỳ nhà cung cấp LLM nào.")
 ```
 
 ---
 
 ## 💾 4. Quản Lý Trạng Thái & Checkpoint (Typed State Persistence)
 
-Trạng thái của LangGraph được định nghĩa chặt chẽ bằng Pydantic `TypedDict` và lưu trữ bền bỉ trong schema `checkpoints` của Supabase PostgreSQL thông qua `AsyncPostgresSaver`:
+Trạng thái của Two-Phase State Machine được định nghĩa chặt chẽ bằng Pydantic / `TypedDict` (`AgentState`) và lưu trữ bền bỉ dưới dạng JSONB snapshot trong bảng `checkpoints.agent_checkpoints` của Supabase PostgreSQL thông qua SQLAlchemy 2.0 Async DAL (`backend/app/ai_agents/dal.py`), tương thích hoàn toàn với Supavisor Pooler port 6543 (Transaction Mode):
 
 ```python
 from typing import TypedDict, Optional, List
@@ -231,7 +270,7 @@ class AgentState(TypedDict):
 ```
 
 ### Cơ chế khôi phục phiên tự động (Fault Recovery):
-- Mỗi khi người dùng chat hoặc vote, `AsyncPostgresSaver` ghi nhận checkpoint mới nhất gắn liền với `event_id`.
+- Tại mỗi bước chuyển pha hoặc sau mỗi sự kiện chat/vote, `AgentCheckpointDAL` ghi nhận snapshot JSONB mới nhất của `AgentState` gắn liền với `event_id` vào bảng `checkpoints.agent_checkpoints`.
 - Nếu container AI Worker trên Render bị restart hoặc đứt kết nối mạng giữa chừng, tiến trình worker mới chỉ cần đọc checkpoint từ PostgreSQL qua Data Access Layer (DAL) là có thể tiếp tục xử lý chính xác tác vụ mà không làm mất bất kỳ dữ liệu nào của phòng.
 
 ---
@@ -503,7 +542,7 @@ flowchart LR
     NOISE -- "Tán gẫu / Spam" --> LOG["Lưu Chat thường<br/>Không gọi AI Agent"]
     NOISE -- "Yêu cầu Lập Kế Hoạch" --> CORE{"2. Kiểm Tra Thông Tin Cốt Lõi<br/>(Core Parameters Validator)"}
     CORE -- "Thiếu Location hoặc Date" --> PROMPT["Yêu cầu bổ sung Điểm đến & Khung ngày<br/>(Chặn gọi LLM)"}
-    CORE -- "Đầy đủ Location & Date" --> ENRICH["Chuẩn hóa Input Context<br/>Đưa vào LangGraph AI Worker"]
+    CORE -- "Đầy đủ Location & Date" --> ENRICH["Chuẩn hóa Input Context<br/>Đưa vào AI Agent Worker (OpenAI SDK)"]
 
     style RAW fill:#f7f9fc,stroke:#12305c,stroke-width:1.5px;
     style NOISE fill:#fff3e0,stroke:#f57c00,stroke-width:1.5px;
