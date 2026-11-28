@@ -22,3 +22,13 @@ def test_weather_settings_default():
     assert s.OPEN_METEO_BASE_URL == "https://api.open-meteo.com/v1"
     assert s.WEATHER_API_TIMEOUT == 3.0
     assert s.WEATHER_CACHE_TTL == 10800
+
+
+def test_ai_provider_settings_default():
+    s = Settings(_env_file=None)
+    assert s.DEEPSEEK_BASE_URL == "https://api.deepseek.com/v1"
+    assert s.GEMINI_BASE_URL == "https://generativelanguage.googleapis.com/v1beta/openai/"
+    assert s.OPENAI_MODEL_FALLBACK == "gpt-4o"
+    assert s.GEMINI_MODEL_FALLBACK == "gemini-1.5-pro"
+    assert s.AI_MAX_STEPS_PER_SESSION == 15
+    assert s.AI_REQUEST_TIMEOUT == 30.0
