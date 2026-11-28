@@ -13,11 +13,11 @@
 | Sprint | Số Tasks | Phụ trách | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|:---:|
 | **Sprint 0** | 1 Task | Nguyễn Tùng Dương & Tạ Quang Huy | 1/1 | ✅ Done |
-| **Sprint 1** | 2 Tasks | Nguyễn Tùng Dương | 1/2 | 🟡 In Progress |
+| **Sprint 1** | 2 Tasks | Nguyễn Tùng Dương | 2/2 | ✅ Done |
 | **Sprint 2** | 3 Tasks | Nguyễn Tùng Dương | 0/3 | 🔲 To Do |
 | **Sprint 3** | 3 Tasks | Nguyễn Tùng Dương & Tạ Quang Huy | 0/3 | 🔲 To Do |
 | **Sprint 4** | 2 Tasks | Nguyễn Tùng Dương & Tạ Quang Huy | 0/2 | 🔲 To Do |
-| **Tổng cộng** | **11 Tasks** | 2 Thành viên | 2/11 | 🟡 In Progress |
+| **Tổng cộng** | **11 Tasks** | 2 Thành viên | 3/11 | 🟡 In Progress |
 
 ---
 
@@ -31,9 +31,9 @@
   - **Docs & Tracking**: Cập nhật `docs/03-architecture/ai-agent-architecture.md` + tick `[x]`.
 
 ### Sprint 1 — Two-Phase State Machine & Model Abstraction Layer
-- [ ] **`TASK-109`** `[AI - Nguyễn Tùng Dương]` **Two-Phase State Machine Skeleton (Pure OpenAI SDK)**
+- [x] **`TASK-109`** `[AI - Nguyễn Tùng Dương]` **Two-Phase State Machine Skeleton (Pure OpenAI SDK)** *(Branch: `feature/TASK-109-state-machine` - 28/11/2026)*
   - **Feature**: #17
-  - **Target Files**: `backend/app/ai_agents/state_machine.py`
+  - **Target Files**: `backend/app/ai_agents/state_machine.py`, `backend/app/ai_agents/tools.py`
   - **Acceptance Criteria**: Xây dựng máy trạng thái 2 pha thuần Python AsyncIO + OpenAI SDK (`AsyncOpenAI`) gồm Phase 1 Macro State và Phase 2 Micro State, kiểm soát chuyển pha dựa trên cờ `macro_locked`, giới hạn tối đa `AI_MAX_STEPS_PER_SESSION = 15` bước.
   - **Docs & Tracking**: Cập nhật `ai-agent-architecture.md` + tick `[x]`.
 - [x] **`TASK-110`** `[AI - Nguyễn Tùng Dương]` **DeepSeek-V4 Provider & Model Abstraction Layer** *(Branch: `feature/TASK-110-model-abstraction` - 28/11/2026)*

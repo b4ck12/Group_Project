@@ -19,15 +19,20 @@ from app.ai_agents.state import (
     PlaceStopDTO,
     TransitInfoDTO,
 )
+from app.ai_agents.state_machine import AgentExecutionResult, TwoPhaseStateMachine
+from app.ai_agents.tools import BaseTool, FunctionTool, tool
 
 __all__ = [
     "AgentEvent",
+    "AgentExecutionResult",
     "AgentMessageDTO",
     "AgentPhase",
     "AgentState",
     "AllProvidersFailedError",
+    "BaseTool",
     "BudgetBreakdownDTO",
     "DailyThemeDTO",
+    "FunctionTool",
     "LLMModelAbstraction",
     "LLMProviderConfig",
     "LlmRequest",
@@ -37,4 +42,6 @@ __all__ = [
     "ToolCall",
     "ToolResult",
     "TransitInfoDTO",
+    "TwoPhaseStateMachine",
+    "tool",
 ]

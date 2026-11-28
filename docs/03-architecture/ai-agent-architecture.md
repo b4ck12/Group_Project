@@ -79,6 +79,10 @@ flowchart TD
 #### Chi tiết 2 pha:
 - **Phase 1 — Macro Planning State (Trạng Thái Lập Kế Hoạch Vĩ Mô)**: Đề xuất ngày đi, nhịp độ và chủ đề cho từng buổi sáng/chiều/tối dựa trên mong muốn của nhóm. Tuyệt đối không gọi các API du lịch bên ngoài, tiết kiệm token và chi phí. Độ trễ: $6$--$12$\,giây.
 - **Phase 2 — Micro Curation State (Trạng Thái Tuyển Chọn Chi Tiết & Món Ăn)**: Kích hoạt sau khi Host bấm Khóa Lộ Trình Vĩ Mô (Macro Consensus). Thực thi các lệnh gọi công cụ ngoài qua PyBreaker, áp dụng thuật toán gom cụm Haversine ($\le 2.5$\,km), chuẩn bị sẵn danh sách **các ứng viên có mức độ phù hợp đạt chuẩn** cùng lúc cho mỗi trạm dừng, và sinh danh sách gợi ý món ăn cụ thể tại quán (`recommended_dishes`). Độ trễ: $10$--$20$\,giây.
+- **Triển khai mã nguồn (`backend/app/ai_agents/`)**:
+  - `model_abstraction.py`: `LLMModelAbstraction` bọc `openai.AsyncOpenAI` (DeepSeek primary, fallback GPT-4o / Gemini), quản lý `LlmRequest` / `LlmResponse` và ghi nhận token/latency từ `response.usage`.
+  - `tools.py`: `BaseTool`, `FunctionTool` và decorator `@tool` tự sinh JSON Schema (hỗ trợ `Optional[T]` và nested Pydantic `$defs`).
+  - `state_machine.py`: `TwoPhaseStateMachine` điều phối Phase 1 (`tools=[]`) và Phase 2 (`think -> act` loop) dựa trên `macro_locked` / `final_locked` (Human-in-the-Loop, không bao giờ tự khóa), giới hạn tối đa `AI_MAX_STEPS_PER_SESSION = 15`.
 
 ---
 
