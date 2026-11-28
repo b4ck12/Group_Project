@@ -129,9 +129,9 @@ feature/TASK-004-msw-core-mocks
   - **Acceptance Criteria**: Truy vấn Google Places API New bằng `httpx.AsyncClient` bọc trong `PyBreaker` (timeout 2.5s).
 
 ### 1.3 AI Agent Two-Phase State Machine Baseline
-- [ ] **TASK-109** `[AI]` **Two-Phase State Machine Skeleton (Pure OpenAI SDK)**
+- [x] **TASK-109** `[AI]` **Two-Phase State Machine Skeleton (Pure OpenAI SDK)** *(Branch: `feature/TASK-109-state-machine`)*
   - **Feature**: #17
-  - **Target Files**: `backend/app/ai_agents/state_machine.py`
+  - **Target Files**: `backend/app/ai_agents/state_machine.py`, `backend/app/ai_agents/tools.py`
   - **Acceptance Criteria**: Xây dựng máy trạng thái thuần Python AsyncIO + OpenAI SDK (`AsyncOpenAI`) gồm 2 pha (Phase 1 Macro State và Phase 2 Micro State), kiểm soát chuyển pha dựa trên cờ `macro_locked`, giới hạn `AI_MAX_STEPS_PER_SESSION = 15`.
 - [x] **TASK-110** `[AI]` **DeepSeek-V4 Provider & Model Abstraction Layer** *(Branch: `feature/TASK-110-model-abstraction`)*
   - **Feature**: #18
