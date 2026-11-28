@@ -46,7 +46,7 @@
   - **Mục tiêu**: Tạo khung các Router trả về `501 Not Implemented` khớp chuẩn OpenAPI spec.
   - **Target Files**: `backend/app/api/v1/` (`auth.py`, `events.py`, `chat.py`, `plans.py`, `votes.py`, `places.py`, `export.py`, `admin.py`)
   - **Acceptance Criteria**: Swagger hiển thị đầy đủ schema tại `http://localhost:8000/docs`, Pydantic DTOs khớp hợp đồng giao diện.
-- [ ] **TASK-003** `[AI]` **Agent State Schema & Fixture Data Definition**
+- [x] **TASK-003** `[AI]` **Agent State Schema & Fixture Data Definition**
   - **Mục tiêu**: Định nghĩa `AgentState` cho 2 pha thực thi và tạo dữ liệu giả lập để test Two-Phase State Machine.
   - **Target Files**: `backend/app/ai_agents/state.py`, `backend/app/ai_agents/fixtures/` (`mock_places.json`, `mock_roadmaps.json`)
 feature/TASK-004-msw-core-mocks
@@ -133,7 +133,7 @@ feature/TASK-004-msw-core-mocks
   - **Feature**: #17
   - **Target Files**: `backend/app/ai_agents/state_machine.py`
   - **Acceptance Criteria**: Xây dựng máy trạng thái thuần Python AsyncIO + OpenAI SDK (`AsyncOpenAI`) gồm 2 pha (Phase 1 Macro State và Phase 2 Micro State), kiểm soát chuyển pha dựa trên cờ `macro_locked`, giới hạn `AI_MAX_STEPS_PER_SESSION = 15`.
-- [ ] **TASK-110** `[AI]` **DeepSeek-V4 Provider & Model Abstraction Layer**
+- [x] **TASK-110** `[AI]` **DeepSeek-V4 Provider & Model Abstraction Layer** *(Branch: `feature/TASK-110-model-abstraction`)*
   - **Feature**: #18
   - **Target Files**: `backend/app/ai_agents/model_abstraction.py`
   - **Acceptance Criteria**: Gọi mô hình chính `deepseek-v4`, tích hợp cơ chế tự động fallback sang GPT-4o / Claude khi DeepSeek gặp lỗi.

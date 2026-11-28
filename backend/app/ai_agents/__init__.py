@@ -1,4 +1,15 @@
 
+from app.ai_agents.model_abstraction import (
+    AgentEvent,
+    AllProvidersFailedError,
+    LLMModelAbstraction,
+    LLMProviderConfig,
+    LlmRequest,
+    LlmResponse,
+    Message,
+    ToolCall,
+    ToolResult,
+)
 from app.ai_agents.state import (
     AgentMessageDTO,
     AgentPhase,
@@ -10,11 +21,20 @@ from app.ai_agents.state import (
 )
 
 __all__ = [
+    "AgentEvent",
     "AgentMessageDTO",
     "AgentPhase",
     "AgentState",
+    "AllProvidersFailedError",
     "BudgetBreakdownDTO",
     "DailyThemeDTO",
+    "LLMModelAbstraction",
+    "LLMProviderConfig",
+    "LlmRequest",
+    "LlmResponse",
+    "Message",
     "PlaceStopDTO",
+    "ToolCall",
+    "ToolResult",
     "TransitInfoDTO",
 ]
