@@ -82,7 +82,7 @@
   - **Target Files**: `backend/app/api/v1/utils.py`, `backend/app/services/weather_service.py`
   - **Acceptance Criteria**: `GET /weather?lat=&lng=` trả về thông tin nhiệt độ và cảnh báo mưa; cache 3 giờ trên Redis.
   - **Docs & Tracking**: Cập nhật `api-design-guide.md` + tick `[x]`.
-- [ ] **`TASK-208`** `[BE-Platform - Hà Đăng Huy]` **Currency Converter API & Redis TTL Store**
+- [x] **`TASK-208`** `[BE-Platform - Hà Đăng Huy]` **Currency Converter API & Redis TTL Store**
   - **Feature**: #28
   - **Target Files**: `backend/app/api/v1/utils.py`, `backend/app/services/currency_service.py`
   - **Acceptance Criteria**: `GET /exchange-rate` trả về tỷ giá hối đoái cho các chuyến đi ASEAN; cache 12 giờ.

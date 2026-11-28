@@ -68,6 +68,10 @@ class Settings(BaseSettings):
     WEATHER_API_TIMEOUT: float = 3.0
     WEATHER_CACHE_TTL: int = 10800  # 3 giờ cho Weather L2 Cache (TASK-207)
     EXCHANGE_RATE_API_KEY: str = ""
+    EXCHANGE_RATE_API_BASE_URL: str = "https://v6.exchangerate-api.com/v6"
+    EXCHANGE_RATE_OPEN_BASE_URL: str = "https://open.er-api.com/v6"
+    CURRENCY_API_TIMEOUT: float = 3.0
+    CURRENCY_CACHE_TTL: int = 43200  # 12 giờ cho Currency L2 Cache (TASK-208)
 
     # --- Email & SMTP ---
     SMTP_HOST: str = "smtp.gmail.com"

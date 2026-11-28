@@ -83,6 +83,11 @@ from .weather import (
     WeatherAlert,
     WeatherResponse,
 )
+from .currency import (
+    ASEAN_CURRENCIES,
+    CurrencyConversion,
+    ExchangeRateResponse,
+)
 
 __all__ = [
     # Event
@@ -161,4 +166,8 @@ __all__ = [
     "DailyForecastItem",
     "WeatherAlert",
     "WeatherResponse",
+    # Currency (TASK-208)
+    "ASEAN_CURRENCIES",
+    "CurrencyConversion",
+    "ExchangeRateResponse",
 ]

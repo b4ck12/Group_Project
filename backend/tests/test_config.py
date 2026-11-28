@@ -24,6 +24,12 @@ def test_weather_settings_default():
     assert s.WEATHER_CACHE_TTL == 10800
 
 
+def test_currency_settings_default():
+    s = Settings()
+    assert s.EXCHANGE_RATE_API_BASE_URL == "https://v6.exchangerate-api.com/v6"
+    assert s.EXCHANGE_RATE_OPEN_BASE_URL == "https://open.er-api.com/v6"
+    assert s.CURRENCY_API_TIMEOUT == 3.0
+    assert s.CURRENCY_CACHE_TTL == 43200
 def test_ai_provider_settings_default():
     s = Settings(_env_file=None)
     assert s.DEEPSEEK_BASE_URL == "https://api.deepseek.com/v1"

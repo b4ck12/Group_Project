@@ -535,3 +535,40 @@
 - **Error Responses**:
   - `422 Unprocessable Entity`: Invalid `lat`, `lng`, or `days` query parameter.
   - `503 Service Unavailable`: `Weather provider temporarily unavailable: ...` (circuit breaker open or upstream timeout/HTTP error).
+
+
+### 3.11. `GET /api/v1/exchange-rate` (ASEAN Currency Converter & 12h Redis Cache - TASK-208)
+- **Endpoint**: `GET /api/v1/exchange-rate`
+- **Query Parameters**:
+  - `base` (string, optional, default `"VND"`, 3-letter ISO-4217 code matching `^[A-Za-z]{3}$`)
+  - `target` (string, optional, 3-letter ISO-4217 code matching `^[A-Za-z]{3}$`)
+  - `amount` (float, optional, `> 0`, positive amount in `base` currency to convert into `target`)
+  - `include_all` (bool, optional, default `false`; when `target` is omitted, returns all global currencies instead of curated ASEAN + `USD`)
+- **Behavior**:
+  - Zero-cost 3-tier adapter: Tier 1 optional `custom_rates_fn` scraper hook (falls back on error), Tier 2 ExchangeRate-API v6 (`v6.exchangerate-api.com/v6/{key}/latest/{base}`, when `EXCHANGE_RATE_API_KEY` is configured), Tier 3 Open ExchangeRate-API (`open.er-api.com/v6/latest/{base}`, free keyless live forex rates covering all 10 ASEAN currencies: `VND`, `THB`, `SGD`, `MYR`, `IDR`, `PHP`, `KHR`, `LAK`, `MMK`, `BND`, plus `USD`).
+  - Caches base-currency rate tables for **12 hours (`43200s`)** in Upstash Redis (`exchange_rates` prefix), allowing different `target`/`amount` queries for the same `base` to share one cache key.
+  - Uses `decimal.Decimal` (`ROUND_HALF_UP`) for `converted_amount` and is protected by isolated `currency_circuit_breaker` (`PyBreaker`).
+- **Response `200 OK` (sample with conversion)**:
+  ```json
+  {
+    "base_currency": "VND",
+    "provider": "open_er_api",
+    "updated_at": "Fri, 20 Nov 2026 00:02:31 +0000",
+    "rates": {
+      "THB": 0.00135
+    },
+    "conversion": {
+      "from_currency": "VND",
+      "to_currency": "THB",
+      "amount": 1000000.0,
+      "rate": 0.00135,
+      "converted_amount": 1350.0
+    },
+    "asean_only": true,
+    "is_live_data": true
+  }
+  ```
+- **Error Responses**:
+  - `400 Bad Request`: Unsupported currency code (e.g., `ZZZ` not returned by provider).
+  - `422 Unprocessable Entity`: Invalid 3-letter ISO currency code format or non-positive `amount <= 0`.
+  - `503 Service Unavailable`: `Currency provider temporarily unavailable: ...` (circuit breaker open or upstream timeout/HTTP error).

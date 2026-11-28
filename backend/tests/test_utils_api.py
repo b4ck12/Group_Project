@@ -9,6 +9,8 @@ from app.schemas.weather import (
     WeatherAlert,
     WeatherResponse,
 )
+from app.schemas.currency import CurrencyConversion, ExchangeRateResponse
+from app.services.currency_service import UnsupportedCurrencyError
 
 client = TestClient(app)
 
@@ -78,3 +80,64 @@ def test_get_weather_endpoint_503_when_circuit_breaker_open():
 
     assert resp.status_code == 503
     assert "Weather provider temporarily unavailable" in resp.json()["detail"]
+
+
+def test_get_exchange_rate_endpoint_200_asean_and_conversion():
+    mock_response = ExchangeRateResponse(
+        base_currency="VND",
+        provider="open_er_api",
+        updated_at="Fri, 20 Nov 2026 00:02:31 +0000",
+        rates={"THB": 0.00135},
+        conversion=CurrencyConversion(
+            from_currency="VND",
+            to_currency="THB",
+            amount=1000000.0,
+            rate=0.00135,
+            converted_amount=1350.0,
+        ),
+        asean_only=True,
+        is_live_data=True,
+    )
+
+    with patch(
+        "app.api.v1.utils.currency_service.get_exchange_rates",
+        new=AsyncMock(return_value=mock_response),
+    ):
+        resp = client.get("/api/v1/exchange-rate?base=VND&target=THB&amount=1000000")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["base_currency"] == "VND"
+    assert body["provider"] == "open_er_api"
+    assert body["rates"]["THB"] == 0.00135
+    assert body["conversion"]["converted_amount"] == 1350.0
+
+
+def test_get_exchange_rate_endpoint_400_on_unsupported_currency():
+    with patch(
+        "app.api.v1.utils.currency_service.get_exchange_rates",
+        new=AsyncMock(side_effect=UnsupportedCurrencyError("Target currency 'ZZZ' is not supported")),
+    ):
+        resp = client.get("/api/v1/exchange-rate?base=VND&target=ZZZ")
+
+    assert resp.status_code == 400
+    assert "not supported" in resp.json()["detail"]
+
+
+def test_get_exchange_rate_endpoint_422_on_invalid_params():
+    resp_code = client.get("/api/v1/exchange-rate?base=VN1")
+    assert resp_code.status_code == 422
+
+    resp_amount = client.get("/api/v1/exchange-rate?base=VND&target=THB&amount=-50")
+    assert resp_amount.status_code == 422
+
+
+def test_get_exchange_rate_endpoint_503_when_circuit_breaker_open():
+    with patch(
+        "app.api.v1.utils.currency_service.get_exchange_rates",
+        new=AsyncMock(side_effect=pybreaker.CircuitBreakerError("Currency circuit open")),
+    ):
+        resp = client.get("/api/v1/exchange-rate?base=VND")
+
+    assert resp.status_code == 503
+    assert "Currency provider temporarily unavailable" in resp.json()["detail"]
