@@ -12,19 +12,19 @@
 
 | Sprint | Số Tasks | Phụ trách | Đã hoàn thành | Trạng thái |
 |:---:|:---:|:---:|:---:|:---:|
-| **Sprint 0** | 1 Task | Nguyễn Tùng Dương & Tạ Quang Huy | 0/1 | 🔲 To Do |
-| **Sprint 1** | 2 Tasks | Nguyễn Tùng Dương | 0/2 | 🔲 To Do |
+| **Sprint 0** | 1 Task | Nguyễn Tùng Dương & Tạ Quang Huy | 1/1 | ✅ Done |
+| **Sprint 1** | 2 Tasks | Nguyễn Tùng Dương | 1/2 | 🟡 In Progress |
 | **Sprint 2** | 3 Tasks | Nguyễn Tùng Dương | 0/3 | 🔲 To Do |
 | **Sprint 3** | 3 Tasks | Nguyễn Tùng Dương & Tạ Quang Huy | 0/3 | 🔲 To Do |
 | **Sprint 4** | 2 Tasks | Nguyễn Tùng Dương & Tạ Quang Huy | 0/2 | 🔲 To Do |
-| **Tổng cộng** | **11 Tasks** | 2 Thành viên | 0/11 | 🔲 Sẵn sàng bắt tay vào làm |
+| **Tổng cộng** | **11 Tasks** | 2 Thành viên | 2/11 | 🟡 In Progress |
 
 ---
 
 ## 🛠️ Detailed Sprint Backlog
 
 ### Sprint 0 — State Schema & Fixture Data Definition
-- [ ] **`TASK-003`** `[AI - Nguyễn Tùng Dương & Tạ Quang Huy]` **Agent State Schema & Fixture Data Definition**
+- [x] **`TASK-003`** `[AI - Nguyễn Tùng Dương & Tạ Quang Huy]` **Agent State Schema & Fixture Data Definition**
   - **Feature**: #17
   - **Target Files**: `backend/app/ai_agents/state.py`, `backend/app/ai_agents/fixtures/` (`mock_places.json`, `mock_roadmaps.json`)
   - **Acceptance Criteria**: Định nghĩa Pydantic `AgentState` chứa `phase`, `macro_locked`, `final_locked`, `budget_tier`, `transit_info` (vé máy bay/tàu liên tỉnh khứ hồi), `budget_breakdown` (bóc tách vé máy bay và Land Budget 5 nhóm phí), `running_cost`, `daily_themes`, `plan_stops` (gồm `price_level`, `estimated_cost`, `cost_per_person`), `backup_options`. Dữ liệu mock fixtures validate pass 100% với DB models.
@@ -36,7 +36,7 @@
   - **Target Files**: `backend/app/ai_agents/state_machine.py`
   - **Acceptance Criteria**: Xây dựng máy trạng thái 2 pha thuần Python AsyncIO + OpenAI SDK (`AsyncOpenAI`) gồm Phase 1 Macro State và Phase 2 Micro State, kiểm soát chuyển pha dựa trên cờ `macro_locked`, giới hạn tối đa `AI_MAX_STEPS_PER_SESSION = 15` bước.
   - **Docs & Tracking**: Cập nhật `ai-agent-architecture.md` + tick `[x]`.
-- [ ] **`TASK-110`** `[AI - Nguyễn Tùng Dương]` **DeepSeek-V4 Provider & Model Abstraction Layer**
+- [x] **`TASK-110`** `[AI - Nguyễn Tùng Dương]` **DeepSeek-V4 Provider & Model Abstraction Layer** *(Branch: `feature/TASK-110-model-abstraction` - 28/11/2026)*
   - **Feature**: #18
   - **Target Files**: `backend/app/ai_agents/model_abstraction.py`
   - **Acceptance Criteria**: Dùng client `openai.AsyncOpenAI` gọi mô hình chính `deepseek-v4` (`base_url=https://api.deepseek.com/v1`), tích hợp cơ chế tự động fallback trong suốt sang OpenAI GPT-4o hoặc Google Gemini OpenAI-compatible endpoint qua hoán đổi `base_url` khi DeepSeek gặp lỗi.
